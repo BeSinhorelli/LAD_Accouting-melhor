@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <h2>Cadastrar cluster</h2>
+
+  <!--<form action="{{ url_for('cadastroCluster') }}" method=post>
+    <dl>
+      <dt>Nome do cluster:
+      <dd><input type=text name=cluster_name placeholder="Nome do cluster">
+      <dd><input type=submit value='Cadastrar cluster'>
+    </dl>
+  </form>-->
+
+  <!-- Formulário com bootstrap -->
+
+  <form action="{{ url_for('cadastroCluster') }}" method=post>
+    <div class="mb-3">
+      <label class="form-label">Nome</label>
+      <input type="text" class="mb-3 form-control" id="exampleInputEmail1" name=cluster_name>
+      <label class="form-label">Descrição</label>
+      <textarea class="form-control" id="exampleFormControlTextarea1" name=description rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Cadastrar</button>
+  </form>
+  
+{% endblock %}
