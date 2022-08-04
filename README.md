@@ -8,7 +8,8 @@ Sistema de accounting do LAD
 - [Flask](https://flask.palletsprojects.com/en/2.2.x/)
 - [Peewee](https://docs.peewee-orm.com/en/latest/peewee/installation.html)
 
-##### Outras ferramentas e exemplos:
+#### Outras ferramentas e exemplos:
 - [Bootstrap](https://getbootstrap.com/docs/5.2/getting-started/introduction/)
 - [Dash](https://dash.plotly.com/)
-- [exemplo de sistema com Peewee e Flask](https://docs.peewee-orm.com/en/latest/peewee/example.html)
+- [Jinja](https://jinja.palletsprojects.com/en/3.1.x/templates/)
+- [exemplo de aplicação com Peewee e Flask](https://docs.peewee-orm.com/en/latest/peewee/example.html)
