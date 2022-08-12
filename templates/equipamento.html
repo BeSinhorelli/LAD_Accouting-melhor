@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block body %}
+    {% if equipamento %}
+        <h2>Editar {{ equipamento.hostname }}</h2>
+    {% else %}
+        <h2>Cadastrar equipamento</h2>
+    {% endif %}    
+        <form autocomplete="off" action="{% if equipamento %} {{ url_for('equipamento', equipName=equipamento.hostname) }} {% else %} {{ url_for('equipamento', equipName='cadastro') }} {% endif %}" method=post>
+          <div class="mb-3">
+           <!-- Cluster -->
+            <label class="form-label">Cluster</label>
+            <select class="mb-3 form-select" aria-label="Default select example" name="equip_cluster_name">
+                <option selected></option>
+                {% for cluster in lista_cluster %}
+                <option value="{{ cluster.name }}">{{ cluster.name }}</option>
+                {% endfor %}
+            </select>
+            <!--<input type="text" class="mb-3 form-control" id="exampleInputEmail1" name=equip_cluster_name placeholder="Selecionar cluster...">-->
+            <!-- Hostname -->
+            <label class="form-label">Equipamento</label>
+            <input type="text" class="mb-3 form-control" name=hostname value="{% if equipamento %}{{ equipamento.hostname }}{% endif %}">
+            <!-- Marca/Modelo -->
+            <label class="form-label">Marca/Modelo</label>
+            <input class="mb-3 form-control" list="modelos" name="modelo" value="{% if equipamento %}{{ equipamento.modelo }}{% endif %}">
+            <datalist id="modelos">
+                {% for cluster in lista_cluster %}
+                    {% for equipamento in cluster.equipamentos %}  
+                        <option value="{{ equipamento.modelo }}">
+                    {% endfor %}
+                {% endfor %}
+            </datalist> 
+            <!-- Tipo -->
+            <label class="form-label">Tipo</label>
+            <select class="mb-3 form-select" aria-label="Default select example" name="tipo">
+                <option selected></option>
+                <option value="cluster">Cluster</option>
+                <option value="24x7">24x7</option>
+                <option value="collocation">Collocation</option>
+                <option value="inativo">Inativo</option>
+            </select>
+            <!-- Patrimônio -->
+            <label class="form-label">Patrimônio</label>
+            <input type="text" class="mb-3 form-control" name=patrimonio value="{% if equipamento %}{{ equipamento.patrimonio }}{% endif %}">
+            <!-- Service Tag -->
+            <label class="form-label">Service Tag</label>
+            <input type="text" class="mb-3 form-control" name=serviceTag value="{% if equipamento %}{{ equipamento.serviceTag }}{% endif %}">
+            <!-- nucleos -->
+            <label class="form-label">Núcleos</label>
+            <input type="text" class="mb-3 form-control" name=nucleo value="{% if equipamento %}{{ equipamento.nucleo }}{% endif %}">
+            <!-- memoria -->
+            <label class="form-label">Memória RAM</label>
+            <input type="text" class="mb-3 form-control" name=memoria value="{% if equipamento %}{{ equipamento.memoria }}{% endif %}">
+          </div>
+          <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </form>
+{% endblock %}
