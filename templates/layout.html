@@ -12,12 +12,11 @@
   <div class=page>
     <h1><a href="{{ url_for('homepage') }}">LAD Accounting</a></h1>
     <div class=metanav>
-      <a href="{{ url_for('cadastroCluster') }}">cadastrar cluster</a>
-      <a href="{{ url_for('cadastroEquipamento') }}">cadastrar equipamento</a>
+      <a href="{{ url_for('cluster', clusterName='cadastro')}}">cadastrar cluster</a>
+      <a href="{{ url_for('equipamento', equipName='cadastro') }}">cadastrar equipamento</a>
     </div>
     {% block body %}{% endblock %}
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 </body>
 </html>
-
