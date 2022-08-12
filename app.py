@@ -1,3 +1,4 @@
+from unicodedata import name
 from flask import Flask, template_rendered
 from flask import g, request
 from flask import url_for, abort, render_template, flash, redirect
@@ -12,7 +13,7 @@ SECRET_KEY = 'hin6bab8ge25*r=x&amp;+5$0kn=-#log$pt^#@vrqjld!^2ci@g*b'
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-database = SqliteDatabase(DATABASE)
+database = SqliteDatabase(DATABASE, pragmas={'foreign_keys': 1})
 
 ##########################################################################################
 
@@ -21,22 +22,25 @@ class BaseModel(Model):
         database = database
 
 class Cluster(BaseModel):
-    name = CharField()
+    name = CharField(unique=True)
+    num = IntegerField()
     description = TextField()
+    status = BooleanField()
 
 class Equipamento(BaseModel):
-    cluster = ForeignKeyField(Cluster, backref='equipamentos', on_delete='CASCADE')
+    cluster = ForeignKeyField(Cluster, backref='equipamentos', on_delete='cascade')
     hostname = CharField()
     modelo = CharField()
     tipo = CharField()
     patrimonio = CharField()
     serviceTag = CharField()
-    #no_break = CharField() 
-    #status = CharField() 
-    #tipo2 = CharField() 
     nucleo = IntegerField()
     memoria = IntegerField()
-    disco = IntegerField() 
+    disco = IntegerField()
+    status = BooleanField()
+    #no_break = CharField() 
+    #status_no_break = BooleanField() 
+    #tipo = CharField() 
     
 class Grupo(BaseModel):
     demanda = IntegerField()
@@ -81,53 +85,103 @@ def after_request(response):
 
 ##########################################################################################
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def homepage():
     lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
-    for cluster in lista_cluster:
-        print(cluster.name)
-        for equipamento in cluster.equipamentos:
-            print('   - ', equipamento.hostname)
+
+    if request.method == 'POST':
+        if request.form['desativar']:
+            with database.atomic():
+                Cluster.delete().where(Cluster.name == request.form['desativar']).execute()
+            lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
+            print(request.form['desativar'])
+            return object_list('homepage.html', lista_cluster, 'lista_cluster')
+
     return object_list('homepage.html', lista_cluster, 'lista_cluster')
 
 
-@app.route('/cadastroCluster/', methods=['GET', 'POST'])
-def cadastroCluster():
-    if request.method == 'POST' and request.form['cluster_name']:
-        try:
-            with database.atomic():
-                Cluster.create(
-                    name=request.form['cluster_name'],
-                    description=request.form['description']
-                )
-            return redirect(url_for('homepage'))
-        except IntegrityError:
-            flash('Cluster já existe')
-    return render_template('cadastroCluster.html')
+@app.route('/cluster/<clusterName>', methods=['GET', 'POST'])
+def cluster(clusterName=None):
+    msg=None
+    if clusterName == 'cadastro':
+        if request.method == 'POST' and request.form['cluster_name']:
+            try:
+                with database.atomic():
+                    Cluster.create(
+                        name=request.form['cluster_name'],
+                        description=request.form['description'],
+                        num = request.form['num-teste'],
+                        status=True
+                    )
+                return redirect(url_for('homepage'))
+            except IntegrityError:
+                msg='Cluster já existe'
+        return render_template('cluster.html', clusterName='cadastro', msg=msg)
+    else:
+        if clusterName:
+            cluster = get_object_or_404(Cluster, Cluster.name == clusterName)
+            print(cluster)
+            if request.method == 'POST' and request.form['cluster_name']:
+                try:
+                    cluster.name = request.form['cluster_name']
+                    cluster.description = request.form['description']
+                    cluster.num = request.form['num-teste']
+                    print(cluster.name)
+                    print(cluster.description)
+                    print(cluster.num)
+                    cluster.save()
+                    return redirect(url_for('homepage'))
+                except IntegrityError:
+                    msg='Cluster já existe'
+        #return object_list('form.html', cluster=cluster)
+        return render_template('cluster.html', cluster=cluster, msg=msg)
 
 
-@app.route('/cadastroEquipamento/', methods=['GET', 'POST'])
-def cadastroEquipamento():
-    if request.method == 'POST' and request.form['equip_cluster_name']:
-        try:
-            with database.atomic():
-                Equipamento.create(
-                    cluster=Cluster.get(Cluster.name == request.form['equip_cluster_name']),
-                    hostname=request.form['hostname'],
-                    modelo=request.form['modelo'],
-                    tipo=request.form['tipo'],
-                    patrimonio=request.form['patrimonio'],
-                    serviceTag=request.form['serviceTag'],
-                    nucleo=request.form['nucleo'],
-                    memoria=request.form['memoria'],
-                    disco=0
-                )
-            return redirect(url_for('homepage'))
-        except IntegrityError:
-            flash('Equipamento já existe')
-    lista = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
-    return object_list('cadastroEquipamento.html', lista, 'lista_cluster')
-
+@app.route('/equipamento/<equipName>', methods=['GET', 'POST'])
+def equipamento(equipName=None):
+    msg=None
+    lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
+    if equipName == 'cadastro':
+        if request.method == 'POST' and request.form['equip_cluster_name']:
+            try:
+                with database.atomic():
+                    Equipamento.create(
+                        cluster=Cluster.get(Cluster.name == request.form['equip_cluster_name']),
+                        hostname=request.form['hostname'],
+                        modelo=request.form['modelo'],
+                        tipo=request.form['tipo'],
+                        patrimonio=request.form['patrimonio'],
+                        serviceTag=request.form['serviceTag'],
+                        nucleo=request.form['nucleo'],
+                        memoria=request.form['memoria'],
+                        disco=0,
+                        status=True
+                    )
+                return redirect(url_for('homepage'))
+            except IntegrityError:
+                msg='Equipamento já existe'
+        return render_template('equipamento.html', equipName='cadastro', msg=msg, lista_cluster=lista_cluster)
+    else:
+        if equipName:
+            equipamento = get_object_or_404(Equipamento, Equipamento.hostname == equipName)
+            print(equipamento)
+            if request.method == 'POST' and request.form['hostname']:
+                try:
+                    equipamento.cluster=Cluster.get(Cluster.name == request.form['equip_cluster_name'])
+                    equipamento.hostname=request.form['hostname']
+                    equipamento.modelo=request.form['modelo']
+                    equipamento.tipo=request.form['tipo']
+                    equipamento.patrimonio=request.form['patrimonio']
+                    equipamento.serviceTag=request.form['serviceTag']
+                    equipamento.nucleo=request.form['nucleo']
+                    equipamento.memoria=request.form['memoria']
+                    equipamento.disco=0
+                    equipamento.status=True
+                    equipamento.save()
+                    return redirect(url_for('homepage'))
+                except IntegrityError:
+                    msg='Equipamento já existe'
+        return render_template('equipamento.html', equipamento=equipamento, msg=msg, lista_cluster=lista_cluster)
 
 ##########################################################################################
 
