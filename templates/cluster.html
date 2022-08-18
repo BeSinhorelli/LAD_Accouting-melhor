@@ -1,22 +1,37 @@
 {% extends "layout.html" %}
 {% block body %}
-    {% if cluster %}
-        <h2>Editar {{ cluster.name }}</h2>
-    {% else %}
-        <h2>Cadastrar cluster</h2>
-    {% endif %}    
-        <form action="{% if cluster %} {{ url_for('cluster', clusterName=cluster.name) }} {% else %} {{ url_for('cluster', clusterName='cadastro') }} {% endif %}" method=post>
-          <div class="mb-3">
-            <label class="form-label">Nome</label>
-            <input type="text" class="mb-3 form-control" id="floatingInputInvalid" name=cluster_name value="{% if cluster %}{{ cluster.name }}{% endif %}">
-            <label class="form-label">Nome</label>
-            <input type="text" class="mb-3 form-control" id="floatingInputInvalid" name=num-teste value="{% if cluster %}{{ cluster.num }}{% endif %}">
-            <!--{% if msg %}
-            <label for="floatingInputInvalid">{{ msg }}</label>
-            {% endif %}-->
-            <label class="form-label">Descrição</label>
-            <textarea class="form-control" id="exampleFormControlTextarea1" name=description rows="3">{% if cluster %}{{ cluster.description }}{% endif %}</textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Cadastrar</button>
-        </form>
+<div class="cadastro">
+  {% if cluster %}
+      <h2>Editar {{ cluster.name }}</h2>
+  {% else %}
+      <h2>Cadastrar cluster</h2>
+  {% endif %}    
+  <form action="{% if cluster %} {{ url_for('cluster', clusterName=cluster.name) }} {% else %} {{ url_for('cluster', clusterName='cadastro') }} {% endif %}" method=post>
+    <div class="mb-3">
+      <!-- Status -->
+      {% if cluster %}
+        <label class="form-label">Status</label>
+        <select class="mb-3 form-select" aria-label="Default select example" name="status">
+            {% if cluster.status %}
+              <option selected value="ativar">Ativo</option>
+              <option value="desativar">Inativo</option>
+            {% else %}
+              <option value="ativar">Ativo</option>
+              <option selected value="desativar">Inativo</option>
+            {% endif %}
+        </select>
+      {% endif %}
+      <!-- Nome -->
+      <label class="form-label">Nome</label>
+      <input type="text" class="mb-3 form-control" id="floatingInputInvalid" name=cluster_name value="{% if cluster %}{{ cluster.name }}{% endif %}">
+      <!--{% if msg %}
+      <label for="floatingInputInvalid">{{ msg }}</label>
+      {% endif %}-->
+      <!-- Descrição -->
+      <label class="form-label">Descrição</label>
+      <textarea class="form-control" id="exampleFormControlTextarea1" name=description rows="3">{% if cluster %}{{ cluster.description }}{% endif %}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Cadastrar</button>
+  </form>
+</div>
 {% endblock %}
