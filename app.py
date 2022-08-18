@@ -1,4 +1,5 @@
 from unicodedata import name
+from datetime import datetime, timezone
 from flask import Flask, template_rendered
 from flask import g, request
 from flask import url_for, abort, render_template, flash, redirect
@@ -23,8 +24,8 @@ class BaseModel(Model):
 
 class Cluster(BaseModel):
     name = CharField(unique=True)
-    num = IntegerField()
     description = TextField()
+    data = DateField()
     status = BooleanField()
 
 class Equipamento(BaseModel):
@@ -37,31 +38,36 @@ class Equipamento(BaseModel):
     nucleo = IntegerField()
     memoria = IntegerField()
     disco = IntegerField()
+    data = DateField()
     status = BooleanField()
     #no_break = CharField() 
     #status_no_break = BooleanField() 
     #tipo = CharField() 
     
 class Grupo(BaseModel):
+    nome = CharField()
     demanda = IntegerField()
     unidade = CharField()
     coordenador = CharField()
-    status = CharField()
+    status = BooleanField()
     data = DateField()
-    tipo = CharField()
     observacoes = TextField()
+    tipo = CharField()
 
 class Usuario(BaseModel):
     grupo = ForeignKeyField(Grupo, backref='usuarios')
     nome = CharField()
     email = CharField()
-    quota = IntegerField()
+    data = DateField()
+    observacoes = TextField()
+    status = BooleanField()
+    #quota = ForeignKeyField(Quota, backref='quotas')
 
 ##########################################################################################
 
 def create_tables():
     with database:
-        database.create_tables([Cluster, Equipamento])
+        database.create_tables([Cluster, Equipamento, Grupo, Usuario])
 
 def get_object_or_404(model, *expressions):
     try:
@@ -88,16 +94,18 @@ def after_request(response):
 @app.route('/', methods=['GET', 'POST'])
 def homepage():
     lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
+    lista_grupo = Grupo.select().order_by(Grupo.nome).prefetch(Usuario)
 
-    if request.method == 'POST':
-        if request.form['desativar']:
-            with database.atomic():
-                Cluster.delete().where(Cluster.name == request.form['desativar']).execute()
-            lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
-            print(request.form['desativar'])
-            return object_list('homepage.html', lista_cluster, 'lista_cluster')
+    #if request.method == 'POST':
+    #    if request.form['desativar']:
+    #        with database.atomic():
+                #Cluster.delete().where(Cluster.name == request.form['desativar']).execute()
+    #            Cluster.update(status=False).where(Cluster.name == request.form['desativar']).execute()
+    #        lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
+    #        print(request.form['desativar'])
+    #        return object_list('homepage.html', lista_cluster, 'lista_cluster')
 
-    return object_list('homepage.html', lista_cluster, 'lista_cluster')
+    return render_template('homepage.html', lista_cluster=lista_cluster, lista_grupo=lista_grupo)
 
 
 @app.route('/cluster/<clusterName>', methods=['GET', 'POST'])
@@ -110,7 +118,7 @@ def cluster(clusterName=None):
                     Cluster.create(
                         name=request.form['cluster_name'],
                         description=request.form['description'],
-                        num = request.form['num-teste'],
+                        data=datetime.now().strftime('%d/%m/%Y'),
                         status=True
                     )
                 return redirect(url_for('homepage'))
@@ -120,15 +128,15 @@ def cluster(clusterName=None):
     else:
         if clusterName:
             cluster = get_object_or_404(Cluster, Cluster.name == clusterName)
-            print(cluster)
+            #print(cluster)
             if request.method == 'POST' and request.form['cluster_name']:
                 try:
-                    cluster.name = request.form['cluster_name']
-                    cluster.description = request.form['description']
-                    cluster.num = request.form['num-teste']
-                    print(cluster.name)
-                    print(cluster.description)
-                    print(cluster.num)
+                    cluster.name=request.form['cluster_name']
+                    cluster.description=request.form['description']
+                    if request.form['status'] == 'desativar':
+                        cluster.status = False
+                    else:
+                        cluster.status = True
                     cluster.save()
                     return redirect(url_for('homepage'))
                 except IntegrityError:
@@ -140,9 +148,9 @@ def cluster(clusterName=None):
 @app.route('/equipamento/<equipName>', methods=['GET', 'POST'])
 def equipamento(equipName=None):
     msg=None
-    lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
+    lista_cluster = Cluster.select().where(Cluster.status == True).order_by(Cluster.name).prefetch(Equipamento)
     if equipName == 'cadastro':
-        if request.method == 'POST' and request.form['equip_cluster_name']:
+        if request.method == 'POST' and request.form['hostname']:
             try:
                 with database.atomic():
                     Equipamento.create(
@@ -155,6 +163,7 @@ def equipamento(equipName=None):
                         nucleo=request.form['nucleo'],
                         memoria=request.form['memoria'],
                         disco=0,
+                        data=datetime.now().strftime('%d/%m/%Y'),
                         status=True
                     )
                 return redirect(url_for('homepage'))
@@ -164,7 +173,7 @@ def equipamento(equipName=None):
     else:
         if equipName:
             equipamento = get_object_or_404(Equipamento, Equipamento.hostname == equipName)
-            print(equipamento)
+            #print(equipamento)
             if request.method == 'POST' and request.form['hostname']:
                 try:
                     equipamento.cluster=Cluster.get(Cluster.name == request.form['equip_cluster_name'])
@@ -176,12 +185,101 @@ def equipamento(equipName=None):
                     equipamento.nucleo=request.form['nucleo']
                     equipamento.memoria=request.form['memoria']
                     equipamento.disco=0
-                    equipamento.status=True
+                    if request.form['status'] == 'desativar':
+                        equipamento.status = False
+                    else:
+                        equipamento.status = True
                     equipamento.save()
                     return redirect(url_for('homepage'))
                 except IntegrityError:
                     msg='Equipamento já existe'
         return render_template('equipamento.html', equipamento=equipamento, msg=msg, lista_cluster=lista_cluster)
+
+
+@app.route('/grupo/<groupName>', methods=['GET', 'POST'])
+def grupo(groupName=None):
+    msg=None
+    lista_grupo = Grupo.select().order_by(Grupo.nome)
+    if groupName == 'cadastro':
+        if request.method == 'POST' and request.form['nome']:
+            try:
+                with database.atomic():
+                    Grupo.create(
+                        nome=request.form['nome'],
+                        demanda=request.form['demanda'],
+                        unidade=request.form['unidade'],
+                        coordenador=request.form['coordenador'],
+                        data=datetime.now().strftime('%d/%m/%Y'),
+                        observacoes=request.form['observacoes'],
+                        tipo=request.form['tipo'],
+                        status=True
+                    )
+                return redirect(url_for('homepage'))
+            except IntegrityError:
+                msg='Grupo já existe'
+        return render_template('grupo.html', groupName='cadastro', msg=msg, lista_grupo=lista_grupo)
+    else:
+        if groupName:
+            grupo = get_object_or_404(Grupo, Grupo.nome == groupName)
+            if request.method == 'POST' and request.form['nome']:
+                try:
+                    grupo.nome=request.form['nome']
+                    grupo.demanda=request.form['demanda']
+                    grupo.unidade=request.form['unidade']
+                    grupo.coordenador=request.form['coordenador']
+                    #grupo.data=datetime.now().strftime('%d/%m/%Y')
+                    grupo.observacoes=request.form['observacoes']
+                    grupo.tipo=request.form['tipo']
+                    if request.form['status'] == 'desativar':
+                        grupo.status = False
+                    else:
+                        grupo.status = True
+                    grupo.save()
+                    return redirect(url_for('homepage'))
+                except IntegrityError:
+                    msg='Grupo já existe'
+        return render_template('grupo.html', grupo=grupo, msg=msg, lista_grupo=lista_grupo)
+
+
+@app.route('/usuario/<userName>', methods=['GET', 'POST'])
+def usuario(userName=None):
+    msg=None
+    lista_grupo = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome).prefetch(Usuario)
+    if userName == 'cadastro':
+        if request.method == 'POST' and request.form['nome']:
+            try:
+                with database.atomic():
+                    Usuario.create(
+                        grupo = Grupo.get(Grupo.nome == request.form['group_name']),
+                        nome=request.form['nome'],
+                        email=request.form['email'],
+                        observacoes=request.form['observacoes'],
+                        data=datetime.now().strftime('%d/%m/%Y'),
+                        status=True
+                    )
+                return redirect(url_for('homepage'))
+            except IntegrityError:
+                msg='Usuario já existe'
+        return render_template('usuario.html', userName='cadastro', msg=msg, lista_grupo=lista_grupo)
+    else:
+        if userName:
+            usuario = get_object_or_404(Usuario, Usuario.nome == userName)
+            if request.method == 'POST' and request.form['nome']:
+                try:
+                    usuario.grupo=Grupo.get(Grupo.nome == request.form['group_name'])
+                    usuario.nome=request.form['nome']
+                    usuario.email=request.form['email']
+                    usuario.observacoes=request.form['observacoes']
+                    #usuario.data=datetime.now().strftime('%d/%m/%Y')
+                    if request.form['status'] == 'desativar':
+                        usuario.status = False
+                    else:
+                        usuario.status = True
+                    usuario.save()
+                    return redirect(url_for('homepage'))
+                except IntegrityError:
+                    msg='Usuario já existe'
+        return render_template('usuario.html', usuario=usuario, msg=msg, lista_grupo=lista_grupo)
 
 ##########################################################################################
 
