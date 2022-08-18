@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="cadastro">
+  {% if grupo %}
+      <h2>Editar {{ grupo.nome }}</h2>
+  {% else %}
+      <h2>Cadastrar grupo</h2>
+  {% endif %}  
+  <form action="{% if grupo %} {{ url_for('grupo', groupName=grupo.nome) }} {% else %} {{ url_for('grupo', groupName='cadastro') }} {% endif %}" method=post>
+    <div class="mb-3">
+      <!-- Status -->
+      {% if grupo %}
+        <label class="form-label">Status</label>
+        <select class="mb-3 form-select" aria-label="Default select example" name="status">
+            {% if grupo.status %}
+              <option selected value="ativar">Ativo</option>
+              <option value="desativar">Inativo</option>
+            {% else %}
+              <option value="ativar">Ativo</option>
+              <option selected value="desativar">Inativo</option>
+            {% endif %}
+        </select>
+      {% endif %}
+      <!-- Nome -->
+      <label class="form-label">Nome</label>
+      <input type="text" class="mb-3 form-control" name=nome value="{% if grupo %}{{ grupo.nome }}{% endif %}">
+      <!--{% if msg %}
+      <label for="floatingInputInvalid">{{ msg }}</label>
+      {% endif %}-->
+      <!-- Demanda -->
+      <label class="form-label">Demanda</label>
+      <input type="text" class="mb-3 form-control" name=demanda value="{% if grupo %}{{ grupo.demanda }}{% endif %}">
+      <!-- Unidade -->
+      <label class="form-label">Unidade</label>
+      <input type="text" class="mb-3 form-control" name=unidade value="{% if grupo %}{{ grupo.unidade }}{% endif %}">
+      <datalist id="unidades">
+          {% for grupo in lista_grupos %}
+              <option value="{{ grupo.unidade }}">
+          {% endfor %}
+      </datalist>
+      <!-- Coordenador -->
+      <label class="form-label">Coordenador</label>
+      <input type="text" class="mb-3 form-control" name=coordenador value="{% if grupo %}{{ grupo.coordenador }}{% endif %}">
+      <!-- Observações -->
+      <label class="form-label">Observações</label>
+      <textarea class="form-control" id="exampleFormControlTextarea1" name=observacoes rows="3">{% if grupo %}{{ grupo.observacoes }}{% endif %}</textarea>
+      <!-- Tipo -->
+      <label class="form-label">Tipo</label>
+      <input type="text" class="mb-3 form-control" name=tipo value="{% if grupo %}{{ grupo.tipo }}{% endif %}">
+    </div>  
+    <button type="submit" class="btn btn-primary">Cadastrar</button>
+  </form>
+</div>
+{% endblock %}
