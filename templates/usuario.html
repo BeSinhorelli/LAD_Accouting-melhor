@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="cadastro">
+    {% if usuario %}
+        <h2>Editar {{ usuario.nome }}</h2>
+    {% else %}
+        <h2>Cadastrar usuário</h2>
+    {% endif %}    
+    <form autocomplete="off" action="{% if usuario %} {{ url_for('usuario', userName=usuario.nome) }} {% else %} {{ url_for('usuario', userName='cadastro') }} {% endif %}" method=post>
+      <div class="mb-3">
+        <!-- Status -->
+        {% if usuario %}
+            <label class="form-label">Status</label>
+            <select class="mb-3 form-select" aria-label="Default select example" name="status">
+                {% if usuario.status %}
+                    <option selected value="ativar">Ativo</option>
+                    <option value="desativar">Inativo</option>
+                {% else %}
+                    <option value="ativar">Ativo</option>
+                    <option selected value="desativar">Inativo</option>
+                {% endif %}
+            </select>
+        {% endif %}
+        <!-- Grupo -->
+        <label class="form-label">Grupo</label>
+        <select class="mb-3 form-select" aria-label="Default select example" name="group_name">
+            {% if usuario %}
+                {% for grupo in lista_grupo %}
+                    {% if grupo.nome == usuario.grupo.nome %}
+                        <option selected value="{{ grupo.nome }}">{{ grupo.nome }}</option>
+                    {% else %}
+                        <option value="{{ grupo.nome }}">{{ grupo.nome }}</option>
+                    {% endif %}
+                {% endfor %}
+            {% else %} 
+                <option selected></option>
+                {% for grupo in lista_grupo %}
+                    <option value="{{ grupo.nome }}">{{ grupo.nome }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
+        <!-- Nome -->
+        <label class="form-label">Nome</label>
+        <input type="text" class="mb-3 form-control" name=nome value="{% if usuario %}{{ usuario.nome }}{% endif %}">
+        <!-- E-mail -->
+        <label class="form-label">E-mail</label>
+        <input type="text" class="mb-3 form-control" name=email value="{% if usuario %}{{ usuario.email }}{% endif %}">
+        <!-- Observações -->
+        <label class="form-label">Observações</label>
+        <textarea class="form-control" id="exampleFormControlTextarea1" name=observacoes rows="3">{% if usuario %}{{ usuario.observacoes }}{% endif %}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Cadastrar</button>
+    </form>
+</div>
+{% endblock %}
