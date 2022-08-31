@@ -1,9 +1,11 @@
 from unicodedata import name
-from datetime import datetime, timezone
+from datetime import datetime
 from flask import Flask, template_rendered
 from flask import g, request
 from flask import url_for, abort, render_template, flash, redirect
 from peewee import *
+from playhouse.shortcuts import model_to_dict, dict_to_model
+from playhouse.reflection import generate_models, print_model, print_table_sql
 
 ##########################################################################################
 
@@ -25,7 +27,8 @@ class BaseModel(Model):
 class Cluster(BaseModel):
     name = CharField(unique=True)
     description = TextField()
-    data = DateField()
+    date_beg = DateField()
+    date_end = DateField()
     status = BooleanField()
 
 class Equipamento(BaseModel):
@@ -38,7 +41,8 @@ class Equipamento(BaseModel):
     nucleo = IntegerField()
     memoria = IntegerField()
     disco = IntegerField()
-    data = DateField()
+    date_beg = DateField()
+    date_end = DateField()
     status = BooleanField()
     #no_break = CharField() 
     #status_no_break = BooleanField() 
@@ -50,7 +54,8 @@ class Grupo(BaseModel):
     unidade = CharField()
     coordenador = CharField()
     status = BooleanField()
-    data = DateField()
+    date_beg = DateField()
+    #date_end = DateField()
     observacoes = TextField()
     tipo = CharField()
 
@@ -58,7 +63,8 @@ class Usuario(BaseModel):
     grupo = ForeignKeyField(Grupo, backref='usuarios')
     nome = CharField()
     email = CharField()
-    data = DateField()
+    date_beg = DateField()
+    date_end = DateField()
     observacoes = TextField()
     status = BooleanField()
     #quota = ForeignKeyField(Quota, backref='quotas')
@@ -118,7 +124,8 @@ def cluster(clusterName=None):
                     Cluster.create(
                         name=request.form['cluster_name'],
                         description=request.form['description'],
-                        data=datetime.now().strftime('%d/%m/%Y'),
+                        date_beg=datetime.now().strftime('%d-%m-%Y'),
+                        date_end='',
                         status=True
                     )
                 return redirect(url_for('homepage'))
@@ -128,20 +135,19 @@ def cluster(clusterName=None):
     else:
         if clusterName:
             cluster = get_object_or_404(Cluster, Cluster.name == clusterName)
-            #print(cluster)
             if request.method == 'POST' and request.form['cluster_name']:
                 try:
                     cluster.name=request.form['cluster_name']
                     cluster.description=request.form['description']
                     if request.form['status'] == 'desativar':
                         cluster.status = False
+                        cluster.date_end=datetime.now().strftime('%d-%m-%Y')
                     else:
                         cluster.status = True
                     cluster.save()
                     return redirect(url_for('homepage'))
                 except IntegrityError:
                     msg='Cluster já existe'
-        #return object_list('form.html', cluster=cluster)
         return render_template('cluster.html', cluster=cluster, msg=msg)
 
 
@@ -163,7 +169,8 @@ def equipamento(equipName=None):
                         nucleo=request.form['nucleo'],
                         memoria=request.form['memoria'],
                         disco=0,
-                        data=datetime.now().strftime('%d/%m/%Y'),
+                        date_beg=datetime.now().strftime('%d-%m-%Y'),
+                        date_end='',
                         status=True
                     )
                 return redirect(url_for('homepage'))
@@ -187,6 +194,7 @@ def equipamento(equipName=None):
                     equipamento.disco=0
                     if request.form['status'] == 'desativar':
                         equipamento.status = False
+                        equipamento.date_end=datetime.now().strftime('%d-%m-%Y')
                     else:
                         equipamento.status = True
                     equipamento.save()
@@ -201,17 +209,20 @@ def grupo(groupName=None):
     msg=None
     lista_grupo = Grupo.select().order_by(Grupo.nome)
     if groupName == 'cadastro':
+        print('cadastro')
         if request.method == 'POST' and request.form['nome']:
             try:
                 with database.atomic():
+                    print('grupo')
                     Grupo.create(
                         nome=request.form['nome'],
                         demanda=request.form['demanda'],
                         unidade=request.form['unidade'],
                         coordenador=request.form['coordenador'],
-                        data=datetime.now().strftime('%d/%m/%Y'),
                         observacoes=request.form['observacoes'],
                         tipo=request.form['tipo'],
+                        date_beg=datetime.now().strftime('%d-%m-%Y'),
+                        date_end='',
                         status=True
                     )
                 return redirect(url_for('homepage'))
@@ -227,11 +238,11 @@ def grupo(groupName=None):
                     grupo.demanda=request.form['demanda']
                     grupo.unidade=request.form['unidade']
                     grupo.coordenador=request.form['coordenador']
-                    #grupo.data=datetime.now().strftime('%d/%m/%Y')
                     grupo.observacoes=request.form['observacoes']
                     grupo.tipo=request.form['tipo']
                     if request.form['status'] == 'desativar':
                         grupo.status = False
+                        grupo.date_end=datetime.now().strftime('%d-%m-%Y')
                     else:
                         grupo.status = True
                     grupo.save()
@@ -254,7 +265,8 @@ def usuario(userName=None):
                         nome=request.form['nome'],
                         email=request.form['email'],
                         observacoes=request.form['observacoes'],
-                        data=datetime.now().strftime('%d/%m/%Y'),
+                        date_beg=datetime.now().strftime('%d-%m-%Y'),
+                        date_end='',
                         status=True
                     )
                 return redirect(url_for('homepage'))
@@ -270,9 +282,9 @@ def usuario(userName=None):
                     usuario.nome=request.form['nome']
                     usuario.email=request.form['email']
                     usuario.observacoes=request.form['observacoes']
-                    #usuario.data=datetime.now().strftime('%d/%m/%Y')
                     if request.form['status'] == 'desativar':
                         usuario.status = False
+                        usuario.date_end=datetime.now().strftime('%d-%m-%Y')
                     else:
                         usuario.status = True
                     usuario.save()
