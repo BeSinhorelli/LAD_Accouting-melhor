@@ -15,23 +15,9 @@
             </ul>
           </div>
           <div class="card-footer text-center">
-            <!--<button type="submit" class="btn btn-primary" name="desativar" value="{{ cluster.name }}">Desativar</button>-->
             <a class="btn btn-primary" href="{{ url_for('cluster', clusterName=cluster.name) }}" role="button">Editar</a>
           </div>
         </div>
-        <!--<form action="{{ url_for('homepage') }}" method=post>
-          <div class="card m-3">
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item active" aria-current="true">{{ cluster.name }}</li>
-              {% for equipamento in cluster.equipamentos %}
-              <li class="list-group-item">{{ equipamento.hostname }}</li>
-              <a class="btn btn-primary" href="{{ url_for('equipamento', equipName=equipamento.hostname) }}" role="button">Editar</a>
-              {% endfor %}
-            </ul>
-            <button type="submit" class="btn btn-primary" name="desativar" value="{{ cluster.name }}">Desativar</button>
-            <a class="btn btn-primary" href="{{ url_for('cluster', clusterName=cluster.name) }}" role="button">Editar</a>
-          </div>
-        </form>-->
       </div>
     {% endfor %}
   </div>
@@ -51,23 +37,9 @@
             </ul>
           </div>
           <div class="card-footer text-center">
-            <!--<button type="submit" class="btn btn-primary" name="desativar" value="{{ grupo.name }}">Desativar</button>-->
             <a class="btn btn-primary" href="{{ url_for('grupo', groupName=grupo.nome) }}" role="button">Editar</a>
           </div>
         </div>
-        <!--<form action="{{ url_for('homepage') }}" method=post>
-          <div class="card m-3">
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item active" aria-current="true">{{ grupo.nome }}</li>
-              {% for usuario in grupo.usuarios %}
-              <li class="list-group-item">{{ usuario.nome }}</li>
-              <a class="btn btn-primary" href="{{ url_for('usuario', userName=usuario.nome) }}" role="button">Editar</a>
-              {% endfor %}
-            </ul>
-            <button type="submit" class="btn btn-primary" name="desativar" value="{{ grupo.nome }}">Desativar</button>
-            <a class="btn btn-primary" href="{{ url_for('grupo', groupName=grupo.nome) }}" role="button">Editar</a>
-          </div>
-        </form>-->
       </div>
     {% endfor %}
   </div>
