@@ -6,9 +6,9 @@ Sistema de Accounting do LAD
 #### Requisitos:
 - [Python 3.7+](https://www.python.org/)
 - [Flask](https://flask.palletsprojects.com/en/2.2.x/)
-  > - Comando: $ pip instal Flask
+  - Comando: $ pip instal Flask
 - [Peewee](https://docs.peewee-orm.com/en/latest/peewee/installation.html)
-  > - Comando: $ pip instal peewee
+  - Comando: $ pip instal peewee
 
 #### Outras ferramentas e exemplos:
 - [Bootstrap](https://getbootstrap.com/docs/5.2/getting-started/introduction/)
