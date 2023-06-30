@@ -293,9 +293,33 @@ def usuario(userName=None):
                     msg='Usuario já existe'
         return render_template('usuario.html', usuario=usuario, msg=msg, lista_grupo=lista_grupo)
 
+@app.route('/export', methods=['GET'])
+def export():
+    import json
+
+    lista_grupo = [grupo for grupo in Grupo.select().dicts()]
+    lista_usuario = [usuario for usuario in Usuario.select().dicts()]
+    lista_equipamento = [equipamento for equipamento in Equipamento.select().dicts()]
+    lista_cluster = [cluster for cluster in Cluster.select().dicts()]
+    
+    listageral = {}
+
+    listageral['grupo']=lista_grupo
+    listageral['usuario']=lista_usuario
+    listageral['equipamento']=lista_equipamento
+    listageral['cluster']=lista_cluster
+    json_data = json.dumps(listageral, indent=2)
+    
+    f = open("listageral.json", "w")
+    f.write(str(json_data))
+    f.close()
+
+    return redirect(url_for('homepage'))
+
 ##########################################################################################
 
 #database.drop_tables([Cluster, Equipamento])
+#database.drop_tables([Grupo, Usuario])
 
 ##########################################################################################
 
