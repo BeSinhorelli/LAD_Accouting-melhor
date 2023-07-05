@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 # LabLAD Accounting
+=======
+# LAD_Accounting
+Sistema de Accounting do LAD
+>>>>>>> 4f0046f6895813699d618c7e977d361fc856f0d5
 
 ## Executar no Codespaces
 1. Abra a aba de Codespaces no repositório do [LAD Accounting Dashboard](https://github.com/LAD-PUCRS/LAD-Accounting-Dashboard)
@@ -23,7 +28,9 @@
 ### Requisitos:
 - [Python 3.7+](https://www.python.org/)
 - [Flask](https://flask.palletsprojects.com/en/2.2.x/)
+  -  $ pip install Flask
 - [Peewee](https://docs.peewee-orm.com/en/latest/peewee/installation.html)
+  -  $ pip install peewee
 
 ### Outras ferramentas e exemplos:
 - [Modelo ER](https://user-images.githubusercontent.com/68079812/182753634-68ca3daf-ed7f-4059-b307-054247fde6da.jpg)
