@@ -1,0 +1,54 @@
+{
+  "grupo": [
+    {
+      "id": 1,
+      "nome": "Grupo",
+      "demanda": 0,
+      "unidade": "00",
+      "coordenador": "Coordenador",
+      "status": true,
+      "date_beg": "05-07-2023",
+      "observacoes": "Eu sou um Grupo",
+      "tipo": "Pesquisa"
+    }
+  ],
+  "usuario": [
+    {
+      "id": 1,
+      "grupo": 1,
+      "nome": "Usuario",
+      "email": "email",
+      "date_beg": "05-07-2023",
+      "date_end": "",
+      "observacoes": "observa\u00e7\u00f5es",
+      "status": true
+    }
+  ],
+  "equipamento": [
+    {
+      "id": 1,
+      "cluster": 1,
+      "hostname": "Equipamento",
+      "modelo": "Marca",
+      "tipo": "cluster",
+      "patrimonio": "00",
+      "serviceTag": "00",
+      "nucleo": 1,
+      "memoria": 1,
+      "disco": 0,
+      "date_beg": "05-07-2023",
+      "date_end": "",
+      "status": true
+    }
+  ],
+  "cluster": [
+    {
+      "id": 1,
+      "name": "Cluster",
+      "description": "Eu sou um Cluster",
+      "date_beg": "05-07-2023",
+      "date_end": "",
+      "status": true
+    }
+  ]
+}

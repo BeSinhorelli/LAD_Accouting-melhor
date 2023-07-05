@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="upload">
+
+    <h2>Import de JSON</h2>
+
+    <form action="/import_json" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">Escolha o arquivo</label>
+            <input class="mb-3 form-select" type="file" name="file" accept=".json">
+            <input class="btn btn-primary" type="submit" value="Inserir">
+        </div>
+        
+    </form>
+
+</div>
+{% endblock %}

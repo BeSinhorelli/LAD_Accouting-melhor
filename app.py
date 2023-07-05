@@ -1,8 +1,12 @@
+import os, sqlite3, json
+
 from unicodedata import name
 from datetime import datetime
+
 from flask import Flask, template_rendered
-from flask import g, request
+from flask import g, request, send_file
 from flask import url_for, abort, render_template, flash, redirect
+
 from peewee import *
 from playhouse.shortcuts import model_to_dict, dict_to_model
 from playhouse.reflection import generate_models, print_model, print_table_sql
@@ -295,7 +299,6 @@ def usuario(userName=None):
 
 @app.route('/export', methods=['GET'])
 def export():
-    import json
 
     lista_grupo = [grupo for grupo in Grupo.select().dicts()]
     lista_usuario = [usuario for usuario in Usuario.select().dicts()]
@@ -314,12 +317,95 @@ def export():
     f.write(str(json_data))
     f.close()
 
+    return redirect(url_for('homepage')) and send_file("listageral.json", as_attachment = True)
+
+@app.route('/upload', methods=['GET'])
+def upload ():
+    return render_template('upload.html')
+
+@app.route('/import_json', methods=['POST'])
+def import_json():
+
+    file_requested = request.files['file']
+    file_path = 'temp.json'
+    file_requested.save(file_path)
+
+    database.create_tables([Cluster, Equipamento, Grupo, Usuario])
+
+    with open(file_path) as file:
+
+        data = json.load(file)
+
+        grupos = data['grupo']
+        usuarios = data['usuario']
+        equipamentos = data['equipamento']
+        clusters = data['cluster']
+
+        for dados_grupo in grupos:
+
+            Grupo.create(
+                nome=dados_grupo['nome'],
+                demanda=dados_grupo['demanda'],
+                unidade=dados_grupo['unidade'],
+                coordenador=dados_grupo['coordenador'],
+                status=dados_grupo['status'],
+                date_beg=dados_grupo['date_beg'],
+                observacoes=dados_grupo['observacoes'],
+                tipo=dados_grupo['tipo']
+            )
+
+        for dados_usuario in usuarios:
+
+            grupo_id = dados_usuario['grupo']
+            grupo = Grupo.get(Grupo.id == grupo_id)
+
+            Usuario.create(
+                grupo=grupo,
+                nome=dados_usuario['nome'],
+                email=dados_usuario['email'],
+                date_beg=dados_usuario['date_beg'],
+                date_end=dados_usuario['date_end'],
+                observacoes=dados_usuario['observacoes'],
+                status=dados_usuario['status']
+            )
+    
+        for cluster_data in clusters:
+
+            Cluster.create(
+                name=cluster_data['name'],
+                description=cluster_data['description'],
+                date_beg=cluster_data['date_beg'],
+                date_end=cluster_data['date_end'],
+                status=cluster_data['status']
+            )
+
+        for dados_equipamentos in equipamentos:
+            cluster_id = dados_equipamentos['cluster']
+            cluster = Cluster.get(Cluster.id == cluster_id)
+
+            Equipamento.create(
+                cluster=cluster,
+                hostname=dados_equipamentos['hostname'],
+                modelo=dados_equipamentos['modelo'],
+                tipo=dados_equipamentos['tipo'],
+                patrimonio=dados_equipamentos['patrimonio'],
+                serviceTag=dados_equipamentos['serviceTag'],
+                nucleo=dados_equipamentos['nucleo'],
+                memoria=dados_equipamentos['memoria'],
+                disco=dados_equipamentos['disco'],
+                date_beg=dados_equipamentos['date_beg'],
+                date_end=dados_equipamentos['date_end'],
+                status=dados_equipamentos['status']
+            )
+
+    os.remove(file_path)
     return redirect(url_for('homepage'))
+
 
 ##########################################################################################
 
-#database.drop_tables([Cluster, Equipamento])
-#database.drop_tables([Grupo, Usuario])
+# É possível LIMPAR o banco de dados 'descomentando' o seguinte comando:
+# database.drop_tables([Cluster, Equipamento, Grupo, Usuario])
 
 ##########################################################################################
 
