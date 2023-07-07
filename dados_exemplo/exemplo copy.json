@@ -2,10 +2,10 @@
   "grupo": [
     {
       "id": 1,
-      "nome": "Grupo",
+      "nome": "LADACCON",
       "demanda": 0,
       "unidade": "00",
-      "coordenador": "Coordenador",
+      "coordenador": "BERNRAPD NILSON",
       "status": true,
       "date_beg": "05-07-2023",
       "observacoes": "Eu sou um Grupo",
@@ -16,7 +16,7 @@
     {
       "id": 1,
       "grupo": 1,
-      "nome": "Usuario",
+      "nome": "SDAFDASD",
       "email": "email",
       "date_beg": "05-07-2023",
       "date_end": "",
@@ -28,7 +28,7 @@
     {
       "id": 1,
       "cluster": 1,
-      "hostname": "Equipamento",
+      "hostname": "ESDSDS",
       "modelo": "Marca",
       "tipo": "cluster",
       "patrimonio": "00",
@@ -44,8 +44,8 @@
   "cluster": [
     {
       "id": 1,
-      "name": "Cluster",
-      "description": "Eu sou um Cluster",
+      "name": "ClusGFDFter",
+      "description": "Eu NAO D sou um Cluster",
       "date_beg": "05-07-2023",
       "date_end": "",
       "status": true

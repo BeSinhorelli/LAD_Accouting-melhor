@@ -320,7 +320,7 @@ def export():
     return redirect(url_for('homepage')) and send_file("listageral.json", as_attachment = True)
 
 @app.route('/upload', methods=['GET'])
-def upload ():
+def upload():
     return render_template('upload.html')
 
 @app.route('/import_json', methods=['POST'])
@@ -329,8 +329,6 @@ def import_json():
     file_requested = request.files['file']
     file_path = 'temp.json'
     file_requested.save(file_path)
-
-    database.create_tables([Cluster, Equipamento, Grupo, Usuario])
 
     with open(file_path) as file:
 
@@ -343,62 +341,115 @@ def import_json():
 
         for dados_grupo in grupos:
 
-            Grupo.create(
-                nome=dados_grupo['nome'],
-                demanda=dados_grupo['demanda'],
-                unidade=dados_grupo['unidade'],
-                coordenador=dados_grupo['coordenador'],
-                status=dados_grupo['status'],
-                date_beg=dados_grupo['date_beg'],
-                observacoes=dados_grupo['observacoes'],
-                tipo=dados_grupo['tipo']
-            )
+            existing_group, created = Grupo.get_or_create(
+                id = dados_grupo['id'],
+                defaults = {'nome': dados_grupo['nome'], 
+                            'demanda': dados_grupo['demanda'],
+                            'unidade': dados_grupo['unidade'],
+                            'coordenador': dados_grupo['coordenador'],
+                            'status': dados_grupo['status'],
+                            'date_beg': dados_grupo['date_beg'],
+                            'observacoes': dados_grupo['observacoes'],
+                            'tipo': dados_grupo['tipo']
+                            }
+                )
+
+            existing_group.nome = dados_grupo['nome']
+            existing_group.demanda = dados_grupo['demanda']
+            existing_group.unidade = dados_grupo['unidade']
+            existing_group.coordenador = dados_grupo['coordenador']
+            existing_group.status = dados_grupo['status']
+            existing_group.date_beg = dados_grupo['date_beg']
+            existing_group.observacoes = dados_grupo['observacoes']
+            existing_group.tipo = dados_grupo['tipo']
+            existing_group.save()
 
         for dados_usuario in usuarios:
 
-            grupo_id = dados_usuario['grupo']
-            grupo = Grupo.get(Grupo.id == grupo_id)
+            grupo = Grupo.get(Grupo.id == dados_usuario['grupo'])
 
-            Usuario.create(
-                grupo=grupo,
-                nome=dados_usuario['nome'],
-                email=dados_usuario['email'],
-                date_beg=dados_usuario['date_beg'],
-                date_end=dados_usuario['date_end'],
-                observacoes=dados_usuario['observacoes'],
-                status=dados_usuario['status']
-            )
-    
-        for cluster_data in clusters:
+            existing_user, created = Usuario.get_or_create(
+                id = dados_usuario['id'],
+                defaults = {'grupo': grupo, 
+                            'nome': dados_usuario['nome'],
+                            'email': dados_usuario['email'],
+                            'date_beg': dados_usuario['date_beg'],
+                            'date_end': dados_usuario['date_end'],
+                            'observacoes': dados_usuario['observacoes'],
+                            'status': dados_usuario['status']
+                            }
+                )
 
-            Cluster.create(
-                name=cluster_data['name'],
-                description=cluster_data['description'],
-                date_beg=cluster_data['date_beg'],
-                date_end=cluster_data['date_end'],
-                status=cluster_data['status']
-            )
+            existing_user.grupo = grupo
+            existing_user.nome = dados_usuario['nome']
+            existing_user.email = dados_usuario['email']
+            existing_user.date_beg = dados_usuario['date_beg']
+            existing_user.date_end = dados_usuario['date_end']
+            existing_user.observacoes = dados_usuario['observacoes']
+            existing_user.status = dados_usuario['status']
+            existing_user.save()
+
+        for dados_cluster in clusters:
+
+            existing_cluster, created = Cluster.get_or_create(
+                id = dados_cluster['id'],
+                defaults = {'name': dados_cluster['name'], 
+                            'description': dados_cluster['description'],
+                            'date_beg': dados_cluster['date_beg'],
+                            'date_end': dados_cluster['date_end'],
+                            'status': dados_cluster['status']
+                            }
+                )
+
+            existing_cluster.name = dados_cluster['name']
+            existing_cluster.description = dados_cluster['description']
+            existing_cluster.date_beg = dados_cluster['date_beg']
+            existing_cluster.date_end = dados_cluster['date_end']
+            existing_cluster.status = dados_cluster['status']
+            existing_cluster.save()
 
         for dados_equipamentos in equipamentos:
-            cluster_id = dados_equipamentos['cluster']
-            cluster = Cluster.get(Cluster.id == cluster_id)
 
-            Equipamento.create(
-                cluster=cluster,
-                hostname=dados_equipamentos['hostname'],
-                modelo=dados_equipamentos['modelo'],
-                tipo=dados_equipamentos['tipo'],
-                patrimonio=dados_equipamentos['patrimonio'],
-                serviceTag=dados_equipamentos['serviceTag'],
-                nucleo=dados_equipamentos['nucleo'],
-                memoria=dados_equipamentos['memoria'],
-                disco=dados_equipamentos['disco'],
-                date_beg=dados_equipamentos['date_beg'],
-                date_end=dados_equipamentos['date_end'],
-                status=dados_equipamentos['status']
-            )
+            cluster = Cluster.get(Cluster.id == dados_equipamentos['cluster'])
+
+            existing_equipament, created = Equipamento.get_or_create(
+                id = dados_equipamentos['id'],
+                defaults = {'cluster': cluster,
+                            'hostname': dados_equipamentos['hostname'], 
+                            'modelo': dados_equipamentos['modelo'],
+                            'tipo': dados_equipamentos['tipo'],
+                            'patrimonio': dados_equipamentos['patrimonio'],
+                            'serviceTag': dados_equipamentos['serviceTag'],
+                            'nucleo': dados_equipamentos['nucleo'],
+                            'memoria': dados_equipamentos['memoria'],
+                            'disco': dados_equipamentos['disco'],
+                            'date_beg': dados_equipamentos['date_beg'],
+                            'date_end': dados_equipamentos['date_end'],
+                            'status': dados_equipamentos['status']
+                            }
+                )
+
+            existing_equipament.cluster = cluster
+            existing_equipament.hostname = dados_equipamentos['hostname']
+            existing_equipament.modelo = dados_equipamentos['modelo']
+            existing_equipament.tipo = dados_equipamentos['tipo']
+            existing_equipament.patrimonio = dados_equipamentos['patrimonio']
+            existing_equipament.serviceTag = dados_equipamentos['serviceTag']
+            existing_equipament.nucleo = dados_equipamentos['nucleo']
+            existing_equipament.memoria = dados_equipamentos['memoria']
+            existing_equipament.disco = dados_equipamentos['disco']
+            existing_equipament.date_beg = dados_equipamentos['date_beg']
+            existing_equipament.date_end = dados_equipamentos['date_end']
+            existing_equipament.status = dados_equipamentos['status']
+            existing_equipament.save()
 
     os.remove(file_path)
+    return redirect(url_for('homepage'))
+
+@app.route('/clean', methods=['GET'])
+def clean():
+    database.drop_tables([Cluster, Equipamento, Grupo, Usuario])
+    create_tables()
     return redirect(url_for('homepage'))
 
 
