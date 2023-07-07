@@ -452,12 +452,6 @@ def clean():
     create_tables()
     return redirect(url_for('homepage'))
 
-
-##########################################################################################
-
-# É possível LIMPAR o banco de dados 'descomentando' o seguinte comando:
-# database.drop_tables([Cluster, Equipamento, Grupo, Usuario])
-
 ##########################################################################################
 
 if __name__ == '__main__':

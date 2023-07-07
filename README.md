@@ -16,7 +16,7 @@ Sistema de Accounting do LAD
 4. Após carregar todo o script, uma conexão será estabelecida no terminal do VS Code virtual; seguido por um pop-up.
 
     Example: http://127.0.0.1:8050/
-
+ 
 ## Executar na máquina local
 1. Antes de começar, copie todo o repositório na máquina local.
 2. Abra um terminal e entre no diretório do repositório.
