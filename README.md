@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 # LabLAD Accounting
-=======
-# LAD_Accounting
+
 Sistema de Accounting do LAD
->>>>>>> 4f0046f6895813699d618c7e977d361fc856f0d5
 
 ## Executar no Codespaces
 1. Abra a aba de Codespaces no repositório do [LAD Accounting Dashboard](https://github.com/LAD-PUCRS/LAD-Accounting-Dashboard)
