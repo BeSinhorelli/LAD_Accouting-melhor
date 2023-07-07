@@ -3,7 +3,7 @@
 Sistema de Accounting do LAD
 
 ## Executar no Codespaces
-1. Abra a aba de Codespaces no repositório do [LAD Accounting Dashboard](https://github.com/LAD-PUCRS/LAD-Accounting-Dashboard)
+1. Abra a aba de Codespaces no repositório do [LAD Accounting]([https://github.com/LAD-PUCRS/LAD-Accounting-Dashboard](https://github.com/LAD-PUCRS/LAD_Accounting))
 ![Codespace](static/img/screen.png)
 
 2. Você será redirecionado no terminal de um VS Code virtual
