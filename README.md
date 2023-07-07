@@ -3,14 +3,15 @@
 Sistema de Accounting do LAD
 
 ## Executar no Codespaces
-1. Abra a aba de Codespaces no repositório do [LAD Accounting]([https://github.com/LAD-PUCRS/LAD-Accounting-Dashboard](https://github.com/LAD-PUCRS/LAD_Accounting))
+1. Abra a aba de Codespaces no repositório do [LAD Accounting](https://github.com/LAD-PUCRS/LAD_Accounting)
+
 ![Codespace](static/img/screen.png)
 
-2. Você será redirecionado no terminal de um VS Code virtual
+3. Você será redirecionado no terminal de um VS Code virtual
 
-3. Coloque o seguinte comando para instalar as bibliotecas necessárias e executar o arquivo lad.py: `./script.sh`
+4. Coloque o seguinte comando para instalar as bibliotecas necessárias e executar o arquivo lad.py: `./script.sh`
 
-4. Após carregar todo o script, uma conexão será estabelecida no terminal do VS Code virtual; seguido por um pop-up.
+5. Após carregar todo o script, uma conexão será estabelecida no terminal do VS Code virtual; seguido por um pop-up.
 
     Example: http://127.0.0.1:8050/
  
