@@ -9,19 +9,19 @@ Sistema de Accounting do LAD
 
 3. Você será redirecionado no terminal de um VS Code virtual
 
-4. Coloque o seguinte comando para instalar as bibliotecas necessárias e executar o arquivo lad.py: `./script.sh`
+4. Coloque o seguinte comando para instalar as bibliotecas necessárias e executar o arquivo lad.py: `./script.sh` ou `bash script.sh`
 
 5. Após carregar todo o script, uma conexão será estabelecida no terminal do VS Code virtual; seguido por um pop-up.
 
-    Example: http://127.0.0.1:8050/
+    Examplo: http://127.0.0.1:8050/
  
 ## Executar na máquina local
 1. Antes de começar, copie todo o repositório na máquina local.
 2. Abra um terminal e entre no diretório do repositório.
-3. Execute o seguinte arquivo para instalar as bibliotecas necessárias pela primeira vez: `./script.sh`
+3. Execute o seguinte arquivo para instalar as bibliotecas necessárias pela primeira vez: `./script.sh` ou `bash script.sh`
 4. Após carregar todo o script, uma conexão será estabelecida no terminal.
 
-    Example: http://127.0.0.1:8050/
+    Examplo: http://127.0.0.1:8050/
 
 ### Requisitos:
 - [Python 3.7+](https://www.python.org/)

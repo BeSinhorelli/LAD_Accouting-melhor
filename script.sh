@@ -10,5 +10,5 @@ pip install peewee
 
 echo "Libraries installation completed."
 
-echo "Executing the main python programm..."
-python3 lad.py
+echo "Executing the LAD Acoounting programm..."
+python3 app.py
