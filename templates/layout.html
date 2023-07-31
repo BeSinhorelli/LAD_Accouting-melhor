@@ -5,43 +5,41 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/dash/_favicon.ico?v=2.11.0">
   <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
-  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='homepage.css') }}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css">
   <title>LAD Accounting</title>
 </head>
 
 <body>
   <div class=page>
-    <nav class="navbar mb-4 p-2" style="background-color:#1e2032;">
-      <div class="container-fluid">
-        
-        <a class="navbar-brand" href="{{ url_for('homepage') }}" style="color: white; font-size: 2rem;">
-          <img src="/static/img/LabLAD.png" alt="logo LabLAD" width="80" height="80" class="d-inline-block align-text-middle">
-          LAD Accounting
-        </a>
-
-        <ul class="nav">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('cluster', clusterName='cadastro')}}">Cadastrar Cluster</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('equipamento', equipName='cadastro') }}">Cadastrar Equipamento</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('grupo', groupName='cadastro')}}">Cadastrar Grupo</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('usuario', userName='cadastro') }}">Cadastrar Usuário</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('upload') }}">Import / Export</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('clean') }}">Limpar Database</a>
-          </li>
-        </ul>
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <a class="navbar-brand-title" href="{{ url_for('homepage') }}">LAD Accounting</a>
+        <img src="/static/img/LabLAD.png" alt="logo LabLAD" width="100" height="100" class="d-inline-block align-text-middle">
+        <a class="navbar-brand-title" href="{{ url_for('/dash/') }}">LAD Dashboard</a>
       </div>
+      
+      <ul class="nav">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('cluster', clusterName='cadastro')}}">Cadastrar Cluster</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('equipamento', equipName='cadastro') }}">Cadastrar Equipamento</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('grupo', groupName='cadastro')}}">Cadastrar Grupo</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('usuario', userName='cadastro') }}">Cadastrar Usuário</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('upload') }}">Import / Export</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('clean') }}">Limpar Dados</a>
+        </li>
+      </ul>
     </nav>
 
     {% block body %}{% endblock %}

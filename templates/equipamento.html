@@ -4,7 +4,7 @@
     {% if equipamento %}
         <h2>Editar {{ equipamento.hostname }}</h2>
     {% else %}
-        <h2>Cadastrar equipamento</h2>
+        <h2>Cadastrar Equipamento</h2>
     {% endif %}    
     <form autocomplete="off" action="{% if equipamento %} {{ url_for('equipamento', equipName=equipamento.hostname) }} {% else %} {{ url_for('equipamento', equipName='cadastro') }} {% endif %}" method=post>
       <div class="mb-3">

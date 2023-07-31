@@ -4,7 +4,7 @@
   {% if cluster %}
       <h2>Editar {{ cluster.name }}</h2>
   {% else %}
-      <h2>Cadastrar cluster</h2>
+      <h2>Cadastrar Cluster</h2>
   {% endif %}    
   <form action="{% if cluster %} {{ url_for('cluster', clusterName=cluster.name) }} {% else %} {{ url_for('cluster', clusterName='cadastro') }} {% endif %}" method=post>
     <div class="mb-3">

@@ -4,7 +4,7 @@
   {% if grupo %}
       <h2>Editar {{ grupo.nome }}</h2>
   {% else %}
-      <h2>Cadastrar grupo</h2>
+      <h2>Cadastrar Grupo</h2>
   {% endif %}  
   <form action="{% if grupo %} {{ url_for('grupo', groupName=grupo.nome) }} {% else %} {{ url_for('grupo', groupName='cadastro') }} {% endif %}" method=post>
     <div class="mb-3">

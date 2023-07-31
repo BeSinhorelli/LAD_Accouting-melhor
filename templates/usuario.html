@@ -4,7 +4,7 @@
     {% if usuario %}
         <h2>Editar {{ usuario.nome }}</h2>
     {% else %}
-        <h2>Cadastrar usuário</h2>
+        <h2>Cadastrar Usuário</h2>
     {% endif %}    
     <form autocomplete="off" action="{% if usuario %} {{ url_for('usuario', userName=usuario.nome) }} {% else %} {{ url_for('usuario', userName='cadastro') }} {% endif %}" method=post>
       <div class="mb-3">
