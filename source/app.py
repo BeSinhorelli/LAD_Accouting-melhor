@@ -28,13 +28,14 @@ DATABASE = 'accounting.db'
 DEBUG = True
 SECRET_KEY = 'hin6bab8ge25*r=x&amp;+5$0kn=-#log$pt^#@vrqjld!^2ci@g*b'
 
-server = Flask(__name__)
+server = Flask(__name__, static_folder='assets')
 server.config.from_object(__name__)
 
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     server=server,
+    assets_folder='assets/images',
     url_base_pathname='/dash/'
     )
 
@@ -306,7 +307,7 @@ app.layout = html.Div([
         width=10, 
         className='mx-auto'
         )
-], style={'background-color':second_color, 'padding':'1rem'}
+], style={'background-color':second_color, 'padding':'1rem', 'min-width':'700px'}
 )
 
 

@@ -14,7 +14,7 @@
   font-size: 16px;
 }
 
-body, .page {
+body, .page, html {
   width: 100%;
   min-height: 100vh;
   background: var(--second_color);
@@ -28,7 +28,7 @@ body, .page {
   padding: 3rem 0 1.5rem 0 !important;
 }
 .navbar-brand {
-  margin: 0;
+  margin: 0 !important;
   padding: 0 !important;
   display: flex;
   gap: 3rem;
@@ -78,14 +78,6 @@ h2 {
   clear: both;
 }
 
-/* .metanav{
-  text-align: right;
-  font-size: 0.9em;
-  padding: 0.3em;
-  margin-bottom: 1em;
-  background: #fafafa;
-} */
-
 .flash {
   background: #CEE5F5;
   padding: 0.5em;
@@ -116,3 +108,35 @@ h2 {
   color: var(--fifth-color);
 }
 
+@media screen and (max-width: 1000px) {
+  .navbar-brand {
+    flex-direction: column;
+    padding: auto;
+    gap: 1rem;
+    margin: 0 !important;
+  }
+  .navbar-brand img {
+    order: -1;
+  }
+  .navbar-brand-title {
+    background-color: var(--third_color);
+    width: 190%;
+    height: 120%;
+    border-radius: .5rem;
+    text-align: center;
+  }
+  .nav {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    border-radius: 1rem;
+    max-width: 90%;
+    background-color: var(--third_color);
+    margin: 1.5rem;
+  }
+  .cadastro, .upload {
+    max-width: 90%;
+    margin: auto;
+  }
+}
