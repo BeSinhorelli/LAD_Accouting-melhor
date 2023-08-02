@@ -301,6 +301,19 @@ app.layout = html.Div([
                      id='graph_total_24x7',
                 )],
                 className='shadow text-center',
+                style={'border': 'none', 'margin': '1rem 0'}
+            )
+        ],
+        width=10, 
+        className='mx-auto'
+        ),
+    dbc.Col([
+        dbc.Card([
+            dbc.CardHeader('Produções científicas dos grupos - Geral ', style={'border-bottom': 'none', 'background-color': fourth_color, 'color': 'white'}),
+                dcc.Graph(
+                     id='graph_producoes',
+                )],
+                className='shadow text-center',
                 style={'border': 'none'}
             )
         ],
@@ -323,6 +336,7 @@ app.layout = html.Div([
     Output('graph_storage', 'figure'),
     Output('graph_total', 'figure'),
     Output('graph_total_24x7', 'figure'),
+    Output('graph_producoes', 'figure'),
 
     Output('total_utilizado_storage', 'children'),
     Output('total_disponivel_storage', 'children'),
@@ -395,6 +409,8 @@ def update_figure(yearValue, value):
         df_dados = pd.read_excel('relatorios/' + yearValue + '/12-dez.xlsx')
         mes = 31                                      
 
+
+    df_producoes = pd.read_excel('relatorios/producoes.xlsx')
 
     # ------------ USO HISTÓRICO DAS MÁQUINAS - ANUAL -------------- #
 
@@ -560,6 +576,19 @@ def update_figure(yearValue, value):
                         y = 'Máquina em 24x7',
                         color = 'Projeto'
                         )
+    
+    # -------------------- PRODUÇÕES CIENTÍFICAS ----------------- #
+
+    fig_producoes = px.bar(
+        df_producoes,
+        x="Unidade/Escola",
+        y=["Produção Científica", "TCC, Dissertação ou Tese"],
+        barmode="group",
+        labels={'value':'Quantidade', 'variable':'Tipo de Publicação'},
+        text_auto=True
+        )
+
+    # -------------------------- RETURN -------------------------- #
 
     return [
             fig_utilizacao_anual,
@@ -571,6 +600,7 @@ def update_figure(yearValue, value):
             fig_storage,
             fig_total,
             fig_total_24x7,
+            fig_producoes,
 
             total_utilizado_storage, 
             total_disponivel_storage,
@@ -580,7 +610,7 @@ def update_figure(yearValue, value):
             value,
             qmes
            ]
-        
+
 ##########################################################################################
 
 class BaseModel(Model):
