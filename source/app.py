@@ -421,12 +421,41 @@ def update_figure(yearValue, value):
         'Máquina em Cluster' : 'sum'
     })
 
+    capacidade_horas_nucleo = (2108*24*mes)
+    
+    if (int(yearValue) % 400 == 0 or int(yearValue) % 4 == 0 and int(yearValue) % 100 != 0):
+        fev = 29
+    else: fev = 28
+
+    valores_calculados = []
+
+    for index, row in df_total_maquina.iterrows():
+        uso_total = row['Máquina em 24x7'] + row['Máquina em Cluster']
+        dias_mes = {
+        1: 31,
+        2: fev,
+        3: 31,
+        4: 30,
+        5: 31,
+        6: 30,
+        7: 31,
+        8: 31,
+        9: 30,
+        10: 31,
+        11: 30,
+        12: 31
+        }[index]
+        capacidade_total = 2108 * 24 * dias_mes
+        valores_calculados.append(capacidade_total - uso_total)
+
+    df_total_maquina["Disponível"] = valores_calculados
+
     fig_utilizacao_anual = px.bar(
-        df_total_maquina, 
-        y=["Máquina em 24x7", "Máquina em Cluster"],
+        df_total_maquina,
+        y=["Máquina em 24x7", "Máquina em Cluster", "Disponível"],
         labels={'value':'Uso (CPU-Hora)', 'variable':'Tipo de uso'}
         )
-
+    
     # ------------ Máquina em 24x7 -------------- #
 
         
@@ -455,11 +484,8 @@ def update_figure(yearValue, value):
 
     # ------------ Horas nucleo total -------------- #
 
-
     total_utilizado_horas_nucleo = total_utilizado_24x7 + total_utilizado_cluster
-    total_disponivel_horas_nucleo = (2108*24*mes) - total_utilizado_horas_nucleo
-    capacidade_horas_nucleo = (2108*24*mes)
-
+    total_disponivel_horas_nucleo = capacidade_horas_nucleo - total_utilizado_horas_nucleo
     utilizado_horas_nucleo = (total_utilizado_horas_nucleo / capacidade_horas_nucleo) * 100
     utilizado_horas_nucleo = round(utilizado_horas_nucleo, 2)
     
