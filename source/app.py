@@ -1,35 +1,37 @@
-import os, sqlite3, json
+# -------------------------------------  IMPORT DE BIBLIOTECAS  ---------------------------------------- #
+# --- FLASK --- #
 
-from unicodedata import name
+import os, json
 from datetime import datetime
-
-from flask import Flask, template_rendered
+from flask import Flask
 from flask import g, request, send_file
-from flask import url_for, abort, render_template, flash, redirect
-
+from flask import url_for, abort, render_template, redirect
 from peewee import *
-from playhouse.shortcuts import model_to_dict, dict_to_model
-from playhouse.reflection import generate_models, print_model, print_table_sql
+
+# --- DASH --- #
 
 import dash
 from dash import dcc
 from dash import html
-import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
+import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 import pandas as pd
 import numpy as np
 
-##########################################################################################
+# -------------------------------------  CONFIGURAÇÕES INICIAS  ---------------------------------------- #
+# --- FLASK --- #
 
 DATABASE = 'accounting.db'
 DEBUG = True
 SECRET_KEY = 'hin6bab8ge25*r=x&amp;+5$0kn=-#log$pt^#@vrqjld!^2ci@g*b'
-
 server = Flask(__name__, static_folder='assets')
 server.config.from_object(__name__)
+database = SqliteDatabase(DATABASE, pragmas={'foreign_keys': 1})
+
+# --- DASH --- #
 
 app = dash.Dash(
     __name__,
@@ -41,9 +43,8 @@ app = dash.Dash(
 
 pio.templates.default = "plotly_dark"
 app.title = "LAD Dashboard"
-database = SqliteDatabase(DATABASE, pragmas={'foreign_keys': 1})
 
-##########################################################################################
+# --- VARIAVÉIS DE CORES  --- #
 
 first_color = '#FDC366'
 second_color = '#212529'
@@ -51,21 +52,21 @@ third_color = '#111111'
 fourth_color = '#1E6EFF'
 fifth_color = '#EEE'
 
-# ----------------------------------------------  LEITURA DATABASE  ---------------------------------------------- #
+# ------------------------------------  LEITURA DATABASE - DASH ---------------------------------------- #
 
-ano = '2023'
-qmes = 0
+year = '2023'
+month = 0
 x = 0
 i = 0
 
-for dataframe in os.listdir('relatorios/' + ano):
-    qmes += 1
+for dataframe in os.listdir('relatorios/' + year):
+    month += 1
 
-# ----------------------------------------------  LAYOUT  ---------------------------------------------- #
+# ----------------------------------------  LAYOUT - DASH ---------------------------------------------- #
 
 app.layout = html.Div([
 
-    # ------------ LOGO ----------------------------------------------- #
+    # --- NAVEGAÇÃO  --- #
 
     html.Div(
         html.Div([
@@ -82,9 +83,12 @@ app.layout = html.Div([
         ), style={'padding': '2rem', 'background-color': second_color}
     ),
 
-    # ------------ Seção 1 - SELEÇÃO --------------------------------- #
+    # --------------------------------- SEÇÃO 1 - SELEÇÃO E GRAF. ANUAL -------------------------------- #
     
     dbc.Col([
+
+        # --- SELEÇÃO DO ANO  --- #
+        
         dbc.Col(
             dcc.Dropdown(
                 options=[
@@ -99,13 +103,16 @@ app.layout = html.Div([
                 width=2, 
                 style={'text-align':'center', 'margin': 'auto', 'margin-bottom':'1rem'}
         ),
+
+        # --- GRÁFICO DE UTILIZAÇÃO ANUAL DOS CLUSTERS  --- #
+
         dbc.Col(
             dbc.Row(
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader('Uso de Máquina anual', style={'border-bottom': 'none', 'background-color': first_color, 'color': second_color}),
+                        dbc.CardHeader('Uso de máquina anual', style={'background-color': first_color, 'color': second_color}),
                         dcc.Graph(
-                            id='fig_utilizacao_anual'
+                            id='graph_annual_usage'
                         )],
                         className='shadow text-center',
                         style={'border': 'none'}
@@ -116,13 +123,17 @@ app.layout = html.Div([
             ,
             width=12
         ),
+
+        # --- SELEÇÃO DO MÊS  --- #
+
         dbc.Row([
             dbc.Col(
                 dcc.Slider(
                     id='month_slider',
                     min=1,
-                    max=qmes,
-                    value=qmes,
+                    max=month,
+                    step=1,
+                    value=month,
                     marks={
                             1: {'label': 'Janeiro'},
                             2: {'label': 'Fevereiro'},
@@ -145,32 +156,34 @@ app.layout = html.Div([
     style={'margin': '1rem 0'}
     ),
 
-    # ------------ Seção 2 - CARDS (STORAGE E HORAS-NÚCLEO TOTAL) ----------------------------------- #
+    # ------------------------------ SEÇÃO 2 - GRAF. STORAGE E USO MENSAL ------------------------------ #
 
     dbc.Col(
         dbc.Row([
 
+            # --- GRÁFICO DE USO DO STORAGE --- #
+
             dbc.Col(
                 dbc.Card([
-                    dbc.CardHeader('Storage', style={'border-bottom': 'none','background-color': first_color, 'color' : second_color}),
+                    dbc.CardHeader('Storage', style={'background-color': first_color, 'color' : second_color}),
                     dbc.CardBody([
                         dbc.Col(
                             dcc.Graph(
-                                id='fig_storage_card'
+                                id='graph_storage'
                             )
                         ),
                         dbc.Row([
                             dbc.Col([
                                 html.Span('Utilizado'),
                                 html.Div([
-                                    html.H5(id='total_utilizado_storage', style={'display': 'inline', 'color': 'white'}),
+                                    html.H5(id='storage_usage', style={'display': 'inline', 'color': 'white'}),
                                     html.Span('GB', style={'color': 'white', 'margin-left': '5px'})
                                 ])
                             ]),
                             dbc.Col([
                                 html.Span('Disponível'),
                                 html.Div([
-                                    html.H5(id='total_disponivel_storage', style={'display': 'inline', 'color': 'white'}),
+                                    html.H5(id='storage_availability', style={'display': 'inline', 'color': 'white'}),
                                     html.Span('GB', style={'color': 'white', 'margin-left': '5px'}),
                                 ])
                                 
@@ -187,31 +200,33 @@ app.layout = html.Div([
                     )
                     ],
                     className='shadow text-center', 
-                    style={'border': 'none','background-color': third_color, 'color': 'white'}
+                    style={'background-color': third_color, 'color': 'white'}
                 ), width=6
             ),
 
+            # --- GRÁFICO DE USO MENSAL DOS CLUSTERS  --- #
+
             dbc.Col(
                 dbc.Card([
-                    dbc.CardHeader('Uso de Máquina mensal (CPU-Hora)', style={'border-bottom': 'none', 'background-color': first_color, 'color' : second_color}),
+                    dbc.CardHeader('Uso de máquina mensal (CPU-Hora)', style={'background-color': first_color, 'color' : second_color}),
                     dbc.CardBody([
                         dbc.Col(
                             dcc.Graph(
-                                id='graph_horas_nucleo_total'
+                                id='graph_monthly_usage'
                             )
                         ),
                         dbc.Row([
                             dbc.Col([
                                 html.Span('Utilizado'),
-                                html.H5(id='total_utilizado_horas_nucleo', style={'color': 'white'}),
+                                html.H5(id='machine_usage', style={'color': 'white'}),
                             ]),
                             dbc.Col([
                                 html.Span('Disponível'),
-                                html.H5(id='total_disponivel_horas_nucleo', style={'color': 'white'})
+                                html.H5(id='machine_availability', style={'color': 'white'})
                             ]),
                             dbc.Col([
                                 html.Span('Capacidade'),
-                                html.H5(id='capacidade_horas_nucleo', style={'color': 'white'})
+                                html.H5(id='machine_capacity', style={'color': 'white'})
                             ])
                         ])
                     ], style={'padding-top':'0'}
@@ -226,28 +241,32 @@ app.layout = html.Div([
         ])
     ),
 
-    # ------------ Seção 3 - MÁQUINAS EM CLUSTER E 24x7 ----------------------- #
+    # ------------------------ SEÇÃO 3 - GRAF. CLUSTER E EM 24 X 7 POR GRUPO --------------------------- #
 
     dbc.Col(
         dbc.Row([
 
-            dbc.Col([
+            # --- GRÁFICO DE USO DE MÁQUINA EM 24 X 7 POR GRUPO  --- #
+
+            dbc.Col(
                 dbc.Card([
-                    dbc.CardHeader('Utilização de Máquina em 24x7 por grupo', style={'border-bottom': 'none', 'background-color': fourth_color, 'color': 'white'}),
+                    dbc.CardHeader('Uso de máquina em 24x7 por grupo', style={'background-color': fourth_color, 'color': 'white'}),
                     dcc.Graph(
-                        id='graph_maquina24x7',
+                        id='graph_24x7_machine',
                     )],
                     className='shadow text-center',
                     style={'border': 'none'}
-                )],
+                ),
                 width=6
             ),
+            
+            # --- GRÁFICO DE USO DE MÁQUINA EM CLUSTER POR GRUPO  --- #
 
             dbc.Col([
                 dbc.Card([
-                    dbc.CardHeader('Utilização de Máquina em Cluster por grupo', style={'border-bottom': 'none', 'background-color': fourth_color, 'color': 'white'}),
+                    dbc.CardHeader('Uso de máquina em Cluster por grupo', style={'background-color': fourth_color, 'color': 'white'}),
                     dcc.Graph(
-                        id='graph_maquina_cluster',
+                        id='graph_cluster_machine',
                     )],
                     className='shadow text-center',
                     style={'border': 'none'}
@@ -259,59 +278,64 @@ app.layout = html.Div([
         style={'margin': '1rem 0'}
     ),
 
-    # ------------ Seção 4 - STORAGE POR GRUPO E USO DE MÁQUINA EM CLUSTER TOTAL E 24x7 ------------ #
+    # ----------------------------- SEÇÃO 4 - GRAF. STORAGE POR GRUPO ---------------------------------- #
 
     dbc.Col(
-        dbc.Col([
-
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardHeader('Utilização de Storage (Cluster + 24x7) por grupo', style={'border-bottom': 'none', 'background-color': first_color, 'color': second_color}),
-                    dcc.Graph(
-                        id='graph_storage',
-                    )],
-                    className='shadow text-center',
-                    style={'border': 'none'}
-                )],
-                width=10, 
-                className='mx-auto',
-                style={'margin': '1rem 0'}
-            ),
-            
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardHeader('Utilização de Máquina em Cluster total', style={'border-bottom': 'none', 'background-color': first_color, 'color': second_color}),
-                    dcc.Graph(
-                        id='graph_total',
-                    )],
-                    className='shadow text-center',
-                    style={'border': 'none', 'margin': '1rem 0'},
-                )
-            ],
-            width=10, 
-            className='mx-auto'
-            )
-        ])
-    ),
-               
-    dbc.Col([
         dbc.Card([
-            dbc.CardHeader('Utilização de Máquina em 24x7 total', style={'border-bottom': 'none', 'background-color': fourth_color, 'color': 'white'}),
+            dbc.CardHeader('Uso de Storage (Cluster + 24x7) por grupo', style={'background-color': first_color, 'color': second_color}),
+            dcc.Graph(
+                id='graph_storage_group',
+            )],
+            className='shadow text-center',
+            style={'border': 'none'}
+        ),
+        width=10, 
+        className='mx-auto',
+        style={'margin': '1rem 0'}
+    ),
+    
+    # ----------------------- SEÇÃO 5 - GRAF. ANUAL (CLUSTER + 24X7) POR GRUPO  ------------------------ #
+
+    dbc.Col([
+
+        # --- GRÁFICO DE USO ANUAL DE MÁQUINA EM CLUSTER POR GRUPO  --- #
+
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader('Uso anual de máquina em Cluster por grupo', style={'background-color': first_color, 'color': second_color}),
                 dcc.Graph(
-                     id='graph_total_24x7',
+                    id='graph_cluster_usage_group',
                 )],
                 className='shadow text-center',
-                style={'border': 'none', 'margin': '1rem 0'}
-            )
-        ],
-        width=10, 
-        className='mx-auto'
+                style={'border': 'none', 'margin': '1rem 0'},
+            )],
+            width=10, 
+            className='mx-auto'
         ),
+
+        # --- GRÁFICO DE USO ANUAL DE MÁQUINA EM 24 X 7 POR GRUPO  --- #
+               
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader('Uso anual de máquina em 24x7 por grupo', style={'background-color': fourth_color, 'color': 'white'}),
+                dcc.Graph(
+                     id='graph_24x7_usage_group',
+                )],
+                className='shadow text-center',
+                style={'border': 'none', 'margin': '1rem 0'}    
+            )],
+            width=10, 
+            className='mx-auto'
+        )]
+    ),
+
+    # ---------------------------- SEÇÃO 6 - GRAF. PRODUÇÕES CIENTÍFICAS ------------------------------- #
+
     dbc.Col([
         dbc.Card([
-            dbc.CardHeader('Produções científicas dos grupos - Geral ', style={'border-bottom': 'none', 'background-color': fourth_color, 'color': 'white'}),
+            dbc.CardHeader('Produções científicas por Unidade (2015-2021) ', style={'background-color': fourth_color, 'color': 'white'}),
                 dcc.Graph(
-                     id='graph_producoes',
+                     id='graph_production',
                 )],
                 className='shadow text-center',
                 style={'border': 'none'}
@@ -323,115 +347,273 @@ app.layout = html.Div([
 ], style={'background-color':second_color, 'padding':'1rem', 'min-width':'700px'}
 )
 
-
-    # ------------ CALLBACK - ORGANIZA AS INFORMAÇÕES DOS GRÁFICOS ------------ #
+# ---------------------------------------  CALLBACK - DASH --------------------------------------------- #
 
 @app.callback(
-    Output('fig_utilizacao_anual', 'figure'),
-    Output('fig_storage_card', 'figure'),
-    Output('graph_horas_nucleo_total', 'figure'),
-
-    Output('graph_maquina24x7', 'figure'),
-    Output('graph_maquina_cluster', 'figure'),
+    # --- GRÁFICOS DO LAYOUT (EM ORDEM)  --- #
+    Output('graph_annual_usage', 'figure'),
     Output('graph_storage', 'figure'),
-    Output('graph_total', 'figure'),
-    Output('graph_total_24x7', 'figure'),
-    Output('graph_producoes', 'figure'),
+    Output('graph_monthly_usage', 'figure'),
+    Output('graph_24x7_machine', 'figure'),
+    Output('graph_cluster_machine', 'figure'),
+    Output('graph_storage_group', 'figure'),
+    Output('graph_cluster_usage_group', 'figure'),
+    Output('graph_24x7_usage_group', 'figure'),
+    Output('graph_production', 'figure'),
 
-    Output('total_utilizado_storage', 'children'),
-    Output('total_disponivel_storage', 'children'),
-    Output('total_utilizado_horas_nucleo', 'children'),
-    Output('total_disponivel_horas_nucleo', 'children'),
-    Output('capacidade_horas_nucleo', 'children'),
+    # --- VALORES USADOS EM GRÁFICOS  --- #
+    Output('storage_usage', 'children'),
+    Output('storage_availability', 'children'),
+    Output('machine_usage', 'children'),
+    Output('machine_availability', 'children'),
+    Output('machine_capacity', 'children'),
+
+    # --- SELEÇÃO DE MÊS E ANO  --- #
     Output('month_slider', 'value'),
     Output('month_slider', 'max'),
-
     Input('year_dropdown', 'value'),
     Input('month_slider', 'value')
 )
 
-# ------------ FUNÇÃO PRINCIPAL ------------ #
+# -----------------------------------  FUNÇÃO PRINCIPAL - DASH ----------------------------------------- #
 
 def update_figure(yearValue, value):
     
-    # ------------ CONFIGURAÇÕES -------------- #
-
-    qmes = 0
+    # ------------------------------------- CONFIGURAÇÕES ---------------------------------------------- #
+    month = 0
     global x
+    df_annual = pd.DataFrame()
+    days = month_days(value)
 
-    df_relatorio_total = pd.DataFrame()
-    
+    # --- CRIA UM RELATÓRIO ANUAL --- #
     for dataframe in os.listdir('relatorios/' + yearValue):
-        df_relatorio_total = pd.concat([df_relatorio_total, pd.read_excel(os.path.join('relatorios/' + yearValue, dataframe))])
-        qmes = qmes + 1
-    
-    if (qmes < x and qmes < value):
-        value = qmes
+        df_annual = pd.concat([df_annual, pd.read_excel(os.path.join('relatorios/' + yearValue, dataframe))])
+        month += 1
 
-    x = qmes
+    # --- EVITA QUE TENTE ACESSAR UM MÊS QUE AINDA NÃO CHEGOU --- #
+    if (month < value):
+        value = month    
 
-    if value == 1:
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/1-jan.xlsx')
-        mes = 31
-    elif value == 2: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/2-fev.xlsx')
-        if (int(yearValue) % 400 == 0 or int(yearValue) % 4 == 0 and int(yearValue) % 100 != 0):
-            mes = 29
-        else: mes = 28
-    elif value == 3: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/3-mar.xlsx')
-        mes = 31
-    elif value == 4: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/4-abr.xlsx')
-        mes = 30
-    elif value == 5: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/5-mai.xlsx')
-        mes = 31
-    elif value == 6: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/6-jun.xlsx')
-        mes = 30
-    elif value == 7: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/7-jul.xlsx')
-        mes = 31
-    elif value == 8: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/8-ago.xlsx')
-        mes = 31
-    elif value == 9: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/9-set.xlsx')
-        mes = 30
-    elif value == 10: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/10-out.xlsx')
-        mes = 31
-    elif value == 11: 
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/11-nov.xlsx')
-        mes = 30
-    else:
-        df_dados = pd.read_excel('relatorios/' + yearValue + '/12-dez.xlsx')
-        mes = 31                                      
+    x = month
 
+    # --- CRIA UM RELATÓRIO MENSAL --- #
+    df_data = read_database_excel(yearValue, value)
 
-    df_producoes = pd.read_excel('relatorios/producoes.xlsx')
+    # ---------------------- USO DAS MÁQUINAS EM CLUSTER E 24 X 7- ANUAL ------------------------------- #
 
-    # ------------ USO HISTÓRICO DAS MÁQUINAS - ANUAL -------------- #
+    # --- CÁLCULO SIMPLES (CORES - HORAS/DIA - DIA/MÊS) --- #
+    machine_capacity = (2108*24*days)
 
-    df_total_maquina = df_relatorio_total[['Máquina em Cluster', 'Máquina em 24x7', 'Mês']]               
-    df_total_maquina = df_total_maquina.sort_values(by=['Mês'], ascending=False)
-    df_total_maquina = df_total_maquina.groupby(['Mês']).agg({
+    # --- CRIA UM RELATÓRIO DE USO DE MÁQUINA, AGRUPADO POR MÊS --- #
+    df_machine_usage = df_annual[['Máquina em Cluster', 'Máquina em 24x7', 'Mês']].sort_values(by=['Mês'], ascending=False)               
+    df_machine_usage = df_machine_usage.groupby(['Mês']).agg({
         'Máquina em 24x7' : 'sum',
         'Máquina em Cluster' : 'sum'
     })
 
-    capacidade_horas_nucleo = (2108*24*mes)
+    # --- CRIA UMA COLUNA DE DISPONIBILIDADE --- #
+    machine_availability_annual = []
+
+    for index, row in df_machine_usage.iterrows():
+        total_usage = row['Máquina em 24x7'] + row['Máquina em Cluster']
+        capacity = 2108 * 24 * month_days(index)
+        machine_availability_annual.append(capacity - total_usage)
+
+    df_machine_usage["Disponível"] = machine_availability_annual
+
+    # --- CRIA O GRÁFICO --- #
+    graph_annual_usage = px.bar(
+        df_machine_usage,
+        y=["Máquina em 24x7", "Máquina em Cluster", "Disponível"],
+        labels={'value':'Uso (CPU-Hora)', 'variable':'Tipo de uso'}
+        )
+ 
+    # ------------------ USO DE STORAGE (CLUSTER E 24 X 7) MENSAL E EM GRUPO --------------------------- #
+
+    # --- CRIA UM RELATÓRIO COM AS COLUNAS DE STORAGE --- #
+    # --- TAMBÉM AS LINHAS COM MENOS DE DOIS VALORES E ADICIONA UM ZERO NAS CASAS VAZIAS --- #
+    df_storage = df_data[['Projeto', 'Storage em cluster(GB)', 'Storage em 24x7(GB)']].dropna(thresh=2).fillna(0)  
+
+    # --- ADICIONA UMA COLUNA DE TOTAL (Cluster + 24x7) --- #                                                                              
+    df_storage['Total'] = df_storage['Storage em cluster(GB)'] + df_storage['Storage em 24x7(GB)']
     
-    if (int(yearValue) % 400 == 0 or int(yearValue) % 4 == 0 and int(yearValue) % 100 != 0):
-        fev = 29
-    else: fev = 28
+    # --- DEFINÇÕES DO STORAGE --- #      
+    storage_capacity = 134206
+    storage_usage = df_storage['Total'].sum()
+    storage_availability = storage_capacity - storage_usage
 
-    valores_calculados = []
+    # --- ADICIONA UMA LINHA DE DISPONIBILIDADE --- #  
+    new_row = pd.DataFrame([['Disponível', '', '', storage_availability]], columns=df_storage.columns)
+    df_storage = pd.concat([new_row, df_storage], ignore_index=True)   
 
-    for index, row in df_total_maquina.iterrows():
-        uso_total = row['Máquina em 24x7'] + row['Máquina em Cluster']
-        dias_mes = {
+    # --- CRIA O GRÁFICO MENSAL --- #
+    storage_usage_percent = round((storage_usage / storage_capacity) * 100, 2)
+    annotations = [
+        dict(x=0, y=['Total'], text="Utilizado", xanchor="left", showarrow=False),
+        dict(x=storage_usage, y=['Total'], text=f"{storage_usage_percent}%", xanchor="auto", showarrow=False)
+    ]
+
+    graph_storage = go.Figure(
+        data=[
+            go.Bar(name='Utilizado', x=[storage_usage], y=['Total'], orientation='h', marker_color='darkorange'),
+            go.Bar(name='Disponível', x=[storage_availability], y=['Total'], orientation='h', marker_color='#efefef')
+        ]
+    )
+    graph_storage.update_layout(
+        barmode='stack',
+        yaxis={'visible': False, 'showticklabels': False},
+        xaxis={'visible': False, 'showticklabels': False, 'showline': False},
+        height=100,
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=10, r=0, b=10, t=0),
+        legend=dict(yanchor="top", y=0.5, xanchor="right", x=1.2),
+        annotations=annotations
+    )
+
+    # --- CRIA O GRÁFICO DE GRUPOS --- # 
+    labels = df_storage['Projeto']
+    values = df_storage['Total']
+
+    graph_storage_group = go.Figure(
+        data=[
+            go.Pie(labels = labels, values = values, pull = [0.1])
+        ],
+        layout_showlegend=False
+    )
+    graph_storage_group.update_traces(textposition='inside', textinfo = 'label+percent')
+
+    # ------------------ USO DE MÁQUINA MENSAL E POR GRUPO (24X7 E CLUSTER) ---------------------------- #
+    
+    # --- DEFINIÇÃO DA MÁQUINA EM 24 X 7 --- # 
+    df_machine_24x7 = df_data[['Projeto', 'Máquina em 24x7']].dropna().sort_values(by=['Máquina em 24x7'], ascending=False)   
+    machine_usage_24x7 = df_machine_24x7['Máquina em 24x7'].sum()
+
+    # --- DEFINIÇÃO DA MÁQUINA EM CLUSTER --- # 
+    df_machine_cluster = df_data[['Projeto', 'Máquina em Cluster']].dropna().sort_values(by=['Máquina em Cluster'], ascending=False)
+    machine_usage_cluster = df_machine_cluster['Máquina em Cluster'].sum()
+
+    # --- DEFINIÇÃO DA MÁQUINA MENSAL --- # 
+    machine_usage = machine_usage_24x7 + machine_usage_cluster
+    machine_availability = machine_capacity - machine_usage
+    machine_usage_percent = round((machine_usage / machine_capacity) * 100, 2)
+
+    # --- CRIA O GRÁFICO DE USO DE MÁQUINA MENSAL --- #
+    annotations = [
+        dict(x=0, y=['Total'], text="Utilizado", xanchor="left", showarrow=False),
+        dict(x=machine_usage_24x7+machine_usage_cluster, y=['Total'], text=str(machine_usage_percent)+'%', xanchor="auto", showarrow=False)
+    ]
+
+    graph_monthly_usage = go.Figure(
+        data=[
+            go.Bar(name='24x7', x=[machine_usage_24x7], y=['Total'], orientation='h', marker_color='rgb(20, 200, 255)'),
+            go.Bar(name='Cluster', x=[machine_usage_cluster], y=['Total'], orientation='h', marker_color='rgb(30, 110, 255)'),
+            go.Bar(name='Disponível', x=[machine_availability], y=['Total'], orientation='h', marker_color='#efefef')
+        ]
+    )
+
+    graph_monthly_usage.update_layout(
+        barmode='stack',
+        yaxis={'visible': False, 'showticklabels': False},
+        xaxis={'visible': False, 'showticklabels': False, 'showline': False},
+        height=100,
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=10, r=0, b=10, t=0),
+        legend=dict(yanchor="top", y=0.7, xanchor="right", x=1.2),
+        annotations=annotations
+    )
+
+    # --- CRIA O GRÁFICO DE MÁQUINA EM 24 X 7 POR GRUPO --- # 
+    graph_24x7_machine = px.bar(
+        df_machine_24x7.head(10),
+        x="Projeto",
+        y="Máquina em 24x7",
+        color="Projeto"
+    ).update(layout_showlegend=False)
+
+    # --- CRIA O GRÁFICO DE MÁQUINA EM CLUSTER POR GRUPO --- #
+    graph_cluster_machine = px.bar(
+        df_machine_cluster,
+        x="Projeto",
+        y="Máquina em Cluster",
+        color="Projeto"
+        ).update(layout_showlegend=False)
+
+    # -------------------- USO DE MÁQUINA ANUAL POR GRUPO (24X7 E CLUSTER) ----------------------------- #
+
+    # --- DEFINIÇÃO DA MÁQUINA ANUAL EM CLUSTER POR GRUPO --- #
+    df_machine_usage_cluster = df_annual[['Projeto', 'Máquina em Cluster', 'Mês']].dropna().sort_values(by=['Mês']) 
+
+    # --- DEFINIÇÃO DA MÁQUINA ANUAL EM 24 X 7 POR GRUPO --- #
+    df_machine_usage_24x7 = df_annual[['Projeto', 'Máquina em 24x7', 'Mês']].dropna().sort_values(by=['Mês'])
+
+    # --- CRIA O GRÁFICO DE MÁQUINA EM CLUSTER POR GRUPO --- #        
+    graph_cluster_usage_group = px.line(
+        df_machine_usage_cluster, 
+        x = 'Mês', 
+        y = 'Máquina em Cluster',
+        color = 'Projeto'
+    )                                                          
+
+    # --- CRIA O GRÁFICO DE MÁQUINA EM 24 X 7 POR GRUPO --- #  
+    graph_24x7_usage_group = px.line(
+        df_machine_usage_24x7, 
+        x = 'Mês', 
+        y = 'Máquina em 24x7',
+        color = 'Projeto'
+    )
+    
+    # ---------------------------- GRÁF. PRODUÇÕES CIENTÍFICAS ----------------------------------------- #
+
+    # --- CRIA UM RELATÓRIO DE PRODUÇÕES - TEMPORÁRIO! --- #
+    df_production = pd.read_excel('relatorios/producoes.xlsx')
+
+    # --- CRIA O GRÁFICO DE PRODUÇÕES CIENTÍFICAS --- #
+    graph_production = px.bar(
+        df_production,
+        x="Unidade/Escola",
+        y=["Produção Científica", "TCC, Dissertação ou Tese"],
+        barmode="group",
+        labels={'value':'Quantidade', 'variable':'Tipo de Publicação'},
+        text_auto=True
+        )
+
+    # --------------------------------- RETORNO DA FUNÇÃO ---------------------------------------------- #
+
+    return [
+        # --- GRÁFICOS DO LAYOUT (EM ORDEM)  --- #
+        graph_annual_usage,
+        graph_storage,
+        graph_monthly_usage,
+        graph_24x7_machine, 
+        graph_cluster_machine, 
+        graph_storage_group,
+        graph_cluster_usage_group,
+        graph_24x7_usage_group,
+        graph_production,
+
+        # --- VALORES USADOS EM GRÁFICOS  --- #
+        storage_usage, 
+        storage_availability,
+        machine_usage, 
+        machine_availability,
+        machine_capacity,
+
+        # --- SELEÇÃO DE MÊS E ANO  --- #
+        value,
+        month
+    ]
+
+def verify_leap_year (yearValue):
+    return int(yearValue) % 400 == 0 or int(yearValue) % 4 == 0 and int(yearValue) % 100 != 0
+
+def month_days (month):
+        
+        if (verify_leap_year):
+            fev = 29
+        else:
+            fev = 28
+
+        month_days = {
         1: 31,
         2: fev,
         3: 31,
@@ -444,200 +626,39 @@ def update_figure(yearValue, value):
         10: 31,
         11: 30,
         12: 31
-        }[index]
-        capacidade_total = 2108 * 24 * dias_mes
-        valores_calculados.append(capacidade_total - uso_total)
+        }[month]
+        return month_days
 
-    df_total_maquina["Disponível"] = valores_calculados
-
-    fig_utilizacao_anual = px.bar(
-        df_total_maquina,
-        y=["Máquina em 24x7", "Máquina em Cluster", "Disponível"],
-        labels={'value':'Uso (CPU-Hora)', 'variable':'Tipo de uso'}
-        )
-    
-    # ------------ Máquina em 24x7 -------------- #
-
+def read_database_excel (yearValue, month):
         
-    df_maquina24x7 = df_dados[['Projeto', 'Máquina em 24x7']]                         
-    df_maquina24x7 = df_maquina24x7.dropna()                                                 
-    df_maquina24x7 = df_maquina24x7.sort_values(by=['Máquina em 24x7'], ascending=False)
+        if month == 1:
+            df_data = pd.read_excel('relatorios/' + yearValue + '/1-jan.xlsx')
+        elif month == 2: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/2-fev.xlsx')
+        elif month == 3: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/3-mar.xlsx')
+        elif month == 4: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/4-abr.xlsx')
+        elif month == 5: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/5-mai.xlsx')
+        elif month == 6: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/6-jun.xlsx')
+        elif month == 7: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/7-jul.xlsx')
+        elif month == 8: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/8-ago.xlsx')
+        elif month == 9: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/9-set.xlsx')
+        elif month == 10: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/10-out.xlsx')
+        elif month == 11: 
+            df_data = pd.read_excel('relatorios/' + yearValue + '/11-nov.xlsx')
+        elif month == 12:
+            df_data = pd.read_excel('relatorios/' + yearValue + '/12-dez.xlsx')
+        
+        return df_data
 
-    total_utilizado_24x7 = df_maquina24x7['Máquina em 24x7'].sum()
-
-    fig_maquina24x7 = px.bar(df_maquina24x7.head(10), x="Projeto", y="Máquina em 24x7", color="Projeto")
-    fig_maquina24x7.update(layout_showlegend=False)
-
-
-    # ------------ Máquina em Cluster ------------ #
-
-
-    df_maquinaCluster = df_dados[['Projeto', 'Máquina em Cluster']]                         
-    df_maquinaCluster = df_maquinaCluster.dropna()                                                 
-    df_maquinaCluster = df_maquinaCluster.sort_values(by=['Máquina em Cluster'], ascending=False)
-
-    total_utilizado_cluster = df_maquinaCluster['Máquina em Cluster'].sum()
-
-    fig_maquinaCluster = px.bar(df_maquinaCluster, x="Projeto", y="Máquina em Cluster", color="Projeto")
-    fig_maquinaCluster.update(layout_showlegend=False)
-
-
-    # ------------ Horas nucleo total -------------- #
-
-    total_utilizado_horas_nucleo = total_utilizado_24x7 + total_utilizado_cluster
-    total_disponivel_horas_nucleo = capacidade_horas_nucleo - total_utilizado_horas_nucleo
-    utilizado_horas_nucleo = (total_utilizado_horas_nucleo / capacidade_horas_nucleo) * 100
-    utilizado_horas_nucleo = round(utilizado_horas_nucleo, 2)
-    
-    fig_horas_nucleo_total = go.Figure(
-        data=[
-            go.Bar(name='24x7', x=[total_utilizado_24x7], y=['Total'], orientation='h', marker_color='rgb(20, 200, 255)'),
-            go.Bar(name='Cluster', x=[total_utilizado_cluster], y=['Total'], orientation='h', marker_color='rgb(30, 110, 255)'),
-            go.Bar(name='Disponível', x=[total_disponivel_horas_nucleo], y=['Total'], orientation='h', marker_color='#efefef')
-        ]
-    )
-
-    fig_horas_nucleo_total.update_layout(barmode='stack', yaxis={'visible': False, 'showticklabels': False}, xaxis={'visible': False, 'showticklabels': False, 'showline': False}, autosize=False,
-    height=100, plot_bgcolor='rgba(0,0,0,0)', margin=dict(
-        l=10,
-        r=0,
-        b=10,
-        t=0
-    ))
-
-    fig_horas_nucleo_total.add_annotation(x=0, y=['Total'],
-            text="Utilizado", xanchor="left",
-            showarrow=False)
-
-    fig_horas_nucleo_total.add_annotation(x=total_utilizado_24x7+total_utilizado_cluster, y=['Total'],
-            text=str(utilizado_horas_nucleo)+'%', xanchor="auto",
-            showarrow=False)
-
-    fig_horas_nucleo_total.update_layout(legend=dict(
-        yanchor="top",
-        y=0.7,
-        xanchor="right",
-        x=1.2
-    ))
-
-
-    # ------------ Storage ----------------------- #
-
-
-    df_storage = df_dados[['Projeto', 'Storage em cluster(GB)', 'Storage em 24x7(GB)']]                      
-    df_storage= df_storage.dropna(thresh=2)                                                        
-    df_storage = df_storage.fillna(0)                                                               
-    df_storage['Total'] = df_storage['Storage em cluster(GB)'] + df_storage['Storage em 24x7(GB)']    
-    df_storage.loc[-1] = ['Disponível', '', '', 134206 - df_storage['Total'].sum()]                 
-    df_storage.index = df_storage.index + 1
-    df_storage = df_storage.sort_index()
-
-    total_utilizado_storage = df_storage['Total'].sum() - df_storage.loc[0, 'Total']
-    total_disponivel_storage = 134206 - total_utilizado_storage                        
-
-
-    #-- Gráfico --#
-
-
-    labels = df_storage['Projeto']
-    values = df_storage['Total']
-
-    fig_storage = go.Figure(data=[go.Pie(labels = labels, values = values, pull = [0.1])])
-    fig_storage.update_traces(textposition='inside', textinfo = 'label+percent')
-    fig_storage.update(layout_showlegend=False)
-
-    fig_storage_card = go.Figure(
-        data=[
-            go.Bar(name='Utilizado', x=[total_utilizado_storage], y=['Total'], orientation='h', marker_color='darkorange'),
-            go.Bar(name='Disponível', x=[total_disponivel_storage], y=['Total'], orientation='h', marker_color='#efefef')
-        ]
-    )
-
-    fig_storage_card.update_layout(barmode='stack', yaxis={'visible': False, 'showticklabels': False}, xaxis={'visible': False, 'showticklabels': False, 'showline': False}, autosize=False,
-    height=100, plot_bgcolor='rgba(0,0,0,0)', margin=dict(
-        l=10,
-        r=0,
-        b=10,
-        t=0
-    ))
-
-    fig_storage_card.add_annotation(x=0, y=['Total'],
-            text="Utilizado", xanchor="left",
-            showarrow=False)
-
-    utilizado_storage = (total_utilizado_storage / 134206) * 100
-    utilizado_storage = round(utilizado_storage, 2)
-
-    fig_storage_card.add_annotation(x=total_utilizado_storage, y=['Total'],
-            text=str(utilizado_storage)+'%', xanchor="auto",
-            showarrow=False)
-
-    fig_storage_card.update_layout(legend=dict(
-        yanchor="top",
-        y=0.5,
-        xanchor="right",
-        x=1.2
-    ))
-
-
-    # ------------ total ------------------------- #
-    
-
-    df_total = df_relatorio_total[['Projeto', 'Máquina em Cluster', 'Mês']]               
-    df_total = df_total.dropna()
-    df_total = df_total.sort_values(by=['Mês'])                                                          
-
-    fig_total = px.line(df_total, 
-                        x = 'Mês', 
-                        y = 'Máquina em Cluster',
-                        color = 'Projeto'
-                        )
-
-    df_total_24x7 = df_relatorio_total[['Projeto', 'Máquina em 24x7', 'Mês']]               
-    df_total_24x7 = df_total_24x7.dropna()
-    df_total_24x7 = df_total_24x7.sort_values(by=['Mês'])                                                          
-
-    fig_total_24x7 = px.line(df_total_24x7, 
-                        x = 'Mês', 
-                        y = 'Máquina em 24x7',
-                        color = 'Projeto'
-                        )
-    
-    # -------------------- PRODUÇÕES CIENTÍFICAS ----------------- #
-
-    fig_producoes = px.bar(
-        df_producoes,
-        x="Unidade/Escola",
-        y=["Produção Científica", "TCC, Dissertação ou Tese"],
-        barmode="group",
-        labels={'value':'Quantidade', 'variable':'Tipo de Publicação'},
-        text_auto=True
-        )
-
-    # -------------------------- RETURN -------------------------- #
-
-    return [
-            fig_utilizacao_anual,
-            fig_storage_card,
-            fig_horas_nucleo_total,
-
-            fig_maquina24x7, 
-            fig_maquinaCluster, 
-            fig_storage,
-            fig_total,
-            fig_total_24x7,
-            fig_producoes,
-
-            total_utilizado_storage, 
-            total_disponivel_storage,
-            total_utilizado_horas_nucleo, 
-            total_disponivel_horas_nucleo,
-            capacidade_horas_nucleo,
-            value,
-            qmes
-           ]
-
-##########################################################################################
+# --------------------------------  DEFINIÇÃO DE CLASSES - FLASK --------------------------------------- #
 
 class BaseModel(Model):
     class Meta:
@@ -663,9 +684,6 @@ class Equipamento(BaseModel):
     date_beg = DateField()
     date_end = DateField()
     status = BooleanField()
-    #no_break = CharField() 
-    #status_no_break = BooleanField() 
-    #tipo = CharField() 
     
 class Grupo(BaseModel):
     nome = CharField()
@@ -674,7 +692,6 @@ class Grupo(BaseModel):
     coordenador = CharField()
     status = BooleanField()
     date_beg = DateField()
-    #date_end = DateField()
     observacoes = TextField()
     tipo = CharField()
 
@@ -686,9 +703,8 @@ class Usuario(BaseModel):
     date_end = DateField()
     observacoes = TextField()
     status = BooleanField()
-    #quota = ForeignKeyField(Quota, backref='quotas')
 
-##########################################################################################
+# --------------------------------  DEFINIÇÃO DE FUNÇÕES - FLASK --------------------------------------- #
 
 def create_tables():
     with database:
@@ -700,9 +716,9 @@ def get_object_or_404(model, *expressions):
     except model.DoesNotExist:
         abort(404)
 
-def object_list(template_name, qr, var_name='object_list', **kwargs):
-    kwargs[var_name] = qr
-    return render_template(template_name, **kwargs)
+# def object_list(template_name, qr, var_name='object_list', **kwargs):
+#     kwargs[var_name] = qr
+#     return render_template(template_name, **kwargs)
 
 @server.before_request
 def before_request():
@@ -714,7 +730,7 @@ def after_request(response):
     g.db.close()
     return response
 
-##########################################################################################
+# -------------------------  DEFINIÇÃO DE ROTAS E DIRECIONAMENTOS - FLASK ------------------------------ #
 
 @server.route('/', methods=['GET', 'POST'])
 def homepage():
@@ -1070,7 +1086,7 @@ def clean():
     create_tables()
     return redirect(url_for('homepage'))
 
-##########################################################################################
+# ------------------------------------  INICIA A APLICAÇÃO --------------------------------------------- #
 
 if __name__ == '__main__':
     create_tables()
