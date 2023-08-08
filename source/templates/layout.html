@@ -34,10 +34,7 @@
           <a class="nav-link" href="{{ url_for('usuario', userName='cadastro') }}">Cadastrar Usuário</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('upload') }}">Import / Export</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('clean') }}">Limpar Dados</a>
+          <a class="nav-link" href="{{ url_for('upload') }}">Configurações</a>
         </li>
       </ul>
     </nav>
@@ -47,6 +44,19 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const deleteButton = document.getElementById("delete-button");
+    
+        deleteButton.addEventListener("click", function () {
+            const confirmation = confirm("Tem certeza de que deseja excluir o banco de dados?");
+            if (confirmation) {
+                const deleteForm = document.getElementById("delete-form");
+                deleteForm.submit();
+            }
+        });
+    });
+    </script>
 
 </body>
 </html>

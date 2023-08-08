@@ -2,20 +2,34 @@
 {% block body %}
 <div class="upload">
 
-    <h2>Import de JSON</h2>
+    <div class="mb-5">
+        <h2>Import de JSON</h2>
+        <form action="/import_json" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Escolha o arquivo</label>
+                <input class="mb-3 form-select" type="file" name="file" accept=".json">
+                <input class="btn btn-primary" type="submit" value="Inserir">
+            </div>
+        </form>
+    </div>
 
-    <form action="/import_json" method="POST" enctype="multipart/form-data">
-        <div class="mb-3">
-            <label class="form-label">Escolha o arquivo</label>
-            <input class="mb-3 form-select" type="file" name="file" accept=".json">
-            <input class="btn btn-primary" type="submit" value="Inserir">
+    <div class="my-5">
+        <h2>Export de JSON</h2>
+        <div>
+            <p style="color: #EEE;"> Essa opção gera um arquivo JSON com as informações atuais do banco de dados</p>
+            <a class="btn btn-primary mb-3" href="{{ url_for('export') }}">Download</a>
         </div>
-        
-    </form>
+    </div>
 
-    <h2>Export de JSON</h2>
-
-    <a class="btn btn-primary mb-3" href="{{ url_for('export') }}">Download</a>
+    <div class="mt-5">
+        <h2>Limpar banco de dados</h2>
+        <form action="/clean" id="delete-form">
+            <div class="mb-3">
+                <label class="form-label"> Esteja ciente que, ao confirmar a ação, o banco de dados vai ser totalmente excluído!</label>
+                <input class="btn btn-danger mb-3" type="submit" value="Apagar" id="delete-button">
+            </div>
+        </form>
+    </div>
 
 </div>
 {% endblock %}
