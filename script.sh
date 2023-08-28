@@ -2,7 +2,6 @@
 
 echo "Inicializing the LAD app..."
 
-
 echo "Installing Flask..."
 pip install Flask
 
@@ -18,12 +17,7 @@ pip install pandas
 echo "Installing Dash-Bootstrap-Components..."
 pip install dash-bootstrap-components
 
-echo "Installing OpenpyXL..."
-pip install openpyxl
-
-
 echo "Libraries installation completed."
-
 
 echo "Executing the LAD Accounting-Dash app..."
 cd source

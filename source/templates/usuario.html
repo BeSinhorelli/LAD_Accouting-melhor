@@ -1,55 +1,70 @@
 {% extends "layout.html" %}
 {% block body %}
 <div class="cadastro">
+
+    <!--  TÍTULO  -->
     {% if usuario %}
-        <h2>Editar {{ usuario.nome }}</h2>
+    <h2>Editar {{ usuario.nome }}</h2>
     {% else %}
-        <h2>Cadastrar Usuário</h2>
-    {% endif %}    
-    <form autocomplete="off" action="{% if usuario %} {{ url_for('usuario', userName=usuario.nome) }} {% else %} {{ url_for('usuario', userName='cadastro') }} {% endif %}" method=post>
-      <div class="mb-3">
-        <!-- Status -->
-        {% if usuario %}
+    <h2>Cadastrar Usuário</h2>
+    {% endif %}
+
+    <!--  FORMULÁRIO  -->
+    <form autocomplete="off"
+        action="{% if usuario %} {{ url_for('usuario', userName=usuario.nome) }} {% else %} {{ url_for('usuario', userName='cadastro') }} {% endif %}"
+        method=post>
+        <div class="mb-3">
+
+            <!--  STATUS  -->
+            {% if usuario %}
             <label class="form-label">Status</label>
             <select class="mb-3 form-select" aria-label="Default select example" name="status">
-                {% if usuario.status %}
-                    <option selected value="ativar">Ativo</option>
-                    <option value="desativar">Inativo</option>
-                {% else %}
-                    <option value="ativar">Ativo</option>
-                    <option selected value="desativar">Inativo</option>
-                {% endif %}
+                <option value="ativar" {% if cluster.status %}selected {% endif %}>Ativo</option>
+                <option value="desativar" {% if not usuario.status %}selected {% endif %}>Inativo</option>
             </select>
-        {% endif %}
-        <!-- Grupo -->
-        <label class="form-label">Grupo</label>
-        <select class="mb-3 form-select" aria-label="Default select example" name="group_name">
-            {% if usuario %}
-                {% for grupo in lista_grupo %}
-                    {% if grupo.nome == usuario.grupo.nome %}
-                        <option selected value="{{ grupo.nome }}">{{ grupo.nome }}</option>
-                    {% else %}
-                        <option value="{{ grupo.nome }}">{{ grupo.nome }}</option>
-                    {% endif %}
-                {% endfor %}
-            {% else %} 
+            {% endif %}
+
+            <!--  GRUPO  -->
+            <label class="form-label">Grupo</label>
+            <select class="mb-3 form-select" aria-label="Default select example" name="group_name">
+                
+                <!-- PARTE DE ATUALIZAÇÃO -->
+                {% if usuario %}
+                 {% for grupo in lista_grupo %}
+                  {% if grupo.nome == usuario.grupo.nome %}
+                <option selected value="{{ grupo.nome }}">{{ grupo.nome }}</option>
+                  {% else %}
+                <option value="{{ grupo.nome }}">{{ grupo.nome }}</option>
+                  {% endif %}
+                 {% endfor %}
+
+                <!-- PARTE DE CADASTRO -->
+                {% else %}
                 <option selected></option>
                 {% for grupo in lista_grupo %}
-                    <option value="{{ grupo.nome }}">{{ grupo.nome }}</option>
+                <option value="{{ grupo.nome }}">{{ grupo.nome }}</option>
                 {% endfor %}
-            {% endif %}
-        </select>
-        <!-- Nome -->
-        <label class="form-label">Nome</label>
-        <input type="text" class="mb-3 form-control" name=nome value="{% if usuario %}{{ usuario.nome }}{% endif %}">
-        <!-- E-mail -->
-        <label class="form-label">E-mail</label>
-        <input type="text" class="mb-3 form-control" name=email value="{% if usuario %}{{ usuario.email }}{% endif %}">
-        <!-- Observações -->
-        <label class="form-label">Observações</label>
-        <textarea class="form-control" id="exampleFormControlTextarea1" name=observacoes rows="3">{% if usuario %}{{ usuario.observacoes }}{% endif %}</textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Cadastrar</button>
+                {% endif %}
+            </select>
+
+            <!--  NOME  -->
+            <label class="form-label">Nome</label>
+            <input type="text" class="mb-3 form-control" name=nome value="{% if usuario %}{{ usuario.nome }}{% endif %}">
+                
+            <!--  E-MAIL  -->
+            <label class="form-label">E-mail</label>
+            <input type="text" class="mb-3 form-control" name=email value="{% if usuario %}{{ usuario.email }}{% endif %}">
+            
+            <!--  OBSERVAÇÕES  -->
+            <label class="form-label">Observações</label>
+            <textarea class="form-control" id="exampleFormControlTextarea1" name=observacoes rows="3">{% if usuario %}{{ usuario.observacoes }}{% endif %}</textarea>
+        </div>
+
+        <!--  SUBMIT  -->
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+        {% if msg %}
+        <label class="btn btn-outline-warning" for="floatingInputInvalid">{{ msg }}!</label>
+        {% endif %}
     </form>
 </div>
 {% endblock %}

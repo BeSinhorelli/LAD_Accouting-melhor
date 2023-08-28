@@ -47,7 +47,7 @@ body, .page, html {
 .nav-link:hover {
   color: var(--fourth_color) !important;
 }
-section, .cadastro, .upload {
+section, .cadastro, .config {
   background-color: var(--third_color);
   padding: 1rem 2rem 3rem;
   width: 83%;
@@ -99,7 +99,7 @@ h2 {
   max-width: 20rem;
 }
 
-.cadastro, .upload {
+.cadastro, .config {
   max-width: 50%;
   margin: auto;
 }
@@ -135,7 +135,7 @@ h2 {
     background-color: var(--third_color);
     margin: 1.5rem;
   }
-  .cadastro, .upload {
+  .cadastro, .config {
     max-width: 90%;
     margin: auto;
   }

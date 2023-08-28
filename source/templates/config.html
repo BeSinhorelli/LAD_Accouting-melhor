@@ -1,0 +1,41 @@
+{% extends "layout.html" %} {% block body %}
+
+<!--  SEÇÃO DE CONFIGURAÇÕES  -->
+<div class="config">
+  <div class="mb-5">
+
+    <!--  CONFIGURAÇÃO DE IMPORT  -->
+    <h2>Import de JSON</h2>
+    <form action="/importar" method="POST" enctype="multipart/form-data">
+      <label class="form-label">Escolha o arquivo</label>
+      <input class="mb-3 form-select form-check" type="file" name="file" accept=".json" required/>
+      <input class="btn btn-primary" type="submit" value="Inserir"/>
+    </form>
+  </div>
+
+  <!--  CONFIGURAÇÃO DE EXPORT  -->
+  <div class="my-5">
+    <h2>Export de JSON</h2>
+    <div>
+      <p style="color: #eee">
+        Essa opção gera um arquivo JSON com as informações atuais do banco de
+        dados
+      </p>
+      <a class="btn btn-primary" href="{{ url_for ('exportar') }}">Download</a>
+    </div>
+  </div>
+
+  <!--  OPÇÃO PARA EXCLUIR O BANCO DE DADOS  -->
+  <div class="mt-5">
+    <h2>Limpar banco de dados</h2>
+    <form action="/delete" method="POST" id="delete-form">
+      <div class="mb-3">
+        <label class="form-label">
+          Esteja ciente que, ao confirmar a ação, o banco de dados vai ser
+          totalmente excluído!</label><br>
+        <input class="btn btn-danger mb-3" type="submit" value="Apagar" id="delete-button"/>
+      </div>
+    </form><!--  POSSUI UMA FUNÇÃO DO JAVASRIPT NO LAYOUT.HTML  -->
+  </div>
+</div>
+{% endblock %}

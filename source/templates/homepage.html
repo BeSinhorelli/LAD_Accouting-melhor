@@ -1,47 +1,72 @@
-{% extends "layout.html" %}
-{% block body %}
+{% extends "layout.html" %} {% block body %}
+
+<!--  SEÇÃO DE EQUIPAMENTOS  -->
 <section class="cluster mb-4">
-  <h2 class="mb-3">Equipamentos</h2>
-  <div class="row">
-    {% for cluster in lista_cluster %}
-      <div class="col m-auto">
-        <div class="card m-auto">
-          <h5 class="card-header">{{ cluster.name }}</h5>
-          <div class="card-body">
-            <ul class="list-group list-group-flush">
-              {% for equipamento in cluster.equipamentos %}
-                <li class="list-group-item">{{ equipamento.hostname }}<a class="btn btn-primary" href="{{ url_for('equipamento', equipName=equipamento.hostname) }}" role="button" style="float: right;">Editar</a></li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div class="card-footer text-center">
-            <a class="btn btn-primary" href="{{ url_for('cluster', clusterName=cluster.name) }}" role="button">Editar</a>
-          </div>
+    <h2 class="mb-3">Equipamentos</h2>
+    <div class="row">
+
+        <!--  LOOP PARA GERAR OS CLUSTERS  -->
+        {% for cluster in lista_cluster %}
+        <div class="col m-auto">
+            <div class="card m-auto">
+                <h5 class="card-header">{{ cluster.name }}</h5>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+
+                        <!--  LOOP PARA GERAR OS EQUIPAMENTOS  -->
+                        {% for equipamento in cluster.equipamentos %}
+                        <li class="list-group-item">
+                            {{ equipamento.hostname }}<a class="btn btn-primary"
+                                href="{{ url_for('equipamento', equipName=equipamento.hostname) }}" role="button"
+                                style="float: right">Editar</a>
+                        </li>
+                        {% endfor %}
+
+                    </ul>
+                </div>
+
+                <div class="card-footer text-center">
+                    <a class="btn btn-primary" href="{{ url_for('cluster', clusterName=cluster.name) }}" role="button">Editar</a>
+                </div>
+
+            </div>
         </div>
-      </div>
-    {% endfor %}
-  </div>
+        {% endfor %}
+
+    </div>
 </section>
+
+<!--  SEÇÃO DE GRUPOS  -->
 <section class="grupo">
-  <h2 class="mb-3">Grupos</h2>
-  <div class="row">
-    {% for grupo in lista_grupo %}
-      <div class="col m-auto">
-        <div class="card m-auto">
-          <h5 class="card-header">{{ grupo.nome }}</h5>
-          <div class="card-body">
-            <ul class="list-group list-group-flush">
-              {% for usuario in grupo.usuarios %}
-              <li class="list-group-item">{{ usuario.nome }}<a class="btn btn-primary ml-2" href="{{ url_for('usuario', userName=usuario.nome) }}" role="button" style="float: right;">Editar</a></li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div class="card-footer text-center">
-            <a class="btn btn-primary" href="{{ url_for('grupo', groupName=grupo.nome) }}" role="button">Editar</a>
-          </div>
+    <h2 class="mb-3">Grupos</h2>
+    <div class="row">
+
+        <!--  LOOP PARA GERAR OS GRUPOS  -->
+        {% for grupo in lista_grupo %}
+        <div class="col m-auto">
+            <div class="card m-auto">
+                <h5 class="card-header">{{ grupo.nome }}</h5>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+
+                        <!--  LOOP PARA GERAR OS USUÁRIOS  -->
+                        {% for usuario in grupo.usuarios %}
+                        <li class="list-group-item">{{ usuario.nome }}
+                            <a class="btn btn-primary ml-2" href="{{ url_for('usuario', userName=usuario.nome) }}" role="button" style="float: right">Editar</a>
+                        </li>
+                        {% endfor %}
+
+                    </ul>
+                </div>
+
+                <div class="card-footer text-center">
+                    <a class="btn btn-primary" href="{{ url_for('grupo', groupName=grupo.nome) }}" role="button">Editar</a>
+                </div>
+
+            </div>
         </div>
-      </div>
-    {% endfor %}
-  </div>
+        {% endfor %}
+    </div>
 </section>
+
 {% endblock %}

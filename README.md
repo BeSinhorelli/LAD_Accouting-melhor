@@ -20,7 +20,6 @@ Esta aplicação foi desenvolvida usando Python 3.10.12 e algumas de suas biblio
 - [Dash 2.1.1](https://dash.plotly.com/) - `pip install dash`
 - [Pandas 2.0](https://pandas.pydata.org/docs/getting_started/index.html) - `pip install pandas`
 - [Dash-Bootstrap-Components](https://dash-bootstrap-components.opensource.faculty.ai/) - `pip install dash-bootstrap-components`
-- [OpenpyXL](https://openpyxl.readthedocs.io/en/stable/) - `pip install openpyxl`
 - [Flask 2.2](https://flask.palletsprojects.com/en/2.2.x/) - `pip install Flask`
 - [Peewee](https://docs.peewee-orm.com/en/latest/peewee/installation.html) - `pip install peewee`
 
@@ -40,4 +39,5 @@ Após instalar as bibliotecas, acesse o diretório com as pastas/arquivos deste 
 - [Bootstrap](https://getbootstrap.com/docs/5.2/getting-started/introduction/)
 - [Dash](https://dash.plotly.com/)
 - [Jinja](https://jinja.palletsprojects.com/en/3.1.x/templates/)
+- [OpenpyXL](https://openpyxl.readthedocs.io/en/stable/) - `pip install openpyxl`
 - [Exemplo de aplicação com Peewee e Flask](https://docs.peewee-orm.com/en/latest/peewee/example.html)

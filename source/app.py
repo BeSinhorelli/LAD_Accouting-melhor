@@ -3,23 +3,18 @@
 
 import os, json
 from datetime import datetime
-from flask import Flask
-from flask import g, request, send_file
-from flask import url_for, abort, render_template, redirect
+from flask import Flask, g, request, send_file, url_for, abort, render_template, redirect
 from peewee import *
 
 # --- DASH --- #
 
-import dash
-from dash import dcc
-from dash import html
+from dash import dcc, html, dash
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 import pandas as pd
-import numpy as np
 
 # -------------------------------------  CONFIGURAÇÕES INICIAS  ---------------------------------------- #
 # --- FLASK --- #
@@ -383,7 +378,7 @@ def update_figure(yearValue, value):
     month = 0
     global x
     df_annual = pd.DataFrame()
-    days = month_days(value)
+    days = month_days(value, yearValue)
 
     # --- CRIA UM RELATÓRIO ANUAL --- #
     for dataframe in os.listdir('relatorios/' + yearValue):
@@ -416,7 +411,7 @@ def update_figure(yearValue, value):
 
     for index, row in df_machine_usage.iterrows():
         total_usage = row['Máquina em 24x7'] + row['Máquina em Cluster']
-        capacity = 2108 * 24 * month_days(index)
+        capacity = 2108 * 24 * month_days(index, yearValue)
         machine_availability_annual.append(capacity - total_usage)
 
     df_machine_usage["Disponível"] = machine_availability_annual
@@ -606,57 +601,24 @@ def update_figure(yearValue, value):
 def verify_leap_year (yearValue):
     return int(yearValue) % 400 == 0 or int(yearValue) % 4 == 0 and int(yearValue) % 100 != 0
 
-def month_days (month):
+def month_days (month, yearValue):
         
-        if (verify_leap_year):
-            fev = 29
-        else:
-            fev = 28
+        fev = 29 if verify_leap_year(yearValue) else 28
 
         month_days = {
-        1: 31,
-        2: fev,
-        3: 31,
-        4: 30,
-        5: 31,
-        6: 30,
-        7: 31,
-        8: 31,
-        9: 30,
-        10: 31,
-        11: 30,
-        12: 31
+        1: 31, 2: fev, 3: 31, 4: 30,
+        5: 31, 6: 30, 7: 31, 8: 31,
+        9: 30, 10: 31, 11: 30, 12: 31
         }[month]
         return month_days
 
 def read_database_excel (yearValue, month):
         
-        if month == 1:
-            df_data = pd.read_excel('relatorios/' + yearValue + '/1-jan.xlsx')
-        elif month == 2: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/2-fev.xlsx')
-        elif month == 3: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/3-mar.xlsx')
-        elif month == 4: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/4-abr.xlsx')
-        elif month == 5: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/5-mai.xlsx')
-        elif month == 6: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/6-jun.xlsx')
-        elif month == 7: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/7-jul.xlsx')
-        elif month == 8: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/8-ago.xlsx')
-        elif month == 9: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/9-set.xlsx')
-        elif month == 10: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/10-out.xlsx')
-        elif month == 11: 
-            df_data = pd.read_excel('relatorios/' + yearValue + '/11-nov.xlsx')
-        elif month == 12:
-            df_data = pd.read_excel('relatorios/' + yearValue + '/12-dez.xlsx')
-        
-        return df_data
+    month_names = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    month_name = month_names[month - 1]
+    file_path = f'relatorios/{yearValue}/{month}-{month_name}.xlsx'
+    df_data = pd.read_excel(file_path)
+    return df_data
 
 # --------------------------------  DEFINIÇÃO DE CLASSES - FLASK --------------------------------------- #
 
@@ -686,7 +648,7 @@ class Equipamento(BaseModel):
     status = BooleanField()
     
 class Grupo(BaseModel):
-    nome = CharField()
+    nome = CharField(unique=True)
     demanda = IntegerField()
     unidade = CharField()
     coordenador = CharField()
@@ -710,15 +672,15 @@ def create_tables():
     with database:
         database.create_tables([Cluster, Equipamento, Grupo, Usuario])
 
+def drop_tables():
+    with database:
+        database.drop_tables([Cluster, Equipamento, Grupo, Usuario])
+
 def get_object_or_404(model, *expressions):
     try:
         return model.get(*expressions)
     except model.DoesNotExist:
         abort(404)
-
-# def object_list(template_name, qr, var_name='object_list', **kwargs):
-#     kwargs[var_name] = qr
-#     return render_template(template_name, **kwargs)
 
 @server.before_request
 def before_request():
@@ -731,358 +693,458 @@ def after_request(response):
     return response
 
 # -------------------------  DEFINIÇÃO DE ROTAS E DIRECIONAMENTOS - FLASK ------------------------------ #
-
+# --- HOMEPAGE  --- #
 @server.route('/', methods=['GET', 'POST'])
 def homepage():
     lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
     lista_grupo = Grupo.select().order_by(Grupo.nome).prefetch(Usuario)
 
-    #if request.method == 'POST':
-    #    if request.form['desativar']:
-    #        with database.atomic():
-                #Cluster.delete().where(Cluster.name == request.form['desativar']).execute()
-    #            Cluster.update(status=False).where(Cluster.name == request.form['desativar']).execute()
-    #        lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
-    #        print(request.form['desativar'])
-    #        return object_list('homepage.html', lista_cluster, 'lista_cluster')
-
     return render_template('homepage.html', lista_cluster=lista_cluster, lista_grupo=lista_grupo)
 
+# --- DASH APP  --- #
 @server.route("/dash")
-def my_dash_app():
+def dash_app():
     return app.index()
 
+# --- CONFIGURAÇÕES DE CLUSTERS  --- #
 @server.route('/cluster/<clusterName>', methods=['GET', 'POST'])
 def cluster(clusterName=None):
-    msg=None
+    mensagem = None
+    form = request.form
+
+    # --- CASO SEJA CADASTRO DE CLUSTER  --- #
     if clusterName == 'cadastro':
-        if request.method == 'POST' and request.form['cluster_name']:
-            try:
-                with database.atomic():
-                    Cluster.create(
-                        name=request.form['cluster_name'],
-                        description=request.form['description'],
-                        date_beg=datetime.now().strftime('%d-%m-%Y'),
-                        date_end='',
-                        status=True
-                    )
-                return redirect(url_for('homepage'))
-            except IntegrityError:
-                msg='Cluster já existe'
-        return render_template('cluster.html', clusterName='cadastro', msg=msg)
+        if request.method == 'POST':
+            name = form['cluster_name']
+
+            if name:
+                if create_cluster(name, form['description']):
+                    return redirect(url_for('homepage'))
+                else: mensagem = 'Cluster já existe'
+
+        return render_template('cluster.html', clusterName='cadastro', msg=mensagem)
+
+    # --- CASO SEJA ATUALIZAÇÃO DE CLUSTER  --- #
     else:
         if clusterName:
             cluster = get_object_or_404(Cluster, Cluster.name == clusterName)
-            if request.method == 'POST' and request.form['cluster_name']:
-                try:
-                    cluster.name=request.form['cluster_name']
-                    cluster.description=request.form['description']
-                    if request.form['status'] == 'desativar':
-                        cluster.status = False
-                        cluster.date_end=datetime.now().strftime('%d-%m-%Y')
+
+            if request.method == 'POST':
+                name = form['cluster_name']
+                description = form['description']
+                status = form['status']
+
+                if name:
+                    if update_cluster(cluster, name, description, status):
+                        return redirect(url_for('homepage'))
                     else:
-                        cluster.status = True
-                    cluster.save()
-                    return redirect(url_for('homepage'))
-                except IntegrityError:
-                    msg='Cluster já existe'
-        return render_template('cluster.html', cluster=cluster, msg=msg)
+                        mensagem = 'Cluster já existe'
 
+        return render_template('cluster.html', cluster=cluster, msg=mensagem)
 
+def create_cluster(name, description):
+    try:
+        with database.atomic():
+            Cluster.create(
+                name=name,
+                description=description,
+                date_beg=datetime.now().strftime('%d-%m-%Y'),
+                date_end='',
+                status=True
+            )
+        return True
+    except IntegrityError:
+        return False
+
+def update_cluster(cluster, name, description, status):
+    try:
+        cluster.name = name
+        cluster.description = description
+        if status == 'desativar':
+            cluster.status = False
+            cluster.date_end = datetime.now().strftime('%d-%m-%Y')
+        else:
+            cluster.status = True
+        cluster.save()
+        return True
+    except IntegrityError:
+        return False
+
+# --- CONFIGURAÇÕES DE EQUIPAMENTOS  --- #
 @server.route('/equipamento/<equipName>', methods=['GET', 'POST'])
 def equipamento(equipName=None):
-    msg=None
+    mensagem = None
     lista_cluster = Cluster.select().where(Cluster.status == True).order_by(Cluster.name).prefetch(Equipamento)
+    form = request.form
+
+    # --- CASO SEJA CADASTRO DE EQUIPAMENTO --- #
     if equipName == 'cadastro':
-        if request.method == 'POST' and request.form['hostname']:
-            try:
-                with database.atomic():
-                    Equipamento.create(
-                        cluster=Cluster.get(Cluster.name == request.form['equip_cluster_name']),
-                        hostname=request.form['hostname'],
-                        modelo=request.form['modelo'],
-                        tipo=request.form['tipo'],
-                        patrimonio=request.form['patrimonio'],
-                        serviceTag=request.form['serviceTag'],
-                        nucleo=request.form['nucleo'],
-                        memoria=request.form['memoria'],
-                        disco=0,
-                        date_beg=datetime.now().strftime('%d-%m-%Y'),
-                        date_end='',
-                        status=True
-                    )
-                return redirect(url_for('homepage'))
-            except IntegrityError:
-                msg='Equipamento já existe'
-        return render_template('equipamento.html', equipName='cadastro', msg=msg, lista_cluster=lista_cluster)
+        if request.method == 'POST':
+
+            cluster = Cluster.get(Cluster.name == form['equip_cluster_name'])
+            hostname = form['hostname']
+
+            if hostname:
+                if create_equipamento(cluster, hostname, form['modelo'], form['tipo'], form['patrimonio'], form['serviceTag'], form['nucleo'], form['memoria']):
+                    redirect(url_for('homepage'))
+                else: mensagem = 'Equipamento já existe'
+
+        return render_template('equipamento.html', equipName='cadastro', msg=mensagem, lista_cluster=lista_cluster)
+    
+    # --- CASO SEJA ATUALIZAÇÃO DE EQUIPAMENTO --- #
     else:
         if equipName:
             equipamento = get_object_or_404(Equipamento, Equipamento.hostname == equipName)
-            #print(equipamento)
-            if request.method == 'POST' and request.form['hostname']:
-                try:
-                    equipamento.cluster=Cluster.get(Cluster.name == request.form['equip_cluster_name'])
-                    equipamento.hostname=request.form['hostname']
-                    equipamento.modelo=request.form['modelo']
-                    equipamento.tipo=request.form['tipo']
-                    equipamento.patrimonio=request.form['patrimonio']
-                    equipamento.serviceTag=request.form['serviceTag']
-                    equipamento.nucleo=request.form['nucleo']
-                    equipamento.memoria=request.form['memoria']
-                    equipamento.disco=0
-                    if request.form['status'] == 'desativar':
-                        equipamento.status = False
-                        equipamento.date_end=datetime.now().strftime('%d-%m-%Y')
-                    else:
-                        equipamento.status = True
-                    equipamento.save()
-                    return redirect(url_for('homepage'))
-                except IntegrityError:
-                    msg='Equipamento já existe'
-        return render_template('equipamento.html', equipamento=equipamento, msg=msg, lista_cluster=lista_cluster)
+            if request.method == 'POST':
 
+                cluster = Cluster.get(Cluster.name == request.form['equip_cluster_name'])
+                hostname = form['hostname']
+            
+                if hostname:
+                    if update_equipamento(equipamento, cluster, hostname, form['modelo'], form['tipo'], form['patrimonio'], form['serviceTag'], form['nucleo'], form['memoria'], form['status']):
+                        return redirect(url_for('homepage'))
+                    else: mensagem='Equipamento já existe'
 
+        return render_template('equipamento.html', equipamento=equipamento, msg=mensagem, lista_cluster=lista_cluster)
+    
+def create_equipamento(cluster, hostname, modelo, tipo, patrimonio, serviceTag, nucleo, memoria):
+    try:
+        with database.atomic():
+            Equipamento.create(
+                cluster=cluster,
+                hostname=hostname,
+                modelo=modelo,
+                tipo=tipo,
+                patrimonio=patrimonio,
+                serviceTag=serviceTag,
+                nucleo=nucleo,
+                memoria=memoria,
+                disco=0,
+                date_beg=datetime.now().strftime('%d-%m-%Y'),
+                date_end='',
+                status=True
+            )
+        return True
+    except IntegrityError:
+        return False
+
+def update_equipamento(equipamento, cluster, hostname, modelo, tipo, patrimonio, serviceTag, nucleo, memoria, status):
+    try:
+        equipamento.cluster = cluster
+        equipamento.hostname = hostname
+        equipamento.modelo = modelo
+        equipamento.tipo = tipo
+        equipamento.patrimonio = patrimonio
+        equipamento.serviceTag = serviceTag
+        equipamento.nucleo = nucleo
+        equipamento.memoria = memoria
+
+        if status == 'desativar':
+            equipamento.status = False
+            equipamento.date_end=datetime.now().strftime('%d-%m-%Y')
+        else:
+            equipamento.status = True
+
+        equipamento.save()
+        return True
+    except IntegrityError:
+        return False
+    
+# --- CONFIGURAÇÕES DE GRUPOS  --- #
 @server.route('/grupo/<groupName>', methods=['GET', 'POST'])
 def grupo(groupName=None):
-    msg=None
+    mensagem = None
+    form = request.form
     lista_grupo = Grupo.select().order_by(Grupo.nome)
+
+    # --- CASO SEJA CADASTRO DE GRUPO --- #
     if groupName == 'cadastro':
-        print('cadastro')
-        if request.method == 'POST' and request.form['nome']:
-            try:
-                with database.atomic():
-                    print('grupo')
-                    Grupo.create(
-                        nome=request.form['nome'],
-                        demanda=request.form['demanda'],
-                        unidade=request.form['unidade'],
-                        coordenador=request.form['coordenador'],
-                        observacoes=request.form['observacoes'],
-                        tipo=request.form['tipo'],
-                        date_beg=datetime.now().strftime('%d-%m-%Y'),
-                        date_end='',
-                        status=True
-                    )
-                return redirect(url_for('homepage'))
-            except IntegrityError:
-                msg='Grupo já existe'
-        return render_template('grupo.html', groupName='cadastro', msg=msg, lista_grupo=lista_grupo)
+        if request.method == 'POST':
+
+            nome = form['nome']
+
+            if nome:
+                if create_grupo(nome, form['demanda'], form['unidade'], form['coordenador'], form['observacoes'], form['tipo']):
+                    return redirect(url_for('homepage'))
+                else: mensagem = 'Grupo já existe'
+
+        return render_template('grupo.html', groupName='cadastro', msg=mensagem, lista_grupo=lista_grupo)
+    
+    # --- CASO SEJA ATUALIZAÇÃO DE GRUPO --- #
     else:
         if groupName:
             grupo = get_object_or_404(Grupo, Grupo.nome == groupName)
-            if request.method == 'POST' and request.form['nome']:
-                try:
-                    grupo.nome=request.form['nome']
-                    grupo.demanda=request.form['demanda']
-                    grupo.unidade=request.form['unidade']
-                    grupo.coordenador=request.form['coordenador']
-                    grupo.observacoes=request.form['observacoes']
-                    grupo.tipo=request.form['tipo']
-                    if request.form['status'] == 'desativar':
-                        grupo.status = False
-                        grupo.date_end=datetime.now().strftime('%d-%m-%Y')
-                    else:
-                        grupo.status = True
-                    grupo.save()
-                    return redirect(url_for('homepage'))
-                except IntegrityError:
-                    msg='Grupo já existe'
-        return render_template('grupo.html', grupo=grupo, msg=msg, lista_grupo=lista_grupo)
+            if request.method == 'POST':
 
+                nome = form['nome']
 
+                if nome:
+                    if update_grupo(grupo, nome, form['demanda'], form['unidade'], form['coordenador'], form['observacoes'], form['tipo'], form['status']):
+                        return redirect(url_for('homepage'))
+                    else: mensagem = 'Grupo já existe'
+                    
+        return render_template('grupo.html', grupo=grupo, msg=mensagem, lista_grupo=lista_grupo)
+
+def create_grupo(nome, demanda, unidade, coordenador, observacoes, tipo):
+    try:
+        with database.atomic():
+            Grupo.create(
+                nome = nome,
+                demanda = demanda,
+                unidade = unidade,
+                coordenador = coordenador,
+                observacoes = observacoes,
+                tipo = tipo,
+                date_beg=datetime.now().strftime('%d-%m-%Y'),
+                date_end='',
+                status=True
+            )
+        return True
+    except IntegrityError:
+        return False
+    
+def update_grupo(grupo, nome, demanda, unidade, coordenador, observacoes, tipo, status):
+    try:
+        grupo.nome = nome
+        grupo.demanda = demanda
+        grupo.unidade = unidade
+        grupo.coordenador = coordenador
+        grupo.observacoes = observacoes
+        grupo.tipo = tipo
+
+        if status == 'desativar':
+            grupo.status = False
+            grupo.date_end=datetime.now().strftime('%d-%m-%Y')
+        else: grupo.status = True
+
+        grupo.save()
+        return True
+    except IntegrityError:
+        return False
+
+# --- CONFIGURAÇÕES DE USUÁRIOS  --- #
 @server.route('/usuario/<userName>', methods=['GET', 'POST'])
 def usuario(userName=None):
-    msg=None
+    mensagem=None
+    form = request.form
     lista_grupo = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome).prefetch(Usuario)
+    
+    # --- CASO SEJA CADASTRO DE USUÁRIO --- #
     if userName == 'cadastro':
-        if request.method == 'POST' and request.form['nome']:
-            try:
-                with database.atomic():
-                    Usuario.create(
-                        grupo = Grupo.get(Grupo.nome == request.form['group_name']),
-                        nome=request.form['nome'],
-                        email=request.form['email'],
-                        observacoes=request.form['observacoes'],
-                        date_beg=datetime.now().strftime('%d-%m-%Y'),
-                        date_end='',
-                        status=True
-                    )
-                return redirect(url_for('homepage'))
-            except IntegrityError:
-                msg='Usuario já existe'
-        return render_template('usuario.html', userName='cadastro', msg=msg, lista_grupo=lista_grupo)
+        if request.method == 'POST':
+            
+            grupo = Grupo.get(Grupo.nome == request.form['group_name'])
+            nome = form['nome']
+
+            if nome:
+                print("ESTOU AQUI")
+                if (create_usuario(grupo, nome, form['email'], form['observacoes'])):
+                    return redirect(url_for('homepage'))
+                else: mensagem = 'Usuario já existe'
+
+        return render_template('usuario.html', userName='cadastro', msg=mensagem, lista_grupo=lista_grupo)
+    
+    # --- CASO SEJA ATUALIZAÇÃO DE USUÁRIO --- #
     else:
         if userName:
             usuario = get_object_or_404(Usuario, Usuario.nome == userName)
-            if request.method == 'POST' and request.form['nome']:
-                try:
-                    usuario.grupo=Grupo.get(Grupo.nome == request.form['group_name'])
-                    usuario.nome=request.form['nome']
-                    usuario.email=request.form['email']
-                    usuario.observacoes=request.form['observacoes']
-                    if request.form['status'] == 'desativar':
-                        usuario.status = False
-                        usuario.date_end=datetime.now().strftime('%d-%m-%Y')
-                    else:
-                        usuario.status = True
-                    usuario.save()
-                    return redirect(url_for('homepage'))
-                except IntegrityError:
-                    msg='Usuario já existe'
-        return render_template('usuario.html', usuario=usuario, msg=msg, lista_grupo=lista_grupo)
+            if request.method == 'POST':
 
-@server.route('/export', methods=['GET'])
-def export():
+                grupo = Grupo.get(Grupo.nome == form['group_name'])
+                nome = form['nome']
 
-    lista_grupo = [grupo for grupo in Grupo.select().dicts()]
-    lista_usuario = [usuario for usuario in Usuario.select().dicts()]
-    lista_equipamento = [equipamento for equipamento in Equipamento.select().dicts()]
-    lista_cluster = [cluster for cluster in Cluster.select().dicts()]
+                if nome:
+                    if (update_usuario(usuario, grupo, nome, form['email'], form['observacoes'], form['status'])):
+                        return redirect(url_for('homepage'))
+                    else: mensagem = 'Usuario já existe'
+
+        return render_template('usuario.html', usuario=usuario, msg=mensagem, lista_grupo=lista_grupo)
+
+def create_usuario(grupo, nome, email, observacoes):
+    try:
+        with database.atomic():
+            Usuario.create(
+                grupo=grupo,
+                nome=nome,
+                email=email,
+                observacoes=observacoes,
+                date_beg=datetime.now().strftime('%d-%m-%Y'),
+                date_end='',
+                status=True
+            )
+        return True
+    except IntegrityError:
+        return False
+
+def update_usuario(usuario, grupo, nome, email, observacoes, status):
+    try:
+        usuario.grupo = grupo
+        usuario.nome = nome
+        usuario.email = email
+        usuario.observacoes = observacoes
+        if status == 'desativar':
+            usuario.status = False
+            usuario.date_end=datetime.now().strftime('%d-%m-%Y')
+        else: 
+            usuario.status = True
+        usuario.save()
+        return True
+    except IntegrityError:
+        return False
+
+# --- CONFIGURAÇÕES GERAIS  --- #
+@server.route('/config', methods=['GET'])
+def config():
+    return render_template('config.html')
+
+@server.route('/exportar', methods=['GET'])
+def exportar():
+
+    group_list = list(Grupo.select().dicts())
+    user_list = list(Usuario.select().dicts())
+    equip_list = list(Equipamento.select().dicts())
+    cluster_list = list(Cluster.select().dicts())
     
-    listageral = {}
+    export = {
+        'grupo': group_list,
+        'usuario': user_list,
+        'equipamento': equip_list,
+        'cluster': cluster_list
+    }
 
-    listageral['grupo']=lista_grupo
-    listageral['usuario']=lista_usuario
-    listageral['equipamento']=lista_equipamento
-    listageral['cluster']=lista_cluster
-    json_data = json.dumps(listageral, indent=2)
+    json_data = json.dumps(export, indent=2)
     
-    f = open("listageral.json", "w")
-    f.write(str(json_data))
-    f.close()
+    with open("export.json", "w") as f:
+        f.write(json_data)
 
-    return redirect(url_for('homepage')) and send_file("listageral.json", as_attachment = True)
+    return redirect(url_for('homepage')) and send_file("export.json", as_attachment = True)
 
-@server.route('/upload', methods=['GET'])
-def upload():
-    return render_template('upload.html')
+@server.route('/importar', methods=['POST'])
+def importar():
 
-@server.route('/import_json', methods=['POST'])
-def import_json():
-
+    # --- CRIAÇÃO DE ARQUIVO TEMPORÁRIO POIS O DIRETO RESULTA EM ERRO --- #
     file_requested = request.files['file']
     file_path = 'temp.json'
     file_requested.save(file_path)
 
     with open(file_path) as file:
 
+        # --- ORGANIZAÇÃO DOS DADOS --- #
         data = json.load(file)
-
-        grupos = data['grupo']
-        usuarios = data['usuario']
-        equipamentos = data['equipamento']
+        groups = data['grupo']
+        users = data['usuario']
+        equipments = data['equipamento']
         clusters = data['cluster']
 
-        for dados_grupo in grupos:
+        # --- LOOPS DE CRIAÇÃO E ATUALIZAÇÃO DO BANCO DE DADOS --- #
+        for group_data in groups:
 
-            existing_group, created = Grupo.get_or_create(
-                id = dados_grupo['id'],
-                defaults = {'nome': dados_grupo['nome'], 
-                            'demanda': dados_grupo['demanda'],
-                            'unidade': dados_grupo['unidade'],
-                            'coordenador': dados_grupo['coordenador'],
-                            'status': dados_grupo['status'],
-                            'date_beg': dados_grupo['date_beg'],
-                            'observacoes': dados_grupo['observacoes'],
-                            'tipo': dados_grupo['tipo']
-                            }
+            nome = group_data['nome']
+            demanda = group_data['demanda']
+            unidade = group_data['unidade']
+            coordenador = group_data['coordenador']
+            status = group_data['status']
+            date_beg = group_data['date_beg']
+            observacoes = group_data['observacoes']
+            tipo = group_data['tipo']
+
+            group, created = Grupo.get_or_create(
+                id = group_data['id'],
+                defaults = {
+                    'nome': nome, 'demanda': demanda,
+                    'unidade': unidade, 'coordenador': coordenador,
+                    'status': status, 'date_beg': date_beg,
+                    'observacoes': observacoes, 'tipo': tipo
+                    }
                 )
 
-            existing_group.nome = dados_grupo['nome']
-            existing_group.demanda = dados_grupo['demanda']
-            existing_group.unidade = dados_grupo['unidade']
-            existing_group.coordenador = dados_grupo['coordenador']
-            existing_group.status = dados_grupo['status']
-            existing_group.date_beg = dados_grupo['date_beg']
-            existing_group.observacoes = dados_grupo['observacoes']
-            existing_group.tipo = dados_grupo['tipo']
-            existing_group.save()
+            update_grupo(group, nome, demanda, unidade, coordenador, observacoes, tipo, status)
+            group.date_beg = date_beg
+            group.save()
 
-        for dados_usuario in usuarios:
+        for user_data in users:
 
-            grupo = Grupo.get(Grupo.id == dados_usuario['grupo'])
+            grupo = Grupo.get(Grupo.id == user_data['grupo'])
+            nome = user_data['nome']
+            email = user_data['email']
+            date_beg = user_data['date_beg']
+            date_end = user_data['date_end']
+            observacoes = user_data['observacoes']
+            status = user_data['status']
 
-            existing_user, created = Usuario.get_or_create(
-                id = dados_usuario['id'],
-                defaults = {'grupo': grupo, 
-                            'nome': dados_usuario['nome'],
-                            'email': dados_usuario['email'],
-                            'date_beg': dados_usuario['date_beg'],
-                            'date_end': dados_usuario['date_end'],
-                            'observacoes': dados_usuario['observacoes'],
-                            'status': dados_usuario['status']
-                            }
+
+            user, created = Usuario.get_or_create(
+                id = user_data['id'],
+                defaults = {
+                    'grupo': grupo, 'nome': nome, 'email': email,
+                    'date_beg': date_beg, 'date_end': date_end,
+                    'observacoes': observacoes, 'status': status
+                    }
                 )
 
-            existing_user.grupo = grupo
-            existing_user.nome = dados_usuario['nome']
-            existing_user.email = dados_usuario['email']
-            existing_user.date_beg = dados_usuario['date_beg']
-            existing_user.date_end = dados_usuario['date_end']
-            existing_user.observacoes = dados_usuario['observacoes']
-            existing_user.status = dados_usuario['status']
-            existing_user.save()
+            update_usuario(user, grupo, nome, email, observacoes, status)
+            user.date_beg = date_beg
+            user.date_end = date_end
+            user.save()
 
-        for dados_cluster in clusters:
+        for cluster_data in clusters:
 
-            existing_cluster, created = Cluster.get_or_create(
-                id = dados_cluster['id'],
-                defaults = {'name': dados_cluster['name'], 
-                            'description': dados_cluster['description'],
-                            'date_beg': dados_cluster['date_beg'],
-                            'date_end': dados_cluster['date_end'],
-                            'status': dados_cluster['status']
-                            }
+            name = cluster_data['name']
+            description = cluster_data['description']
+            date_beg = cluster_data['date_beg']
+            date_end = cluster_data['date_end']
+            status = cluster_data['status']
+
+            cluster, created = Cluster.get_or_create(
+                id = cluster_data['id'],
+                defaults = {
+                    'name': name, 'description': description,
+                    'date_beg': date_beg, 'date_end': date_end, 'status': status
+                    }
                 )
 
-            existing_cluster.name = dados_cluster['name']
-            existing_cluster.description = dados_cluster['description']
-            existing_cluster.date_beg = dados_cluster['date_beg']
-            existing_cluster.date_end = dados_cluster['date_end']
-            existing_cluster.status = dados_cluster['status']
-            existing_cluster.save()
+            update_cluster(cluster, name, description, status)
+            cluster.date_beg = date_beg
+            cluster.date_end = date_end
+            cluster.save()
 
-        for dados_equipamentos in equipamentos:
+        for equip_data in equipments:
 
-            cluster = Cluster.get(Cluster.id == dados_equipamentos['cluster'])
+            cluster = Cluster.get(Cluster.id == equip_data['cluster'])
+            hostname = equip_data['hostname']
+            modelo = equip_data['modelo']
+            tipo = equip_data['tipo']
+            patrimonio = equip_data['patrimonio']
+            serviceTag = equip_data['serviceTag']
+            nucleo = equip_data['nucleo']
+            memoria = equip_data['memoria']
+            disco = equip_data['disco']
+            date_beg = equip_data['date_beg']
+            date_end = equip_data['date_end']
+            status = equip_data['status']
 
-            existing_equipament, created = Equipamento.get_or_create(
-                id = dados_equipamentos['id'],
-                defaults = {'cluster': cluster,
-                            'hostname': dados_equipamentos['hostname'], 
-                            'modelo': dados_equipamentos['modelo'],
-                            'tipo': dados_equipamentos['tipo'],
-                            'patrimonio': dados_equipamentos['patrimonio'],
-                            'serviceTag': dados_equipamentos['serviceTag'],
-                            'nucleo': dados_equipamentos['nucleo'],
-                            'memoria': dados_equipamentos['memoria'],
-                            'disco': dados_equipamentos['disco'],
-                            'date_beg': dados_equipamentos['date_beg'],
-                            'date_end': dados_equipamentos['date_end'],
-                            'status': dados_equipamentos['status']
-                            }
+            equipment, created = Equipamento.get_or_create(
+                id = equip_data['id'],
+                defaults = {
+                    'cluster': cluster, 'hostname': hostname,  'modelo': modelo,
+                    'tipo': tipo, 'patrimonio': patrimonio, 'serviceTag': serviceTag,
+                    'nucleo': nucleo, 'memoria': memoria, 'disco': disco,
+                    'date_beg': date_beg, 'date_end': date_end, 'status': status
+                    }
                 )
 
-            existing_equipament.cluster = cluster
-            existing_equipament.hostname = dados_equipamentos['hostname']
-            existing_equipament.modelo = dados_equipamentos['modelo']
-            existing_equipament.tipo = dados_equipamentos['tipo']
-            existing_equipament.patrimonio = dados_equipamentos['patrimonio']
-            existing_equipament.serviceTag = dados_equipamentos['serviceTag']
-            existing_equipament.nucleo = dados_equipamentos['nucleo']
-            existing_equipament.memoria = dados_equipamentos['memoria']
-            existing_equipament.disco = dados_equipamentos['disco']
-            existing_equipament.date_beg = dados_equipamentos['date_beg']
-            existing_equipament.date_end = dados_equipamentos['date_end']
-            existing_equipament.status = dados_equipamentos['status']
-            existing_equipament.save()
+            update_equipamento(equipment, cluster, hostname, modelo, tipo, patrimonio, serviceTag, nucleo, memoria, status)
+            equipment.date_beg = equip_data['date_beg']
+            equipment.date_end = equip_data['date_end']
+            equipment.save()
 
     os.remove(file_path)
     return redirect(url_for('homepage'))
 
-@server.route('/clean', methods=['GET'])
-def clean():
-    database.drop_tables([Cluster, Equipamento, Grupo, Usuario])
+@server.route('/delete', methods=['POST'])
+def delete():
+    # --- DERRUBA AS TABELAS ANTIGAS E CRIA NOVAS --- #
+    drop_tables()
     create_tables()
     return redirect(url_for('homepage'))
 

@@ -1,37 +1,44 @@
-{% extends "layout.html" %}
-{% block body %}
+{% extends "layout.html" %} {% block body %}
+
+<!--  SEÇÃO DE CLUSTER - CADASTRO E ATUALIZAÇÃO  -->
 <div class="cadastro">
-  {% if cluster %}
-      <h2>Editar {{ cluster.name }}</h2>
-  {% else %}
-      <h2>Cadastrar Cluster</h2>
-  {% endif %}    
-  <form action="{% if cluster %} {{ url_for('cluster', clusterName=cluster.name) }} {% else %} {{ url_for('cluster', clusterName='cadastro') }} {% endif %}" method=post>
-    <div class="mb-3">
-      <!-- Status -->
-      {% if cluster %}
-        <label class="form-label">Status</label>
-        <select class="mb-3 form-select" aria-label="Default select example" name="status">
-            {% if cluster.status %}
-              <option selected value="ativar">Ativo</option>
-              <option value="desativar">Inativo</option>
-            {% else %}
-              <option value="ativar">Ativo</option>
-              <option selected value="desativar">Inativo</option>
+
+    <!--  TÍTULO  -->
+    {% if cluster %}
+    <h2>Editar {{ cluster.name }}</h2>
+    {% else %}
+    <h2>Cadastrar Cluster</h2>
+    {% endif %}
+
+    <!--  FORMULÁRIO  -->
+    <form
+        action="{% if cluster %} {{ url_for('cluster', clusterName=cluster.name) }} {% else %} {{ url_for('cluster', clusterName='cadastro') }} {% endif %}"
+        method=post>
+        <div class="mb-3">
+            <!--  STATUS  -->
+            {% if cluster %}
+            <label class="form-label">Status</label>
+            <select class="mb-3 form-select" aria-label="Default select example" name="status">
+                <option {% if cluster.status %}selected {% endif %} value="ativar">Ativo</option>
+                <option {% if not cluster.status %}selected {% endif %} value="desativar">Inativo</option>
+            </select>
             {% endif %}
-        </select>
-      {% endif %}
-      <!-- Nome -->
-      <label class="form-label">Nome</label>
-      <input type="text" class="mb-3 form-control" id="floatingInputInvalid" name=cluster_name value="{% if cluster %}{{ cluster.name }}{% endif %}">
-      <!--{% if msg %}
-      <label for="floatingInputInvalid">{{ msg }}</label>
-      {% endif %}-->
-      <!-- Descrição -->
-      <label class="form-label">Descrição</label>
-      <textarea class="form-control" id="exampleFormControlTextarea1" name=description rows="3">{% if cluster %}{{ cluster.description }}{% endif %}</textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Cadastrar</button>
-  </form>
+
+            <!--  NOME  -->
+            <label class="form-label">Nome</label>
+            <input type="text" class="mb-3 form-control" id="floatingInputInvalid" name=cluster_name value="{% if cluster %}{{ cluster.name }}{% endif %}" required>
+
+            <!--  DESCRIÇÃO  -->
+            <label class="form-label">Descrição</label>
+            <textarea class="form-control" id="exampleFormControlTextarea1" name=description rows="3">
+                {% if cluster %}{{ cluster.description }}{% endif %}</textarea>
+        </div>
+
+        <!--  SUBMIT  -->
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+        {% if msg %}
+        <label class="btn btn-outline-warning" for="floatingInputInvalid">{{ msg }}!</label>
+        {% endif %}
+    </form>
 </div>
 {% endblock %}
