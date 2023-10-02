@@ -420,7 +420,8 @@ def update_figure(yearValue, value):
     graph_annual_usage = px.bar(
         df_machine_usage,
         y=["Máquina em 24x7", "Máquina em Cluster", "Disponível"],
-        labels={'value':'Uso (CPU-Hora)', 'variable':'Tipo de uso'}
+        labels={'value':'Uso (CPU-Hora)', 'variable':'Tipo de uso'},
+        color_discrete_map={"Disponível": "white", "Máquina em Cluster": "blue"} 
         )
  
     # ------------------ USO DE STORAGE (CLUSTER E 24 X 7) MENSAL E EM GRUPO --------------------------- #
