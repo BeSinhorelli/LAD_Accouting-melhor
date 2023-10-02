@@ -1,4 +1,5 @@
 #!/bin/bash
+cd source
 
 echo "Inicializing the LAD app..."
 
@@ -20,5 +21,5 @@ pip install dash-bootstrap-components
 echo "Libraries installation completed."
 
 echo "Executing the LAD Accounting-Dash app..."
-cd source
+
 python3 app.py
