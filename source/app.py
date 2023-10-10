@@ -421,8 +421,8 @@ def update_figure(yearValue, value):
         df_machine_usage,
         y=["Máquina em 24x7", "Máquina em Cluster", "Disponível"],
         labels={'value':'Uso (CPU-Hora)', 'variable':'Tipo de uso'},
-        color_discrete_map={"Disponível": "white", "Máquina em Cluster": "blue"} 
-        )
+        color_discrete_map={"Disponível": "white", "Máquina em Cluster": "#ef553b", "Máquina em 24x7": "#636efa"} 
+        ) 
  
     # ------------------ USO DE STORAGE (CLUSTER E 24 X 7) MENSAL E EM GRUPO --------------------------- #
 
@@ -572,6 +572,15 @@ def update_figure(yearValue, value):
         labels={'value':'Quantidade', 'variable':'Tipo de Publicação'},
         text_auto=True
         )
+
+    # TEMPORÁRIO! - CALCULA AS HORAS DE SERVIÇO, CONFORME O ANO 
+
+    sum_service = df_annual[['Serviço']].dropna().sum()
+    print(sum_service.to_string())
+    sum_machine = df_annual[['Máquina em Cluster']].sum()
+    print(sum_machine.to_string())
+    sum_24x7 = df_annual[['Máquina em 24x7']].sum()
+    print(sum_24x7.to_string())
 
     # --------------------------------- RETORNO DA FUNÇÃO ---------------------------------------------- #
 
