@@ -328,7 +328,7 @@ app.layout = html.Div([
 
     dbc.Col([
         dbc.Card([
-            dbc.CardHeader('Produções científicas por Unidade (2015-2021) ', style={'background-color': fourth_color, 'color': 'white'}),
+            dbc.CardHeader('Produções científicas por Unidade (2015-2022) ', style={'background-color': fourth_color, 'color': 'white'}),
                 dcc.Graph(
                      id='graph_production',
                 )],
@@ -577,9 +577,9 @@ def update_figure(yearValue, value):
 
     sum_service = df_annual[['Serviço']].dropna().sum()
     print(sum_service.to_string())
-    sum_machine = df_annual[['Máquina em Cluster']].sum()
+    sum_machine = df_annual[['Máquina em Cluster']].dropna().sum()
     print(sum_machine.to_string())
-    sum_24x7 = df_annual[['Máquina em 24x7']].sum()
+    sum_24x7 = df_annual[['Máquina em 24x7']].dropna().sum()
     print(sum_24x7.to_string())
 
     # --------------------------------- RETORNO DA FUNÇÃO ---------------------------------------------- #
