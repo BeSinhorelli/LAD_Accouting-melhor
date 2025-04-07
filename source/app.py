@@ -54,7 +54,7 @@ fourth_color = '#1E6EFF'
 fifth_color = '#EEE'
 # ---------------------------------  CONFIGURAÇÕES PARA DASHBOARDS DE DEMANDAS  --------------------------------- #
 
-# Configuração de cores para o tema
+# Configuração de cores para demandas
 COLORS = {
     "background": "black",
     "text": "white",
@@ -68,7 +68,6 @@ COLORS = {
 GITHUB_REPO = "LAD-PUCRS/LAD-Management"
 GITHUB_TOKEN = "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"  # Substitua pelo seu token do GitHub
 HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
-YEAR = 2025  # Defina o ano desejado
 
 def fetch_all_issues():
     issues = []
@@ -87,7 +86,7 @@ def fetch_all_issues():
             break
 
         issues.extend(data)
-        page += 1  # Vai para a próxima página
+        page += 1  # Próxima página
 
     return issues
 
@@ -115,11 +114,14 @@ for issue in issues:
 df = pd.DataFrame(data)
 df["Criado em"] = pd.to_datetime(df["Criado em"])
 
-# Filtrar dados para o ano especificado
-df = df[df["Criado em"].dt.year == YEAR].copy()
-
 # Criar coluna de mês
 df["Month"] = df["Criado em"].dt.strftime('%b')  
+
+# Filtrar dados com base no ano selecionado
+def filter_data_by_year(selected_year):
+    filtered_df = df[df["Criado em"].dt.year == int(selected_year)].copy()
+    filtered_demandas_erro = filtered_df[filtered_df["Labels"].str.contains("_USER", na=False)].copy()
+    return filtered_df, filtered_demandas_erro
 
 # Filtrar demandas com label "_USER"
 demandas_erro = df[df["Labels"].str.contains("_USER", na=False)].copy()
@@ -480,65 +482,133 @@ app.layout = html.Div([
         ),
 
     # ----------------------------- GRÁFICOS DEMANDAS ----------------------------- #
+    
+    # ----------------------------- TÍTULO ----------------------------- #
+    dbc.Col([
+    html.H2(
+        id="demand-title",
+        style={
+            'color': fifth_color,  
+            'text-align': 'center',  
+            'padding': '0.5rem',  
+            'margin': '4rem 0 0 0',  
+            'font-size': '1.5rem'  
+        }
+    )
+]),
+    # ----------------------------- COMPARATIVO ANUAL ----------------------------- #
 
     dbc.Col([
-        html.H3("Comparativo: Total de Demandas vs. Erros de Usuário", className="h3-subtitle", 
-                style={'color': third_color, 'text-align': 'center', 'background-color': first_color, 'font-size': '1rem', 'padding': '0.5rem', 'border-radius': '0.5rem 0.5rem 0 0'}),
+        html.H3(
+            "Comparativo: Total de Demandas vs. Erros de Usuário", 
+            className="h3-subtitle", 
+            style={
+                'color': third_color, 
+                'text-align': 'center', 
+                'background-color': first_color, 
+                'font-size': '1rem', 
+                'padding': '0.5rem', 
+                'border-radius': '0.5rem 0.5rem 0 0',
+                'margin-bottom': '0'
+            }
+        ),
         dbc.Card(
             dcc.Graph(
                 id="monthly-bar-chart",
                 figure=plot_monthly_comparison(),
             ),
             className='shadow text-center',
-            style={'background-color': third_color, 'border': 'none',}
+            style={'background-color': third_color, 
+                   'border': 'none', 
+                   'margin-top': '0'}
         )
-    ], style={'margin': '6rem 6rem 0 6rem'}),
+    ], style={'margin': '0 6rem 0 6rem'}),
 
+    # ----------------------------- GRAF. GRUPOS ----------------------------- #
     dbc.Row([
-                dbc.Col([
-            html.H3("Distribuição de Erros de Usuário por Grupo", className="h3-subtitle", 
-                    style={'color': third_color, 'text-align': 'center', 'background-color': first_color, 'font-size': '1rem', 'padding': '0.5rem', 'border-radius': '0.5rem 0.5rem 0 0'}),
+        dbc.Col([
+            html.H3(
+                "Distribuição de Erros de Usuário por Grupo", 
+                className="h3-subtitle", 
+                style={
+                    'color': third_color, 
+                    'text-align': 'center', 
+                    'background-color': first_color, 
+                    'font-size': '1rem', 
+                    'padding': '0.5rem', 
+                    'border-radius': '0.5rem 0.5rem 0 0',
+                    'margin-bottom': '0'
+                }
+            ),
             dbc.Card([
-                html.Div(
-                    [
-                        dcc.Dropdown(
-                            id="month-dropdown",
-                            options=[{"label": "Visão Geral", "value": "all"}] + [{"label": month, "value": month} for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]],
-                            value=datetime.now().strftime('%b'),
-                            className="dropdown-style",
-                            style={'width': '40%', 'margin': '0 auto'}
-                        )
-                    ], style={'background-color': COLORS['background'], 'width': '100%'}
-                ),
+                html.Div([
+                    dcc.Dropdown(
+                        id="month-dropdown",
+                        options=[{"label": "Visão Geral", "value": "all"}] + [
+                            {"label": month, "value": month} for month in 
+                            ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                        ],
+                        value=datetime.now().strftime('%b'),
+                        className="dropdown-style",
+                        style={'width': '40%', 
+                               'margin': '0 auto'}
+                    )
+                ], style={'background-color': COLORS['background'], 
+                          'width': '100%', 
+                          'padding': '0.5rem'}),
                 dcc.Graph(
                     id="pie-chart",
-                    style={'height': '400px'}  # Define a altura do gráfico
+                    style={'height': '400px'} 
                 )
             ],
             className='shadow text-center',
-            style={'background-color': third_color, 'border': 'none', })
+            style={'background-color': third_color, 
+                   'border': 'none', 
+                   'height': '400px', 
+                   'margin-top': '0'})
         ], width=8),
 
-                dbc.Col([
-            html.H3("Lista de Demandas Relacionadas a Erros de Usuário", className="h3-subtitle", 
-                    style={'color': third_color, 'text-align': 'center', 'background-color': first_color, 'font-size': '1rem', 'padding': '0.5rem', 'border-radius': '0.5rem 0.5rem 0 0'}),
+        # ----------------------------- LISTA DE DEMANDAS ----------------------------- #
+        dbc.Col([
+            html.H3(
+                "Lista de Demandas Relacionadas a Erros de Usuário", 
+                className="h3-subtitle", 
+                style={
+                    'color': third_color, 
+                    'text-align': 'center', 
+                    'background-color': first_color, 
+                    'font-size': '1rem', 
+                    'padding': '0.5rem', 
+                    'border-radius': '0.5rem 0.5rem 0 0',
+                    'margin-bottom': '0'
+                }
+            ),
             dbc.Card([
                 dcc.Store(id="filtered-demands-store"),
-                html.Ul(id="demand-list", className="demand-list", 
-                        style={
-                            'list-style-type': 'none',
-                            'padding': '0',
-                            'color': fifth_color,
-                            'max-height': '400px',  
-                            'overflow-y': 'auto',  
-                            'align-items': 'center',
-                            'text-align': 'left'
-                        })
+                html.Ul(
+                    id="demand-list", 
+                    className="demand-list", 
+                    style={
+                        'list-style-type': 'none',
+                        'padding': '0',
+                        'color': fifth_color,
+                        'max-height': '480px',  
+                        'overflow-y': 'auto',
+                        'text-align': 'left',
+                        'margin-top': '0'
+                    }
+                )
             ],
             className='shadow text-center',
-            style={'background-color': third_color, 'border': 'none', 'padding': '1rem', 'height': '400px'})  # Define a altura do card
-        ], width=4)  
-    ], style={'margin': '2rem 6rem 2rem 2rem'}),
+            style={
+                'background-color': third_color, 
+                'border': 'none', 
+                'padding': '0 0rem 0 1rem', 
+                'height': '400px'
+            })
+        ], width=4)
+    ], style={'margin': '1rem 5rem 0.1rem 5rem'}),
+
 
     # ----------------------------- FINAL GRÁFICOS DEMANDAS ----------------------------- #
 
@@ -834,20 +904,31 @@ def read_database_excel (yearValue, month):
     df_data = pd.read_excel(file_path)
     return df_data
 
-# ---------------------------  CALLBACK - DASH DEMANDAS --------------------------- #
+# ---------------------------  CALLBACK - DEMANDAS --------------------------- #
 
-# Callback para atualizar o gráfico de pizza
+# Callback para atualizar o título
+@app.callback(
+    Output("demand-title", "children"),
+    [Input("year_dropdown", "value")]
+)
+def update_demand_title(selected_year):
+    return f"Demandas {selected_year}"
+
+# Callback para atualizar o gráfico dos gripos
 @app.callback(
     Output("pie-chart", "figure"),
-    [Input("month-dropdown", "value")]
+    [Input("month-dropdown", "value"),
+     Input("year_dropdown", "value")]
 )
-def update_pie_chart(selected_month):
-    if selected_month == "all":
-        filtered_data = demandas_erro
-    else:
-        filtered_data = demandas_erro[demandas_erro["Month"] == selected_month]
+def update_pie_chart(selected_month, selected_year):
+    # Filtrar os dados com base no ano selecionado
+    filtered_df, filtered_demandas_erro = filter_data_by_year(selected_year)
+    # Filtrar os dados com base no mês selecionado
+    if selected_month != "all":
+        filtered_demandas_erro = filtered_demandas_erro[filtered_demandas_erro["Month"] == selected_month]
 
-    names = extract_names_from_titles(filtered_data)
+    # Extrair os nomes dos grupos
+    names = extract_names_from_titles(filtered_demandas_erro)
     if names:
         name_counts = pd.Series(names).value_counts()
         total_demandas = name_counts.sum()
@@ -869,7 +950,7 @@ def update_pie_chart(selected_month):
                 annotations=[
                     {
                         "text": f"Total: {total_demandas}",
-                        "font": {"size": 16, "color": COLORS["text"]},
+                        "font": {"size": 14, "color": COLORS["text"]},
                         "showarrow": False,
                         "xref": "paper",
                         "yref": "paper",
@@ -879,6 +960,7 @@ def update_pie_chart(selected_month):
                 ]
             )
         }
+    # Se não houver dados, retornar um gráfico vazio
     return {
         "data": [],
         "layout": go.Layout(
@@ -903,17 +985,22 @@ def update_pie_chart(selected_month):
 @app.callback(
     [Output("filtered-demands-store", "data"),
      Output("demand-list", "children")],
-    [Input("month-dropdown", "value")]
+    [Input("month-dropdown", "value"),
+     Input("year_dropdown", "value")]
 )
-def update_demand_list(selected_month):
-    if selected_month == "all":
-        filtered_data = demandas_erro
-    else:
-        filtered_data = demandas_erro[demandas_erro["Month"] == selected_month]
+def update_demand_list(selected_month, selected_year):
+    # Filtrar os dados com base no ano selecionado
+    _, filtered_demandas_erro = filter_data_by_year(selected_year)
+    # Filtrar os dados com base no mês selecionado
+    if selected_month != "all":
+        filtered_demandas_erro = filtered_demandas_erro[filtered_demandas_erro["Month"] == selected_month]
 
-    if filtered_data.empty:
-        return [], [html.Li("Nenhuma demanda especial registrada no mês selecionado", style={"color": COLORS["gray"], "font-size": "16px", "text-align": "center"})]
+    # Verificar se há dados filtrados
+    if filtered_demandas_erro.empty:
+        return [], [html.Li("Nenhuma demanda especial registrada no mês e ano selecionados", 
+                            style={"color": COLORS["gray"], "font-size": "16px", "text-align": "center"})]
 
+    # Criar a lista de demandas
     demand_list = [
         html.Li(
             html.A(
@@ -921,13 +1008,77 @@ def update_demand_list(selected_month):
                 href=url, 
                 target="_blank", 
                 className="demand-list-a",  
-                title="Clique para abrir no GitHub"
+                title="Clique para abrir no GitHub",
+                style={
+                "color": COLORS['text'],  
+                  
+            }
             ),
-            className="demand-list-li"  
+            className="demand-list-li" ,
+            style={"border-bottom": "1px solid gray", 
+                   "padding": "0.5rem 0"} 
         )
-        for title, url in zip(filtered_data["Título"], filtered_data["URL"])
+        for title, url in zip(filtered_demandas_erro["Título"], filtered_demandas_erro["URL"])
     ]
-    return filtered_data.to_dict("records"), demand_list
+
+    # Retornar os dados filtrados e a lista de demandas
+    return filtered_demandas_erro.to_dict("records"), demand_list
+
+# Callback para atualizar o gráfico de barras
+@app.callback(
+    Output("monthly-bar-chart", "figure"),
+    [Input("year_dropdown", "value")]
+)
+def update_monthly_comparison(selected_year):
+    # Filtrar os dados com base no ano selecionado
+    filtered_df, filtered_demandas_erro = filter_data_by_year(selected_year)
+
+    # Criar os gráficos com os dados filtrados
+    monthly_counts = filtered_df["Month"].value_counts()
+    monthly_error_counts = filtered_demandas_erro["Month"].value_counts()
+
+    # Ordenar os meses
+    month_order = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    months_with_data = [m for m in month_order if m in monthly_counts.index]
+    monthly_counts = monthly_counts.reindex(months_with_data)
+    monthly_error_counts = monthly_error_counts.reindex(months_with_data, fill_value=0)
+
+    return {
+        "data": [
+            go.Bar(
+                x=monthly_counts.index,
+                y=monthly_counts.values,
+                name="Demandas Abertas no mês",
+                marker={"color": COLORS["bar1"]},
+                text=monthly_counts.values,
+                textposition="outside",
+                width=0.6,
+                hovertemplate="<b>Mês:</b> %{x}<br><b>Demandas Abertas:</b> %{y}<extra></extra>"
+            ),
+            go.Bar(
+                x=monthly_counts.index,
+                y=monthly_error_counts.values,
+                name="Erros de Usuário",
+                marker={"color": COLORS["bar2"]},
+                text=monthly_error_counts.values,
+                textposition="outside",
+                width=0.6,
+                hovertemplate="<b>Mês:</b> %{x}<br><b>Erros de Usuário:</b> %{y}<extra></extra>"
+            )
+        ],
+        "layout": go.Layout(
+            xaxis={"title": "Mês", "color": COLORS["text"]},
+            yaxis={"title": "Quantidade de Demandas Abertas", 
+                   "color": COLORS["text"],
+                   "automargin": True,
+                   "range": [0, max(monthly_counts.max(), monthly_error_counts.max()) * 1.1]},
+            barmode="overlay",
+            plot_bgcolor=COLORS["background"],
+            paper_bgcolor=COLORS["background"],
+            font={"color": COLORS["text"]},
+            hovermode="closest",
+        )
+    }
 
 # ---------------------------  FINAL CALLBACK - DASH DEMANDAS --------------------------- #
 
