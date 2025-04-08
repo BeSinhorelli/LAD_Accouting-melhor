@@ -15,6 +15,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 import pandas as pd
+from plotly.graph_objects import Funnel
 
 # --- BIBLIOTECAS PARA DEMANDAS--- #
 import requests
@@ -181,6 +182,41 @@ def plot_pie_chart(month):
         name_counts = pd.Series(names).value_counts()
         return [go.Pie(labels=name_counts.index, values=name_counts.values, hole=0.3)]
     return []  # Retorna um gráfico vazio se não houver dados para o mês
+
+# Função para plotar o gráfico de funil
+def plot_funnel_chart(filtered_df):
+    # Contar o número total de demandas abertas no mês
+    total_open_demandas = len(filtered_df)
+
+    # Padronizar os valores de status
+    filtered_df["Status"] = filtered_df["Status"].str.strip().str.title()
+
+    # Contar o número de demandas fechadas
+    closed_count = filtered_df["Status"].value_counts().get("Closed", 0)
+
+    # Dados para o gráfico de funil
+    stages = ["Total Abertas", "Fechadas"]
+    values = [
+        total_open_demandas,
+        closed_count,
+    ]
+
+    # Criar o gráfico de funil
+    return {
+        "data": [
+            Funnel(
+                y=stages,
+                x=values,
+                textinfo="value+percent initial",
+                marker={"color": ["#4e9054", "#7c60b7"]},
+            )
+        ],
+        "layout": go.Layout(
+            plot_bgcolor=COLORS["background"],
+            paper_bgcolor=COLORS["background"],
+            font={"color": COLORS["text"]},
+        ),
+    }
 
 # ---------------------------  FINAL CONFIGURAÇÕES PARA DASHBOARDS DE DEMANDAS  --------------------------- #
 
@@ -481,6 +517,7 @@ app.layout = html.Div([
         className='mx-auto'
         ),
 
+
     # ----------------------------- GRÁFICOS DEMANDAS ----------------------------- #
     
     # ----------------------------- TÍTULO ----------------------------- #
@@ -609,6 +646,19 @@ app.layout = html.Div([
         ], width=4)
     ], style={'margin': '1rem 5rem 0.1rem 5rem'}),
 
+    # ----------------------------- GRÁFICO DE FUNIL ----------------------------- #
+    dbc.Col([
+        dbc.Card([
+            dbc.CardHeader('Ciclo de Demandas', style={'background-color': first_color, 'color': second_color}),
+            dcc.Graph(
+                id="funnel-chart",
+                style={"height": "400px"}
+            )
+        ],
+        className='shadow text-center',
+        style={'background-color': third_color, 'border': 'none', 'margin-top': '1rem'}
+        )
+    ], width=6, className="mx-auto"),
 
     # ----------------------------- FINAL GRÁFICOS DEMANDAS ----------------------------- #
 
@@ -1079,6 +1129,23 @@ def update_monthly_comparison(selected_year):
             hovermode="closest",
         )
     }
+
+# Callback para atualizar o gráfico de funil
+@app.callback(
+    Output("funnel-chart", "figure"),
+    [Input("year_dropdown", "value"),
+     Input("month-dropdown", "value")]
+)
+def update_funnel_chart(selected_year, selected_month):
+    # Filtrar os dados com base no ano selecionado
+    filtered_df, _ = filter_data_by_year(selected_year)
+
+    # Filtrar os dados com base no mês selecionado
+    if selected_month != "all":
+        filtered_df = filtered_df[filtered_df["Month"] == selected_month]
+
+    # Gerar o gráfico de funil com os dados filtrados
+    return plot_funnel_chart(filtered_df)
 
 # ---------------------------  FINAL CALLBACK - DASH DEMANDAS --------------------------- #
 
