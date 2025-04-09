@@ -141,11 +141,11 @@ def plot_monthly_comparison():
             go.Bar(
                 x=monthly_counts.index,
                 y=monthly_counts.values,
-                name="Demandas Abertas no mês",
+                name="Total",
                 marker={"color": COLORS["bar1"]},
                 text=monthly_counts.values,
                 width=0.6,
-                hovertemplate="<b>Mês:</b> %{x}<br><b>Demandas Abertas:</b> %{y}<extra></extra>"
+                hovertemplate="<b>Mês:</b> %{x}<br><b>Total:</b> %{y}<extra></extra>"
             ),
             go.Bar(
                 x=monthly_counts.index,
@@ -159,7 +159,7 @@ def plot_monthly_comparison():
         ],
         "layout": go.Layout(
             xaxis={"title": "Mês", "color": COLORS["text"]},
-            yaxis={"title": "Quantidade de Demandas Abertas", "color": COLORS["text"]},
+            yaxis={"title": "Quantidade de Demandas Criadas", "color": COLORS["text"]},
             barmode="overlay",
             plot_bgcolor=COLORS["background"],
             paper_bgcolor=COLORS["background"],
@@ -183,8 +183,8 @@ def plot_pie_chart(month):
         return [go.Pie(labels=name_counts.index, values=name_counts.values, hole=0.3)]
     return []  # Retorna um gráfico vazio se não houver dados para o mês
 
-# Função para plotar o gráfico de funil
-def plot_funnel_chart(filtered_df):
+# Função para plotar o gráfico de ciclos
+def plot_horizontal_bar_chart(filtered_df):
     # Contar o número total de demandas abertas no mês
     total_open_demandas = len(filtered_df)
 
@@ -194,27 +194,47 @@ def plot_funnel_chart(filtered_df):
     # Contar o número de demandas fechadas
     closed_count = filtered_df["Status"].value_counts().get("Closed", 0)
 
-    # Dados para o gráfico de funil
-    stages = ["Total Abertas", "Fechadas"]
+    # Dados para o gráfico de ciclo
+    stages = ["Fechadas", "Total Abertas"]
     values = [
-        total_open_demandas,
         closed_count,
+        total_open_demandas,
     ]
 
-    # Criar o gráfico de funil
+    # Criar o gráfico ciclos
     return {
         "data": [
-            Funnel(
-                y=stages,
-                x=values,
-                textinfo="value+percent initial",
-                marker={"color": ["#4e9054", "#7c60b7"]},
-            )
+            go.Bar(
+                x=[total_open_demandas],
+                y=[""],
+                name="Total",
+                orientation="h",
+                marker=dict(color="#4e9054"),
+                text=[f"{total_open_demandas}"],
+                textposition="inside",
+                insidetextanchor="end",
+                hovertemplate="<b>Total:</b> %{x}<extra></extra>",
+            ),
+            go.Bar(
+                x=[closed_count],
+                y=[""],
+                name="Fechadas",
+                orientation="h",
+                marker=dict(color="#7c60b7"),
+                text=[f"{closed_count}"],
+                textposition="inside",
+                insidetextanchor="end",
+                hovertemplate="<b>Fechadas:</b> %{x}<extra></extra>",
+            ),
         ],
         "layout": go.Layout(
+            xaxis=dict(title="Quantidade"),
+            yaxis=dict(title="Status"),
+            barmode="overlay",  
             plot_bgcolor=COLORS["background"],
             paper_bgcolor=COLORS["background"],
             font={"color": COLORS["text"]},
+            margin=dict(l=100, r=50, t=20, b=50),
         ),
     }
 
@@ -537,7 +557,7 @@ app.layout = html.Div([
 
     dbc.Col([
         html.H3(
-            "Comparativo: Total de Demandas vs. Erros de Usuário", 
+            "Comparativo: Demandas Criadas vs. Erros de Usuário", 
             className="h3-subtitle", 
             style={
                 'color': third_color, 
@@ -553,6 +573,7 @@ app.layout = html.Div([
             dcc.Graph(
                 id="monthly-bar-chart",
                 figure=plot_monthly_comparison(),
+                style={'height': '320px'}
             ),
             className='shadow text-center',
             style={'background-color': third_color, 
@@ -601,7 +622,7 @@ app.layout = html.Div([
             className='shadow text-center',
             style={'background-color': third_color, 
                    'border': 'none', 
-                   'height': '400px', 
+                   'height': '250px', 
                    'margin-top': '0'})
         ], width=8),
 
@@ -641,24 +662,88 @@ app.layout = html.Div([
                 'background-color': third_color, 
                 'border': 'none', 
                 'padding': '0 0rem 0 1rem', 
-                'height': '400px'
+                'height': '250px'
             })
         ], width=4)
     ], style={'margin': '1rem 5rem 0.1rem 5rem'}),
 
-    # ----------------------------- GRÁFICO DE FUNIL ----------------------------- #
-    dbc.Col([
-        dbc.Card([
-            dbc.CardHeader('Ciclo de Demandas', style={'background-color': first_color, 'color': second_color}),
-            dcc.Graph(
-                id="funnel-chart",
-                style={"height": "400px"}
-            )
-        ],
-        className='shadow text-center',
-        style={'background-color': third_color, 'border': 'none', 'margin-top': '1rem'}
-        )
-    ], width=6, className="mx-auto"),
+    # ----------------------------- GRÁFICO DE CICLO DE DEMANDAS E LISTA DE DEMANDAS ABERTAS ----------------------------- #
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader(
+                    html.H3(
+                        id="funnel-chart-title", 
+                        style={
+                            'color': third_color, 
+                            'text-align': 'center', 
+                            'background-color': first_color, 
+                            'font-size': '1rem', 
+                            'padding': '0.5rem', 
+                            'border-radius': '0.5rem 0.5rem 0 0',
+                            'margin-bottom': '0',
+                            'border': 'none'
+                        }
+                    ),
+                    style={
+                        'padding': '0',
+                        'border': 'none',
+                    }
+                ), 
+                dcc.Graph(
+                    id="funnel-chart",
+                    style={"height": "200px"} 
+                )
+            ],
+            className='shadow text-center',
+            style={
+                'background-color': third_color, 
+                'border': 'none', 
+                'margin': '0',
+            })
+        ], width=8), 
+
+        # Lista de Demandas Abertas
+        dbc.Col([
+            html.H3(
+                "Lista de Demandas Pendentes", 
+                id="open-demand-title",
+                className="h3-subtitle", 
+                style={
+                    'color': third_color, 
+                    'text-align': 'center', 
+                    'background-color': first_color, 
+                    'font-size': '1rem', 
+                    'padding': '0.5rem', 
+                    'border-radius': '0.5rem 0.5rem 0 0',
+                    'margin-bottom': '0'
+                }
+            ),
+            dbc.Card([
+                dcc.Store(id="open-demands-store"),
+                html.Ul(
+                    id="open-demand-list", 
+                    className="demand-list", 
+                    style={
+                        'list-style-type': 'none',
+                        'padding': '0',
+                        'color': fifth_color,
+                        'max-height': '400px',  
+                        'overflow-y': 'auto',
+                        'text-align': 'left',
+                        'margin-top': '0'
+                    }
+                )
+            ],
+            className='shadow text-center',
+            style={
+                'background-color': third_color, 
+                'border': 'none', 
+                'padding': '0 0rem 0 1rem', 
+                'height': '200px'
+            })
+        ], width=4) 
+    ], style={'margin': '1rem 5rem 0.1rem 5rem'}),
 
     # ----------------------------- FINAL GRÁFICOS DEMANDAS ----------------------------- #
 
@@ -962,9 +1047,9 @@ def read_database_excel (yearValue, month):
     [Input("year_dropdown", "value")]
 )
 def update_demand_title(selected_year):
-    return f"Demandas {selected_year}"
+    return f"Painel de Demandas {selected_year}"
 
-# Callback para atualizar o gráfico dos gripos
+# Callback para atualizar o gráfico dos grupos
 @app.callback(
     Output("pie-chart", "figure"),
     [Input("month-dropdown", "value"),
@@ -997,6 +1082,7 @@ def update_pie_chart(selected_month, selected_year):
                 plot_bgcolor=COLORS["background"],
                 paper_bgcolor=COLORS["background"],
                 font={"color": COLORS["text"]},
+                margin=dict(l=20, r=20, t=20, b=20),
                 annotations=[
                     {
                         "text": f"Total: {total_demandas}",
@@ -1127,10 +1213,29 @@ def update_monthly_comparison(selected_year):
             paper_bgcolor=COLORS["background"],
             font={"color": COLORS["text"]},
             hovermode="closest",
+            margin=dict(l=70, r=30, t=40, b=60),
         )
     }
 
-# Callback para atualizar o gráfico de funil
+# Callback para atualizar o título do gráfico de ciclo de demandas
+@app.callback(
+    Output("funnel-chart-title", "children"),
+    [Input("year_dropdown", "value"),
+     Input("month-dropdown", "value")]
+)
+def update_funnel_chart_title(selected_year, selected_month):
+    if selected_month == "all":
+        return f"Evolução das Demandas - {selected_year}"
+    else:
+        month_names = {
+            "Jan": "Janeiro", "Feb": "Fevereiro", "Mar": "Março", "Apr": "Abril",
+            "May": "Maio", "Jun": "Junho", "Jul": "Julho", "Aug": "Agosto",
+            "Sep": "Setembro", "Oct": "Outubro", "Nov": "Novembro", "Dec": "Dezembro"
+        }
+        month_name = month_names.get(selected_month, selected_month)
+        return f"Ciclo de Demandas - {month_name} {selected_year}"
+    
+# Callback para atualizar o gráfico de ciclos
 @app.callback(
     Output("funnel-chart", "figure"),
     [Input("year_dropdown", "value"),
@@ -1145,7 +1250,63 @@ def update_funnel_chart(selected_year, selected_month):
         filtered_df = filtered_df[filtered_df["Month"] == selected_month]
 
     # Gerar o gráfico de funil com os dados filtrados
-    return plot_funnel_chart(filtered_df)
+    return plot_horizontal_bar_chart(filtered_df)
+
+# Callback para atualizar o título da lista de demandas abertas
+@app.callback(
+    Output("open-demand-title", "children"),
+    [Input("open-demands-store", "data")]
+)
+def update_open_demand_title(open_demands):
+    # Verificar se há demandas pendentes
+    num_open_demands = len(open_demands) if open_demands else 0
+    return f"Lista de Demandas Pendentes ({num_open_demands})"
+
+# Callback para atualizar a lista de demandas abertas
+@app.callback(
+    [Output("open-demands-store", "data"),
+     Output("open-demand-list", "children")],
+    [Input("month-dropdown", "value"),
+     Input("year_dropdown", "value")]
+)
+def update_open_demand_list(selected_month, selected_year):
+    # Filtrar os dados com base no ano selecionado
+    filtered_df, _ = filter_data_by_year(selected_year)
+    
+    # Filtrar as demandas abertas
+    open_demands = filtered_df[filtered_df["Status"].str.lower() == "open"]
+    
+    # Filtrar os dados com base no mês selecionado
+    if selected_month != "all":
+        open_demands = open_demands[open_demands["Month"] == selected_month]
+
+    # Verificar se há dados filtrados
+    if open_demands.empty:
+        return [], [html.Li("Nenhuma demanda aberta registrada no mês e ano selecionados", 
+                            style={"color": COLORS["gray"], "font-size": "16px", "text-align": "center"})]
+
+    # Criar a lista de demandas abertas
+    open_demand_list = [
+        html.Li(
+            html.A(
+                title, 
+                href=url, 
+                target="_blank", 
+                className="demand-list-a",  
+                title="Clique para abrir no GitHub",
+                style={
+                    "color": COLORS['text'],  
+                }
+            ),
+            className="demand-list-li",
+            style={"border-bottom": "1px solid gray", 
+                   "padding": "0.5rem 0"} 
+        )
+        for title, url in zip(open_demands["Título"], open_demands["URL"])
+    ]
+
+    # Retornar os dados filtrados e a lista de demandas abertas
+    return open_demands.to_dict("records"), open_demand_list
 
 # ---------------------------  FINAL CALLBACK - DASH DEMANDAS --------------------------- #
 
