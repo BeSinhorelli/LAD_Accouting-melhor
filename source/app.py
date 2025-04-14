@@ -15,7 +15,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 import pandas as pd
-from plotly.graph_objects import Funnel
 
 # --- BIBLIOTECAS PARA DEMANDAS--- #
 import requests
@@ -273,8 +272,11 @@ app.layout = html.Div([
         ), style={'padding': '2rem', 'background-color': second_color}
     ),
 
-    # --------------------------------- SEÇÃO 1 - SELEÇÃO E GRAF. ANUAL -------------------------------- #
-    
+    html.Div([
+        html.A("Painel de Demandas", href="#demand-title", style={'color': fifth_color, 'text-decoration': 'none', 'margin': '0 1rem'}),
+    ], style={'display': 'flex', 'gap': '1rem', 'align-items': 'center', 'justify-content': 'center'}),
+
+   # --------------------------------- SEÇÃO 1 - SELEÇÃO E GRAF. ANUAL -------------------------------- #
     dbc.Col([
 
         # --- SELEÇÃO DO ANO  --- #
@@ -747,6 +749,26 @@ app.layout = html.Div([
 
     # ----------------------------- FINAL GRÁFICOS DEMANDAS ----------------------------- #
 
+    # Botão para voltar ao início
+    html.Div([
+        html.A("↑", href="#", style={
+            'color': second_color,
+            'text-decoration': 'none',
+            'background-color': first_color,
+            'padding': '0.3rem 1rem',
+            'border-radius': '50%',
+            'font-size': '1.4rem',
+            'display': 'flex',
+            'align-items': 'center',
+            'justify-content': 'center',
+            'box-shadow': '0 6px 12px rgba(0, 0, 0, 0.2)',
+            'position': 'fixed',
+            'bottom': '20px',
+            'right': '20px',
+            'z-index': '1000',
+            'cursor': 'pointer',
+    }, title="Voltar ao Início")
+    ], style={'text-align': 'center'}),
 
 ], style={'background-color':second_color, 'padding':'1rem', 'min-width':'700px'}
 )
