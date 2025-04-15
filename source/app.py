@@ -663,7 +663,7 @@ app.layout = html.Div([
             style={
                 'background-color': third_color, 
                 'border': 'none', 
-                'padding': '0 0rem 0 1rem', 
+                'padding': '0 1rem 0 1rem', 
                 'height': '250px'
             })
         ], width=4)
@@ -741,7 +741,7 @@ app.layout = html.Div([
             style={
                 'background-color': third_color, 
                 'border': 'none', 
-                'padding': '0 0rem 0 1rem', 
+                'padding': '0 1rem 0 1rem', 
                 'height': '200px'
             })
         ], width=4) 
