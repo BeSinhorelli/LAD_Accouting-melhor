@@ -271,7 +271,7 @@ app.layout = html.Div([
         ], style={'text-align':'center', 'display':'flex', 'gap':'3rem', 'align-items':'center', 'justify-content':'center'}
         ), style={'padding': '2rem', 'background-color': second_color}
     ),
-
+    # --- NAVEGAÇÃO PARA PAINEL DE DEMANDAS  --- #
     html.Div([
         html.A("Painel de Demandas", href="#demand-title", style={'color': fifth_color, 'text-decoration': 'none', 'margin': '0 1rem'}),
     ], style={'display': 'flex', 'gap': '1rem', 'align-items': 'center', 'justify-content': 'center'}),
@@ -540,7 +540,7 @@ app.layout = html.Div([
         ),
 
 
-    # ----------------------------- GRÁFICOS DEMANDAS ----------------------------- #
+    # -----------------------------SEÇÃO 7 - PAINEL DE DEMANDAS ----------------------------- #
     
     # ----------------------------- TÍTULO ----------------------------- #
     dbc.Col([
@@ -555,7 +555,7 @@ app.layout = html.Div([
         }
     )
 ]),
-    # ----------------------------- COMPARATIVO ANUAL ----------------------------- #
+    # ----------------------------- GRÁFICO COMPARATIVO ANUAL ----------------------------- #
 
     dbc.Col([
         html.H3(
@@ -584,7 +584,7 @@ app.layout = html.Div([
         )
     ], style={'margin': '0 6rem 0 6rem'}),
 
-    # ----------------------------- GRAF. GRUPOS ----------------------------- #
+    # ----------------------------- GRAFICO DISTRIBUIÇÃO DE ERROS DE USUÁRIO POR GRUPO ----------------------------- #
     dbc.Row([
         dbc.Col([
             html.H3(
@@ -628,7 +628,7 @@ app.layout = html.Div([
                    'margin-top': '0'})
         ], width=8),
 
-        # ----------------------------- LISTA DE DEMANDAS ----------------------------- #
+        # ----------------------------- LISTA DE DEMANDAS RELACIONADAS A ERROS DE USUÁRIO ----------------------------- #
         dbc.Col([
             html.H3(
                 "Lista de Demandas Relacionadas a Erros de Usuário", 
@@ -669,7 +669,7 @@ app.layout = html.Div([
         ], width=4)
     ], style={'margin': '1rem 5rem 0.1rem 5rem'}),
 
-    # ----------------------------- GRÁFICO DE CICLO DE DEMANDAS E LISTA DE DEMANDAS ABERTAS ----------------------------- #
+    # ----------------------------- GRÁFICO DE EVOLUÇAO DE DEMANDAS E LISTA DE DEMANDAS PENDENTES ----------------------------- #
     dbc.Row([
         dbc.Col([
             dbc.Card([
@@ -705,7 +705,7 @@ app.layout = html.Div([
             })
         ], width=8), 
 
-        # Lista de Demandas Abertas
+        # LISTA DE DEMANDAS PENDENTES
         dbc.Col([
             html.H3(
                 "Lista de Demandas Pendentes", 
@@ -749,7 +749,7 @@ app.layout = html.Div([
 
     # ----------------------------- FINAL GRÁFICOS DEMANDAS ----------------------------- #
 
-    # Botão para voltar ao início
+    # SCROLL TO TOP
     html.Div([
         html.A("↑", href="#", style={
             'color': second_color,
@@ -1063,7 +1063,7 @@ def read_database_excel (yearValue, month):
 
 # ---------------------------  CALLBACK - DEMANDAS --------------------------- #
 
-# Callback para atualizar o título
+# ATUALIZAR O TITULO
 @app.callback(
     Output("demand-title", "children"),
     [Input("year_dropdown", "value")]
@@ -1071,7 +1071,7 @@ def read_database_excel (yearValue, month):
 def update_demand_title(selected_year):
     return f"Painel de Demandas {selected_year}"
 
-# Callback para atualizar o gráfico dos grupos
+# ATUALIZAR O GRAFICO DE GRUṔOS
 @app.callback(
     Output("pie-chart", "figure"),
     [Input("month-dropdown", "value"),
@@ -1139,7 +1139,7 @@ def update_pie_chart(selected_month, selected_year):
         )
     }
 
-# Callback para atualizar a lista de demandas com base no mês selecionado
+# ATUALIZAR A LISTA DE DEMANDAS COM BASE NO MES SELECIONADO
 @app.callback(
     [Output("filtered-demands-store", "data"),
      Output("demand-list", "children")],
@@ -1182,7 +1182,7 @@ def update_demand_list(selected_month, selected_year):
     # Retornar os dados filtrados e a lista de demandas
     return filtered_demandas_erro.to_dict("records"), demand_list
 
-# Callback para atualizar o gráfico de barras
+# ATUALIZAR O GRAFICO DE BARRAS
 @app.callback(
     Output("monthly-bar-chart", "figure"),
     [Input("year_dropdown", "value")]
@@ -1239,7 +1239,7 @@ def update_monthly_comparison(selected_year):
         )
     }
 
-# Callback para atualizar o título do gráfico de ciclo de demandas
+# ATUALIZAR O TÍTULO DO GRAF. EVOLUÇAO DAS DEMANDAS COM O ANO SELECIONADO
 @app.callback(
     Output("funnel-chart-title", "children"),
     [Input("year_dropdown", "value"),
@@ -1274,7 +1274,7 @@ def update_funnel_chart(selected_year, selected_month):
     # Gerar o gráfico de funil com os dados filtrados
     return plot_horizontal_bar_chart(filtered_df)
 
-# Callback para atualizar o título da lista de demandas abertas
+# ATUALIZAR O TÍTULO DA LISTA DE DEMANDAS PENDENTES COM A QUANTIDADE DE DEMANDAS
 @app.callback(
     Output("open-demand-title", "children"),
     [Input("open-demands-store", "data")]
@@ -1284,7 +1284,7 @@ def update_open_demand_title(open_demands):
     num_open_demands = len(open_demands) if open_demands else 0
     return f"Lista de Demandas Pendentes ({num_open_demands})"
 
-# Callback para atualizar a lista de demandas abertas
+# ATUALIZAR A LISTA DE DEMANDAS PENDENTES
 @app.callback(
     [Output("open-demands-store", "data"),
      Output("open-demand-list", "children")],
@@ -1307,7 +1307,7 @@ def update_open_demand_list(selected_month, selected_year):
         return [], [html.Li("Nenhuma demanda aberta registrada no mês e ano selecionados", 
                             style={"color": COLORS["gray"], "font-size": "16px", "text-align": "center"})]
 
-    # Criar a lista de demandas abertas
+    # Criar a lista de demandas pendentes
     open_demand_list = [
         html.Li(
             html.A(
