@@ -66,7 +66,7 @@ COLORS = {
 
 # Configurações
 GITHUB_REPO = "LAD-PUCRS/LAD-Management"
-GITHUB_TOKEN = "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"  # Substitua pelo seu token do GitHub
+GITHUB_TOKEN = "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"  # Token do GitHub
 HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
 
 def fetch_all_issues():
