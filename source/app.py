@@ -582,7 +582,7 @@ app.layout = html.Div([
                    'border': 'none', 
                    'margin-top': '0'}
         )
-    ], style={'margin': '0 6rem 0 6rem'}),
+    ], style={'margin': '0 3rem 0 3rem'}),
 
     # ----------------------------- GRAFICO DISTRIBUIÇÃO DE ERROS DE USUÁRIO POR GRUPO ----------------------------- #
     dbc.Row([
@@ -667,7 +667,7 @@ app.layout = html.Div([
                 'height': '250px'
             })
         ], width=4)
-    ], style={'margin': '1rem 5rem 0.1rem 5rem'}),
+    ], style={'margin': '1rem 2rem 0.1rem 2rem'}),
 
     # ----------------------------- GRÁFICO DE EVOLUÇAO DE DEMANDAS E LISTA DE DEMANDAS PENDENTES ----------------------------- #
     dbc.Row([
@@ -694,7 +694,7 @@ app.layout = html.Div([
                 ), 
                 dcc.Graph(
                     id="funnel-chart",
-                    style={"height": "200px"} 
+                    style={"height": "220px"} 
                 )
             ],
             className='shadow text-center',
@@ -742,10 +742,10 @@ app.layout = html.Div([
                 'background-color': third_color, 
                 'border': 'none', 
                 'padding': '0 1rem 0 1rem', 
-                'height': '200px'
+                'height': '220px'
             })
         ], width=4) 
-    ], style={'margin': '1rem 5rem 0.1rem 5rem'}),
+    ], style={'margin': '1rem 2rem 0.1rem 2rem'}),
 
     # ----------------------------- FINAL GRÁFICOS DEMANDAS ----------------------------- #
 
@@ -770,7 +770,7 @@ app.layout = html.Div([
     }, title="Voltar ao Início")
     ], style={'text-align': 'center'}),
 
-], style={'background-color':second_color, 'padding':'1rem', 'min-width':'700px'}
+], style={'background-color':second_color, 'padding':'1rem', 'min-width':'900px'}
 )
 
 # ---------------------------------------  CALLBACK - DASH --------------------------------------------- #
