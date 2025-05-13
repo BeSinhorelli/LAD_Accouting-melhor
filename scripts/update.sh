@@ -3,7 +3,7 @@
 # Script de atualização automática do deploy da branch 'producao'
 # NÃO usar em ambiente de desenvolvimento
 
-cd /root/ LAD_Accounting || exit
+cd /root/LAD_Accounting || exit
 
 # Ativar o ambiente virtual
 source venv/bin/activate
