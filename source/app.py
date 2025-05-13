@@ -27,7 +27,7 @@ import plotly.graph_objs as go
 
 DATABASE = 'accounting.db'
 DEBUG = True
-SECRET_KEY = 'hin6bab8ge25*r=x&amp;+5$0kn=-#log$pt^#@vrqjld!^2ci@g*b'
+SECRET_KEY = os.getenv("SECRET_KEY")
 server = Flask(__name__, static_folder='assets')
 server.config.from_object(__name__)
 database = SqliteDatabase(DATABASE, pragmas={'foreign_keys': 1})
@@ -66,7 +66,7 @@ COLORS = {
 
 # Configurações
 GITHUB_REPO = "LAD-PUCRS/LAD-Management"
-GITHUB_TOKEN = "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"  # Token do GitHub
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # Token do GitHub
 HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
 
 def fetch_all_issues():
