@@ -22,6 +22,9 @@ import re
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 
+from dotenv import load_dotenv
+
+load_dotenv()
 # -------------------------------------  CONFIGURAÇÕES INICIAS  ---------------------------------------- #
 # --- FLASK --- #
 
