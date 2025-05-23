@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /root/LAD_Accounting
+cd /home/laduser/LAD_Accounting
 
 source venv/bin/activate
 
@@ -15,6 +15,6 @@ git merge origin/main --no-edit
 git merge origin/demandas --no-edit
 
 # Reiniciar o serviço
-systemctl restart lad-dashboard.service
+sudo systemctl restart lad-dashboard.service
 
-echo "$(date): Atualização concluída" >> /root/LAD_Accounting/cron.log
+echo "$(date): Atualização concluída" >> /home/laduser/LAD_Accounting/cron.log
