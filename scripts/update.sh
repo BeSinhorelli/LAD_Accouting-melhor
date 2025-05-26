@@ -15,6 +15,6 @@ git merge origin/main --no-edit
 git merge origin/demandas --no-edit
 
 # Reiniciar o serviço
-sudo systemctl restart lad-dashboard.service
+sudo /bin/systemctl restart lad-dashboard.service
 
 echo "$(date): Atualização concluída" >> /home/laduser/LAD_Accounting/cron.log
