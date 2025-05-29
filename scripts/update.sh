@@ -1,20 +1,28 @@
 #!/bin/bash
 
-cd /home/laduser/LAD_Accounting
+LOGFILE="/home/laduser/LAD_Accounting/cron.log"
 
-source venv/bin/activate
+echo "===============================" >> "$LOGFILE"
+echo "$(date): Início da atualização" >> "$LOGFILE"
 
-# Ir para a branch de produção
-git checkout producao
+cd /home/laduser/LAD_Accounting || { echo "Erro: Não foi possível acessar o diretório" >> "$LOGFILE"; exit 1; }
 
-# Atualizar as branches remotas
-git fetch origin
+source venv/bin/activate || { echo "Erro: Falha ao ativar o ambiente virtual" >> "$LOGFILE"; exit 1; }
 
-# Fazer merge das atualizações
-git merge origin/main --no-edit
-git merge origin/demandas --no-edit
+# Mudar para branch producao
+git checkout producao >> "$LOGFILE" 2>&1 || { echo "Erro: Falha ao mudar para branch producao" >> "$LOGFILE"; exit 1; }
+
+# Atualizar branches remotas
+git fetch origin >> "$LOGFILE" 2>&1 || { echo "Erro: Falha no git fetch" >> "$LOGFILE"; exit 1; }
+
+# Fazer merge da branch main
+git merge origin/main --no-edit >> "$LOGFILE" 2>&1 || { echo "Erro: Falha no git merge origin/main" >> "$LOGFILE"; exit 1; }
+
+# Fazer merge da branch demandas
+git merge origin/demandas --no-edit >> "$LOGFILE" 2>&1 || { echo "Erro: Falha no git merge origin/demandas" >> "$LOGFILE"; exit 1; }
 
 # Reiniciar o serviço
-sudo /bin/systemctl restart lad-dashboard.service
+sudo /bin/systemctl restart lad-dashboard.service >> "$LOGFILE" 2>&1 || { echo "Erro: Falha ao reiniciar o serviço" >> "$LOGFILE"; exit 1; }
 
-echo "$(date): Atualização concluída" >> /home/laduser/LAD_Accounting/cron.log
+echo "$(date): Atualização concluída" >> "$LOGFILE"
+echo "===============================" >> "$LOGFILE"
