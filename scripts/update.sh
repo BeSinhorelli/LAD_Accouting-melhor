@@ -1,6 +1,7 @@
 #!/bin/bash
 
-LOGFILE="/home/laduser/LAD_Accounting/cron.log"
+LOGFILE="/home/laduser/LAD_Accounting/scripts/update.log"
+LOG_FILE="/home/laduser/LAD_Accounting/cron.log"
 
 echo "===============================" >> "$LOGFILE"
 echo "$(date): Início da atualização" >> "$LOGFILE"
@@ -28,3 +29,5 @@ sudo /bin/systemctl restart lad-dashboard.service >> "$LOGFILE" 2>&1 || { echo "
 
 echo "$(date): Atualização concluída" >> "$LOGFILE"
 echo "===============================" >> "$LOGFILE"
+echo "$(date): Atualização concluída" > "$LOG_FILE"
+
