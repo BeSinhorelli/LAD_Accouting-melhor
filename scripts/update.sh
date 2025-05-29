@@ -9,8 +9,10 @@ cd /home/laduser/LAD_Accounting || { echo "Erro: Não foi possível acessar o di
 
 source venv/bin/activate || { echo "Erro: Falha ao ativar o ambiente virtual" >> "$LOGFILE"; exit 1; }
 
-# Mudar para branch producao
+# Mudar para branch producao e trazer atualizações
 git checkout producao >> "$LOGFILE" 2>&1 || { echo "Erro: Falha ao mudar para branch producao" >> "$LOGFILE"; exit 1; }
+
+git pull origin producao >> "$LOGFILE" 2>&1 || { echo "Erro: Falha no git pull branch producao" >> "$LOGFILE"; exit 1; }
 
 # Atualizar branches remotas
 git fetch origin >> "$LOGFILE" 2>&1 || { echo "Erro: Falha no git fetch" >> "$LOGFILE"; exit 1; }
