@@ -330,7 +330,7 @@ app.layout = html.Div([
 
     dbc.Col([
         dbc.Card([
-            dbc.CardHeader('Produções científicas por Unidade (2015-2022) ', style={'background-color': fourth_color, 'color': 'white'}),
+            dbc.CardHeader('Produções científicas por Unidade (2015-2023) ', style={'background-color': fourth_color, 'color': 'white'}),
                 dcc.Graph(
                      id='graph_production',
                 )],
