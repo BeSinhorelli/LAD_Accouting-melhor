@@ -990,9 +990,16 @@ def update_figure(yearValue, value):
     )
     
     # ---------------------------- GRÁF. PRODUÇÕES CIENTÍFICAS ----------------------------------------- #
+        # --- CRIA UM RELATÓRIO DE PRODUÇÕES - TEMPORÁRIO! --- #
+    # df_production = pd.read_excel('relatorios/producoes.xlsx')
 
-    # --- CRIA UM RELATÓRIO DE PRODUÇÕES - TEMPORÁRIO! --- #
-    df_production = pd.read_excel('relatorios/producoes.xlsx')
+    # --- LÊ O ARQUIVO JSON EXPORT.JSON E CRIA UM DATAFRAME COM AS PRODUÇÕES CIENTÍFICAS --- #
+    # Agora os dados de produção científica são lidos diretamente do export.json,
+    # facilitando a atualização sem necessidade de editar o arquivo producoes.xlsx.
+    with open('export.json', 'r', encoding='utf-8') as f:
+        export_data = json.load(f)
+    producao = export_data.get('producao', [])
+    df_production = pd.DataFrame(producao)
 
     # --- CRIA O GRÁFICO DE PRODUÇÕES CIENTÍFICAS --- #
     graph_production = px.bar(
