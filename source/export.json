@@ -65,5 +65,27 @@
       "date_end": "",
       "status": true
     }
+  ],
+  "producao": [
+    {
+      "Unidade/Escola": "Politécnica",
+      "Produção Científica": 109,
+      "TCC, Dissertação ou Tese": 35
+    },
+    {
+      "Unidade/Escola": "Ciências da Saúde e da Vida",
+      "Produção Científica": 51,
+      "TCC, Dissertação ou Tese": 24
+    },
+    {
+      "Unidade/Escola": "Instituto do Cérebro",
+      "Produção Científica": 11,
+      "TCC, Dissertação ou Tese": 4
+    },
+      {
+      "Unidade/Escola": "TOTAL",
+      "Produção Científica": 171,
+      "TCC, Dissertação ou Tese": 63
+    }
   ]
 }
