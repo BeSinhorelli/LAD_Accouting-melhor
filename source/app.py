@@ -3,7 +3,7 @@
 
 import os, json
 from datetime import datetime
-from flask import Flask, g, request, send_file, url_for, abort, render_template, redirect
+from flask import Flask, g, request, send_file, url_for, abort, render_template, redirect, flash
 from peewee import *
 
 # --- DASH --- #
@@ -1711,6 +1711,53 @@ def update_usuario(usuario, grupo, nome, email, observacoes, status):
         return True
     except IntegrityError:
         return False
+    
+# --- CONFIGURAÇÕES DE REGISTRO DE PRODUÇÕES --- #
+@server.route('/producao', methods=['GET', 'POST'])    
+def registrar_producao():
+    if request.method == 'POST':
+        unidade = request.form['unidade']
+        cientifica = int(request.form['cientifica'])
+        tcc = int(request.form['tcc'])
+        
+        # Lê o arquivo export.json
+        with open('export.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        producao = data.get('producao', [])
+
+        # Atualiza o campo "ano" se o ano postado for maior
+        ano = int(request.form['ano'])
+        ultima_atualizacao = data.get('ultima_atualizacao', 0)
+        if ano > ultima_atualizacao:
+            data['ultima_atualizacao'] = ano
+
+        # Soma as produções na unidade especificada
+        for item in producao:
+            if item['Unidade/Escola'] == unidade:
+                item['Produção Científica'] += cientifica
+                item['TCC, Dissertação ou Tese'] += tcc
+                break
+        else:
+            producao.append({
+                'Unidade/Escola': unidade,
+                'Produção Científica': cientifica,
+                'TCC, Dissertação ou Tese': tcc
+            })
+        data['producao'] = producao
+
+        # Salva as alterações no export.json
+        with open('export.json', 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        # Exibe uma mensagem de sucesso 
+        flash('Registro bem sucedido!')
+        return redirect(url_for('registrar_producao'))
+    # exibe as produções 
+    with open('export.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        producao = data.get('producao', [])
+        json_keys = list(data.keys())
+        return render_template('producao.html', producao=producao, json_keys=json_keys)
 
 # --- CONFIGURAÇÕES GERAIS  --- #
 @server.route('/config', methods=['GET'])
