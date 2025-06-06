@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="cadastro">
+  <h2>Registrar Novas Produções</h2>
+  <form method="POST">
+    <div class="mb-3">
+      <label for="ano" class="form-label">Selecione o ano das Produções mais recentes</label>
+      <select class="form-control" id="ano" name="ano" required>
+        <option value="" disabled selected>Selecione</option>
+        <option value="2022">2022</option>
+        <option value="2023">2023</option>
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+      </select>
+    </div>
+    <div class="mb-3"> 
+      <label for="unidade" class="form-label">Unidade/Escola</label>
+      <select class="form-control" id="unidade" name="unidade" required>
+        <option value="" disabled selected>Selecione a Unidade/Escola</option>
+        <option value="Politécnica">Politécnica</option>
+        <option value="Ciências da Saúde e da Vida">Ciências da Saúde e da Vida</option>
+        <option value="Instituto do Cérebro">Instituto do Cérebro</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="cientifica" class="form-label">Produção Científica</label>
+      <input type="number" class="form-control" id="cientifica" name="cientifica" min="0" value="0" required>
+    </div>
+    <div class="mb-3">
+      <label for="tcc" class="form-label">TCC, Dissertação ou Tese</label>
+      <input type="number" class="form-control" id="tcc" name="tcc" min="0" value="0" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Registrar</button>
+  </form>
+
+  <hr>
+  <h4>Produções por Unidade</h4>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Unidade/Escola</th>
+        <th>Produção Científica</th>
+        <th>TCC, Dissertação ou Tese</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in producao %}
+      <tr>
+        <td>{{ item['Unidade/Escola'] }}</td>
+        <td>{{ item['Produção Científica'] }}</td>
+        <td>{{ item['TCC, Dissertação ou Tese'] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
