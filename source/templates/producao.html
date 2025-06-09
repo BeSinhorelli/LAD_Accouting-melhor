@@ -4,14 +4,14 @@
 <div class="cadastro">
   <h2>Registrar Novas Produções</h2>
   <form method="POST">
-    <div class="mb-3">
-      <label for="ano" class="form-label">Selecione o ano das Produções mais recentes</label>
+    <div class="mb-3"> 
+      <label for="ano" class="form-label">Selecione o <strong>ano de publicação</strong> das produções</label>
       <select class="form-control" id="ano" name="ano" required>
         <option value="" disabled selected>Selecione</option>
-        <option value="2022">2022</option>
-        <option value="2023">2023</option>
-        <option value="2024">2024</option>
-        <option value="2025">2025</option>
+        {% set ano_atual = now().year %}
+        {% for ano in range(ano_atual-3, ano_atual+2) %}
+          <option value="{{ ano }}">{{ ano }}</option>
+        {% endfor %}
       </select>
     </div>
     <div class="mb-3"> 
