@@ -67,6 +67,7 @@
     }
   ],
   "ultima_atualizacao": 2023,
+  "comentario": "A chave 'ultima_atualizacao' refere-se ao ano mais recente registrado no sistema de cadastro de produções científicas.",
   "producao": [
     {
       "Unidade/Escola": "Politécnica",

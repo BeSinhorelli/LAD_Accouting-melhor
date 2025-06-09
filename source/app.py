@@ -243,7 +243,10 @@ def plot_horizontal_bar_chart(filtered_df):
 
 # ------------------------------------  LEITURA DATABASE - DASH ---------------------------------------- #
 
-year = '2025'
+# 
+ano_atual = datetime.now().year # definir ano atual
+select_anos = list(range(2020, ano_atual + 1)) # Gerar lista de seleção de anos automaticamente (de 2020 até ano atual) 
+year = str(ano_atual) 
 month = 0
 x = 0
 i = 0
@@ -283,14 +286,7 @@ app.layout = html.Div([
         
         dbc.Col(
             dcc.Dropdown(
-                options=[
-                    {'label': '2025', 'value': '2025'},
-                    {'label': '2024', 'value': '2024'},
-                    {'label': '2023', 'value': '2023'},
-                    {'label': '2022', 'value': '2022'},
-                    {'label': '2021', 'value': '2021'},
-                    {'label': '2020', 'value': '2020'},
-                ],
+                options=[{'label': str(ano), 'value': str(ano)} for ano in select_anos],
                 value=year, 
                 id='year_dropdown'      
                 ),
@@ -527,7 +523,7 @@ app.layout = html.Div([
 
     dbc.Col([
         dbc.Card([
-            dbc.CardHeader('Produções científicas por Unidade (2015-2023) ', style={'background-color': fourth_color, 'color': 'white'}),
+            dbc.CardHeader(id='graph_production_title', style={'background-color': fourth_color, 'color': 'white'}),
                 dcc.Graph(
                      id='graph_production',
                 )],
@@ -1339,6 +1335,17 @@ def update_open_demand_list(selected_month, selected_year):
 
 # ---------------------------  FINAL CALLBACK - DASH DEMANDAS --------------------------- #
 
+# ---------------------------------------  CALLBACK PRODUÇÕES - ATUALIZAÇÃO AUTOMÁTICA DO TÍTULO --------------------------------------- #
+# Atualiza o título do gráfico de produções científicas com base no ano mais recente registrado.
+@app.callback(
+    Output('graph_production_title', 'children'),
+    [Input('year_dropdown', 'value')]
+)
+def update_graph_production_title(_):
+    with open('export.json', 'r', encoding='utf-8') as f:
+        export_data = json.load(f)
+    ultima_atualizacao = export_data.get('ultima_atualizacao', 0)
+    return f"Produções científicas por Unidade (2015-{ultima_atualizacao})"
 
 # --------------------------------  DEFINIÇÃO DE CLASSES - FLASK --------------------------------------- #
 
@@ -1757,7 +1764,7 @@ def registrar_producao():
         data = json.load(f)
         producao = data.get('producao', [])
         json_keys = list(data.keys())
-        return render_template('producao.html', producao=producao, json_keys=json_keys)
+        return render_template('producao.html', producao=producao, json_keys=json_keys, now=datetime.now)
 
 # --- CONFIGURAÇÕES GERAIS  --- #
 @server.route('/config', methods=['GET'])
