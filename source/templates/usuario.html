@@ -19,7 +19,7 @@
             {% if usuario %}
             <label class="form-label">Status</label>
             <select class="mb-3 form-select" aria-label="Default select example" name="status">
-                <option value="ativar" {% if cluster.status %}selected {% endif %}>Ativo</option>
+                <option value="ativar" {% if usuario.status %}selected {% endif %}>Ativo</option>
                 <option value="desativar" {% if not usuario.status %}selected {% endif %}>Inativo</option>
             </select>
             {% endif %}
