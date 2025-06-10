@@ -1649,6 +1649,15 @@ def update_grupo(grupo, nome, demanda, unidade, coordenador, observacoes, tipo, 
     except IntegrityError:
         return False
 
+# --- LISTA DE USUÁRIOS POR GRUPO  --- #  
+@server.route('/grupo/<groupName>/usuarios')
+def lista_usuarios(groupName):
+    grupo = Grupo.get_or_none(Grupo.nome == groupName)
+    if not grupo:
+        abort(404)
+    usuarios = Usuario.select().where(Usuario.grupo == grupo)
+    return render_template('lista_usuarios.html', grupo=grupo, usuarios=usuarios)
+
 # --- CONFIGURAÇÕES DE USUÁRIOS  --- #
 @server.route('/usuario/<userName>', methods=['GET', 'POST'])
 def usuario(userName=None):
