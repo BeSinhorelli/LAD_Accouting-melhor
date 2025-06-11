@@ -18,11 +18,12 @@ git pull origin producao 2>> "$LOGFILE" || { echo "Erro: Falha no git pull branc
 # Atualizar branches remotas
 git fetch origin 2>> "$LOGFILE" || { echo "Erro: Falha no git fetch" >> "$LOGFILE"; exit 1; }
 
-# Fazer merge da branch main
+# Fazer merge da branch main para atualizar os relatórios
 git merge origin/main --no-edit 2>> "$LOGFILE" || { echo "Erro: Falha no git merge origin/main" >> "$LOGFILE"; exit 1; }
 
 # Fazer merge da branch demandas
-git merge origin/demandas --no-edit 2>> "$LOGFILE" || { echo "Erro: Falha no git merge origin/demandas" >> "$LOGFILE"; exit 1; }
+# Por hora, comentado
+# git merge origin/demandas --no-edit 2>> "$LOGFILE" || { echo "Erro: Falha no git merge origin/demandas" >> "$LOGFILE"; exit 1; }
 
 # Reiniciar o serviço
 sudo /bin/systemctl restart lad-dashboard.service 2>> "$LOGFILE" || { echo "Erro: Falha ao reiniciar o serviço" >> "$LOGFILE"; exit 1; }
