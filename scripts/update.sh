@@ -13,8 +13,6 @@ source venv/bin/activate || { echo "Erro: Falha ao ativar o ambiente virtual" >>
 # Mudar para branch producao e trazer atualizações
 git checkout producao 2>> "$LOGFILE" || { echo "Erro: Falha ao mudar para branch producao" >> "$LOGFILE"; exit 1; }
 
-git pull origin producao 2>> "$LOGFILE" || { echo "Erro: Falha no git pull branch producao" >> "$LOGFILE"; exit 1; }
-
 # Atualizar branches remotas
 git fetch origin 2>> "$LOGFILE" || { echo "Erro: Falha no git fetch" >> "$LOGFILE"; exit 1; }
 
@@ -22,7 +20,6 @@ git fetch origin 2>> "$LOGFILE" || { echo "Erro: Falha no git fetch" >> "$LOGFIL
 git merge origin/main --no-edit 2>> "$LOGFILE" || { echo "Erro: Falha no git merge origin/main" >> "$LOGFILE"; exit 1; }
 
 # Fazer merge da branch demandas
-# Por hora, comentado
 # git merge origin/demandas --no-edit 2>> "$LOGFILE" || { echo "Erro: Falha no git merge origin/demandas" >> "$LOGFILE"; exit 1; }
 
 # Reiniciar o serviço
