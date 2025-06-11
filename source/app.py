@@ -1393,11 +1393,17 @@ class Usuario(BaseModel):
     observacoes = TextField()
     status = BooleanField()
 
+class Producao(BaseModel):
+    ano = IntegerField()
+    unidade = CharField()
+    cientifica = IntegerField()
+    tcc = IntegerField()
+
 # --------------------------------  DEFINIÇÃO DE FUNÇÕES - FLASK --------------------------------------- #
 
 def create_tables():
     with database:
-        database.create_tables([Cluster, Equipamento, Grupo, Usuario])
+        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao])
 
 def drop_tables():
     with database:
@@ -1424,7 +1430,7 @@ def after_request(response):
 @server.route('/', methods=['GET', 'POST'])
 def homepage():
     lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
-    lista_grupo = Grupo.select().order_by(Grupo.nome).prefetch(Usuario)
+    lista_grupo = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome).prefetch(Usuario)
 
     return render_template('homepage.html', lista_cluster=lista_cluster, lista_grupo=lista_grupo)
 
@@ -1735,7 +1741,19 @@ def registrar_producao():
         unidade = request.form['unidade']
         cientifica = int(request.form['cientifica'])
         tcc = int(request.form['tcc'])
-        
+        ano = int(request.form['ano'])
+
+        # Salva no banco de dados
+        prod, created = Producao.get_or_create(
+            ano=ano,
+            unidade=unidade,
+            defaults={'cientifica': cientifica, 'tcc': tcc}
+        )
+        if not created:
+            prod.cientifica += cientifica
+            prod.tcc += tcc
+            prod.save()
+            
         # Lê o arquivo export.json
         with open('export.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
