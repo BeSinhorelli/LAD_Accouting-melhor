@@ -1,0 +1,22 @@
+{% extends "layout.html" %} 
+{% block body %}
+<div class="cadastro">
+    <h2>Grupos</h2>
+    <ul class="list-group">
+        {% for grupo in lista_grupo %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                {{ grupo.nome }} - {{ grupo.coordenador }}
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">Ver usuários</a>
+                <a class="btn btn-primary btn-sm" href="{{ url_for('grupo', groupName=grupo.nome) }}">Editar</a>
+            </div>
+        </li>
+        {% else %}
+        <li class="list-group-item">Nenhum grupo cadastrado.</li>
+        {% endfor %}
+    </ul>
+    <a class="btn btn-secondary mt-3" href="{{ url_for('homepage') }}">Voltar</a>
+</div>
+{% endblock %}
