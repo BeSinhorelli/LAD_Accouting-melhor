@@ -1521,6 +1521,14 @@ def update_cluster(cluster, name, description, status):
         return False
 
 # --- CONFIGURAÇÕES DE EQUIPAMENTOS  --- #
+@server.route('/cluster/<clusterName>/equipamentos')
+def lista_equipamentos_cluster(clusterName):
+    cluster = Cluster.get_or_none(Cluster.name == clusterName)
+    if not cluster:
+        abort(404)
+    equipamentos = Equipamento.select().where(Equipamento.cluster == cluster)
+    return render_template('lista_equipamentos.html', cluster=cluster, equipamentos=equipamentos)
+
 @server.route('/equipamento/<equipName>', methods=['GET', 'POST'])
 def equipamento(equipName=None):
     mensagem = None

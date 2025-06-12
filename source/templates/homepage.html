@@ -11,18 +11,8 @@
             <div class="card m-auto">
                 <h5 class="card-header">{{ cluster.name }}</h5>
                 <div class="card-body">
-                    <ul class="list-group list-group-flush">
-
-                        <!--  LOOP PARA GERAR OS EQUIPAMENTOS  -->
-                        {% for equipamento in cluster.equipamentos %}
-                        <li class="list-group-item">
-                            {{ equipamento.hostname }}<a class="btn btn-primary"
-                                href="{{ url_for('equipamento', equipName=equipamento.hostname) }}" role="button"
-                                style="float: right">Editar</a>
-                        </li>
-                        {% endfor %}
-
-                    </ul>
+                    <a class="btn btn-outline-secondary btn-sm mt-2" href="{{ url_for('lista_equipamentos_cluster', clusterName=cluster.name) }}"> Ver equipamentos
+                    </a>
                 </div>
 
                 <div class="card-footer text-center">
