@@ -10,7 +10,7 @@
             {% for grupo in ativos %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
-                    {{ grupo.nome }} - {{ grupo.coordenador }}
+                    <strong>{{ grupo.nome }}</strong> - {{ grupo.coordenador }}
                 </div>
                 <div class="d-flex gap-2">
                     <a class="btn btn-secondary btn-sm" href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">Ver usuários</a>
@@ -23,7 +23,7 @@
         {% endif %}
     </ul>
 
-    <h4>Inativos</h4>
+    <h4>Encerrados</h4>
     <ul class="list-group mb-4">
         {% set inativos = lista_grupo | selectattr('status', 'equalto', False) | list %}
         {% if inativos %}

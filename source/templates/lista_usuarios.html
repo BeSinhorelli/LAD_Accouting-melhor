@@ -1,11 +1,11 @@
 {% extends "layout.html" %} 
 {% block body %}
 <div class="cadastro">
-    <h2>Usuários do grupo {{ grupo.nome }}</h2>
+    <h2>Usuários do {{ grupo.nome }}</h2>
     <ul class="list-group">
         {% for usuario in usuarios %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ usuario.nome }} -
+            <strong>{{ usuario.nome }}</strong>
             {{usuario.email}}
             <a class="btn btn-primary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
         </li>
