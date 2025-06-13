@@ -1415,12 +1415,21 @@ class Producao(BaseModel):
     unidade = CharField()
     cientifica = IntegerField()
     tcc = IntegerField()
-
+    
+class Relatorio(BaseModel):
+    ano = IntegerField()
+    mes = IntegerField()
+    projeto = CharField()
+    servico = CharField()
+    storage_cluster = FloatField()
+    storage_24x7 = FloatField()
+    maquina_cluster = FloatField()
+    maquina_24x7 = FloatField()
 # --------------------------------  DEFINIÇÃO DE FUNÇÕES - FLASK --------------------------------------- #
 
 def create_tables():
     with database:
-        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao])
+        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio])
 
 def drop_tables():
     with database:
@@ -1841,6 +1850,47 @@ def registrar_producao():
         producao = []
 
     return render_template('producao.html', producao=producao, now=datetime.now)
+
+# --- RELATÓRIO MENSAL  --- #
+@server.route('/relatorio_mensal', methods=['GET', 'POST'])
+def relatorio_mensal():
+    grupos = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome)
+    ano = int(request.form.get('ano', datetime.now().year))
+    mes = int(request.form.get('mes', datetime.now().month))
+
+    if request.method == 'POST':
+        for grupo in grupos:
+            servico = request.form.get(f'servico_{grupo.id}', '')
+            storage_cluster = float(request.form.get(f'storage_cluster_{grupo.id}', 0))
+            storage_24x7 = float(request.form.get(f'storage_24x7_{grupo.id}', 0))
+            maquina_cluster = float(request.form.get(f'maquina_cluster_{grupo.id}', 0))
+            maquina_24x7 = float(request.form.get(f'maquina_24x7_{grupo.id}', 0))
+
+            relatorio, created = Relatorio.get_or_create(
+                ano=ano,
+                mes=mes,
+                projeto=grupo.nome,
+                defaults={
+                    'servico': servico,
+                    'storage_cluster': storage_cluster,
+                    'storage_24x7': storage_24x7,
+                    'maquina_cluster': maquina_cluster,
+                    'maquina_24x7': maquina_24x7
+                }
+            )
+            if not created:
+                relatorio.servico = servico
+                relatorio.storage_cluster = storage_cluster
+                relatorio.storage_24x7 = storage_24x7
+                relatorio.maquina_cluster = maquina_cluster
+                relatorio.maquina_24x7 = maquina_24x7
+                relatorio.save()
+        flash('Relatório salvo com sucesso!')
+        return redirect(url_for('relatorio_mensal'))
+
+    # Pré-preencher os valores já registrados
+    relatorios = {(r.projeto, r.ano, r.mes): r for r in Relatorio.select().where((Relatorio.ano == ano) & (Relatorio.mes == mes))}
+    return render_template('relatorio_mensal.html', grupos=grupos, relatorios=relatorios, ano=ano, mes=mes)
 
 # --- CONFIGURAÇÕES GERAIS  --- #
 @server.route('/config', methods=['GET'])
