@@ -5,6 +5,7 @@ import os, json
 from datetime import datetime
 from flask import Flask, g, request, send_file, url_for, abort, render_template, redirect, flash
 from peewee import *
+import calendar
 
 # --- DASH --- #
 
@@ -1859,36 +1860,57 @@ def relatorio_mensal():
     mes = int(request.form.get('mes', datetime.now().month))
 
     if request.method == 'POST':
-        for grupo in grupos:
-            servico = request.form.get(f'servico_{grupo.id}', '')
-            storage_cluster = float(request.form.get(f'storage_cluster_{grupo.id}', 0))
-            storage_24x7 = float(request.form.get(f'storage_24x7_{grupo.id}', 0))
-            maquina_cluster = float(request.form.get(f'maquina_cluster_{grupo.id}', 0))
-            maquina_24x7 = float(request.form.get(f'maquina_24x7_{grupo.id}', 0))
+        if 'xlsx_file' in request.files:
+            file = request.files['xlsx_file']
+            if file.filename.endswith('.xlsx'):
+                #salvar o arquivo na pasta relatorios/ano
+                upload_dir = f'relatorios/{ano}'
+                os.makedirs(upload_dir, exist_ok=True)
+                month_name = calendar.month_abbr[mes].lower()
+                file_path = os.path.join(upload_dir, f'{mes}-{month_name}.xlsx')
+                file.save(file_path)
+                # Ler o arquivo 
+                df = pd.read_excel(file)
+                df = df.replace(r'^\s*$', 0, regex=True)
+                df = df.fillna(0)
+                print(df.head())
 
-            relatorio, created = Relatorio.get_or_create(
-                ano=ano,
-                mes=mes,
-                projeto=grupo.nome,
-                defaults={
-                    'servico': servico,
-                    'storage_cluster': storage_cluster,
-                    'storage_24x7': storage_24x7,
-                    'maquina_cluster': maquina_cluster,
-                    'maquina_24x7': maquina_24x7
-                }
-            )
-            if not created:
-                relatorio.servico = servico
-                relatorio.storage_cluster = storage_cluster
-                relatorio.storage_24x7 = storage_24x7
-                relatorio.maquina_cluster = maquina_cluster
-                relatorio.maquina_24x7 = maquina_24x7
-                relatorio.save()
-        flash('Relatório salvo com sucesso!')
-        return redirect(url_for('relatorio_mensal'))
+                # Renomear colunas para padronizar
+                df = df.rename(columns={
+                    'Projeto': 'projeto',
+                    'Serviço': 'servico',
+                    'Storage em cluster(GB)': 'storage_cluster',
+                    'Storage em 24x7(GB)': 'storage_24x7',
+                    'Máquina em Cluster': 'maquina_cluster',
+                    'Máquina em 24x7': 'maquina_24x7'
+                })
+                
+                # IMPORT PARA DB
+                #for _, row in df.iterrows():
+                    #projeto = row['projeto']
+                    #relatorio, created = Relatorio.#get_or_create(
+                        #ano=ano,
+                        #mes=mes,
+                        #projeto=projeto,
+                        #defaults={
+                            #'servico': row['servico'],
+                            #'storage_cluster': row['storage_cluster'],
+                            #'storage_24x7': row['storage_24x7'],
+                            #'maquina_cluster': row['maquina_cluster'],
+                            #'maquina_24x7': row['maquina_24x7']
+                        #}
+                    #)
+                    #if not created:
+                        #relatorio.servico = row['servico']
+                        #relatorio.storage_cluster = row['storage_cluster']
+                        #relatorio.storage_24x7 = row['storage_24x7']
+                        #relatorio.maquina_cluster = row['maquina_cluster']
+                        #relatorio.maquina_24x7 = row['maquina_24x7']
+                        #relatorio.save()
 
-    # Pré-preencher os valores já registrados
+                flash('Relatório importado e salvo com sucesso!')
+                return redirect(url_for('relatorio_mensal'))
+
     relatorios = {(r.projeto, r.ano, r.mes): r for r in Relatorio.select().where((Relatorio.ano == ano) & (Relatorio.mes == mes))}
     return render_template('relatorio_mensal.html', grupos=grupos, relatorios=relatorios, ano=ano, mes=mes)
 
