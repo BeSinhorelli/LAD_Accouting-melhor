@@ -5,6 +5,7 @@ import os, json
 from datetime import datetime
 from flask import Flask, g, request, send_file, url_for, abort, render_template, redirect, flash
 from peewee import *
+import calendar
 
 # --- DASH --- #
 
@@ -992,13 +993,28 @@ def update_figure(yearValue, value):
         # --- CRIA UM RELATÓRIO DE PRODUÇÕES - TEMPORÁRIO! --- #
     # df_production = pd.read_excel('relatorios/producoes.xlsx')
 
-    # --- LÊ O ARQUIVO JSON EXPORT.JSON E CRIA UM DATAFRAME COM AS PRODUÇÕES CIENTÍFICAS --- #
-    # Agora os dados de produção científica são lidos diretamente do export.json,
-    # facilitando a atualização sem necessidade de editar o arquivo producoes.xlsx.
-    with open('export.json', 'r', encoding='utf-8') as f:
-        export_data = json.load(f)
-    producao = export_data.get('producao', [])
-    df_production = pd.DataFrame(producao)
+# --- LÊ OS DADOS DE PRODUÇÃO DO BANCO DE DADOS --- #
+    producoes = list(Producao.select().dicts())
+    if producoes:
+        df_production = pd.DataFrame(producoes)
+        df_production = df_production.rename(columns={
+            'unidade': 'Unidade/Escola',
+            'cientifica': 'Produção Científica',
+            'tcc': 'TCC, Dissertação ou Tese'
+        })
+        # Agrupa por unidade, somando os valores
+        df_production = df_production.groupby('Unidade/Escola', as_index=False)[['Produção Científica', 'TCC, Dissertação ou Tese']].sum()
+        # Adiciona linha de total
+        total_cientifica = df_production['Produção Científica'].sum()
+        total_tcc = df_production['TCC, Dissertação ou Tese'].sum()
+        total_row = pd.DataFrame([{
+            'Unidade/Escola': 'Total',
+            'Produção Científica': total_cientifica,
+            'TCC, Dissertação ou Tese': total_tcc
+        }])
+        df_production = pd.concat([df_production, total_row], ignore_index=True)
+    else:
+        df_production = pd.DataFrame(columns=['Unidade/Escola', 'Produção Científica', 'TCC, Dissertação ou Tese'])
 
     # --- CRIA O GRÁFICO DE PRODUÇÕES CIENTÍFICAS --- #
     graph_production = px.bar(
@@ -1008,7 +1024,7 @@ def update_figure(yearValue, value):
         barmode="group",
         labels={'value':'Quantidade', 'variable':'Tipo de Publicação'},
         text_auto=True
-        )
+    )
 
     # TEMPORÁRIO! - CALCULA AS HORAS DE SERVIÇO, CONFORME O ANO 
 
@@ -1345,9 +1361,11 @@ def update_open_demand_list(selected_month, selected_year):
     [Input('year_dropdown', 'value')]
 )
 def update_graph_production_title(_):
-    with open('export.json', 'r', encoding='utf-8') as f:
-        export_data = json.load(f)
-    ultima_atualizacao = export_data.get('ultima_atualizacao', 0)
+ # Busca o maior ano registrado no banco de dados
+    try:
+        ultima_atualizacao = Producao.select(fn.MAX(Producao.ano)).scalar() or '----'
+    except Exception:
+        ultima_atualizacao = '----'
     return f"Produções científicas por Unidade (2015-{ultima_atualizacao})"
 
 # --------------------------------  DEFINIÇÃO DE CLASSES - FLASK --------------------------------------- #
@@ -1396,11 +1414,26 @@ class Usuario(BaseModel):
     observacoes = TextField()
     status = BooleanField()
 
+class Producao(BaseModel):
+    ano = IntegerField()
+    unidade = CharField()
+    cientifica = IntegerField()
+    tcc = IntegerField()
+    
+class Relatorio(BaseModel):
+    ano = IntegerField()
+    mes = IntegerField()
+    projeto = CharField()
+    servico = CharField()
+    storage_cluster = FloatField()
+    storage_24x7 = FloatField()
+    maquina_cluster = FloatField()
+    maquina_24x7 = FloatField()
 # --------------------------------  DEFINIÇÃO DE FUNÇÕES - FLASK --------------------------------------- #
 
 def create_tables():
     with database:
-        database.create_tables([Cluster, Equipamento, Grupo, Usuario])
+        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio])
 
 def drop_tables():
     with database:
@@ -1427,7 +1460,7 @@ def after_request(response):
 @server.route('/', methods=['GET', 'POST'])
 def homepage():
     lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
-    lista_grupo = Grupo.select().order_by(Grupo.nome).prefetch(Usuario)
+    lista_grupo = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome).limit(4)
 
     return render_template('homepage.html', lista_cluster=lista_cluster, lista_grupo=lista_grupo)
 
@@ -1501,6 +1534,14 @@ def update_cluster(cluster, name, description, status):
         return False
 
 # --- CONFIGURAÇÕES DE EQUIPAMENTOS  --- #
+@server.route('/cluster/<clusterName>/equipamentos')
+def lista_equipamentos_cluster(clusterName):
+    cluster = Cluster.get_or_none(Cluster.name == clusterName)
+    if not cluster:
+        abort(404)
+    equipamentos = Equipamento.select().where(Equipamento.cluster == cluster)
+    return render_template('lista_equipamentos.html', cluster=cluster, equipamentos=equipamentos)
+
 @server.route('/equipamento/<equipName>', methods=['GET', 'POST'])
 def equipamento(equipName=None):
     mensagem = None
@@ -1651,6 +1692,12 @@ def update_grupo(grupo, nome, demanda, unidade, coordenador, observacoes, tipo, 
         return True
     except IntegrityError:
         return False
+    
+# --- LISTA DE TODOS OS GRUPOS  --- #
+@server.route('/grupo', methods=['GET'])
+def lista_grupos():
+    lista_grupo = Grupo.select().order_by(Grupo.nome)
+    return render_template('lista_grupos.html', lista_grupo=lista_grupo)
 
 # --- LISTA DE USUÁRIOS POR GRUPO  --- #  
 @server.route('/grupo/<groupName>/usuarios')
@@ -1738,19 +1785,28 @@ def registrar_producao():
         unidade = request.form['unidade']
         cientifica = int(request.form['cientifica'])
         tcc = int(request.form['tcc'])
-        
-        # Lê o arquivo export.json
-        with open('export.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        producao = data.get('producao', [])
-
-        # Atualiza o campo "ano" se o ano postado for maior
         ano = int(request.form['ano'])
-        ultima_atualizacao = data.get('ultima_atualizacao', 0)
-        if ano > ultima_atualizacao:
-            data['ultima_atualizacao'] = ano
 
-        # Soma as produções na unidade especificada
+        # Salva os dados no banco de dados
+        prod, created = Producao.get_or_create(
+            ano=ano,
+            unidade=unidade,
+            defaults={'cientifica': cientifica, 'tcc': tcc}
+        )
+        if not created:
+            prod.cientifica += cientifica
+            prod.tcc += tcc
+            prod.save()
+
+        # Atualiza o export.json
+        try:
+            with open('export.json', 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data = {}
+
+        producao = data.get('producao', [])
+        # Atualiza ou adiciona a unidade
         for item in producao:
             if item['Unidade/Escola'] == unidade:
                 item['Produção Científica'] += cientifica
@@ -1764,19 +1820,102 @@ def registrar_producao():
             })
         data['producao'] = producao
 
-        # Salva as alterações no export.json
+        # Atualiza o campo "ultima_atualizacao" com o maior ano registrado
+        anos = [ano] + [item.get('ano', ano) for item in producao if 'ano' in item]
+        data['ultima_atualizacao'] = max(anos)
+
         with open('export.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        # Exibe uma mensagem de sucesso 
         flash('Registro bem sucedido!')
         return redirect(url_for('registrar_producao'))
-    # exibe as produções 
-    with open('export.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
-        producao = data.get('producao', [])
-        json_keys = list(data.keys())
-        return render_template('producao.html', producao=producao, json_keys=json_keys, now=datetime.now)
+    
+    # Exibir as produções
+    producoes = list(Producao.select().dicts())
+    if producoes:
+        import pandas as pd
+        df_production = pd.DataFrame(producoes)
+        df_production = df_production.rename(columns={
+            'unidade': 'Unidade/Escola',
+            'cientifica': 'Produção Científica',
+            'tcc': 'TCC, Dissertação ou Tese'
+        })
+        df_production = df_production.groupby('Unidade/Escola', as_index=False)[['Produção Científica', 'TCC, Dissertação ou Tese']].sum()
+        total_cientifica = df_production['Produção Científica'].sum()
+        total_tcc = df_production['TCC, Dissertação ou Tese'].sum()
+        total_row = pd.DataFrame([{
+            'Unidade/Escola': 'Total',
+            'Produção Científica': total_cientifica,
+            'TCC, Dissertação ou Tese': total_tcc
+        }])
+        df_production = pd.concat([df_production, total_row], ignore_index=True)
+        producao = df_production.to_dict(orient='records')
+    else:
+        producao = []
+
+    return render_template('producao.html', producao=producao, now=datetime.now)
+
+# --- RELATÓRIO MENSAL  --- #
+@server.route('/relatorio_mensal', methods=['GET', 'POST'])
+def relatorio_mensal():
+    grupos = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome)
+    ano = int(request.form.get('ano', datetime.now().year))
+    mes = int(request.form.get('mes', datetime.now().month))
+
+    if request.method == 'POST':
+        if 'xlsx_file' in request.files:
+            file = request.files['xlsx_file']
+            if file.filename.endswith('.xlsx'):
+                #salvar o arquivo na pasta relatorios/ano
+                upload_dir = f'relatorios/{ano}'
+                os.makedirs(upload_dir, exist_ok=True)
+                month_name = calendar.month_abbr[mes].lower()
+                file_path = os.path.join(upload_dir, f'{mes}-{month_name}.xlsx')
+                file.save(file_path)
+                # Ler o arquivo 
+                df = pd.read_excel(file)
+                df = df.replace(r'^\s*$', 0, regex=True)
+                df = df.fillna(0)
+                print(df.head())
+
+                # Renomear colunas para padronizar
+                df = df.rename(columns={
+                    'Projeto': 'projeto',
+                    'Serviço': 'servico',
+                    'Storage em cluster(GB)': 'storage_cluster',
+                    'Storage em 24x7(GB)': 'storage_24x7',
+                    'Máquina em Cluster': 'maquina_cluster',
+                    'Máquina em 24x7': 'maquina_24x7'
+                })
+                
+                # IMPORT PARA DB
+                #for _, row in df.iterrows():
+                    #projeto = row['projeto']
+                    #relatorio, created = Relatorio.#get_or_create(
+                        #ano=ano,
+                        #mes=mes,
+                        #projeto=projeto,
+                        #defaults={
+                            #'servico': row['servico'],
+                            #'storage_cluster': row['storage_cluster'],
+                            #'storage_24x7': row['storage_24x7'],
+                            #'maquina_cluster': row['maquina_cluster'],
+                            #'maquina_24x7': row['maquina_24x7']
+                        #}
+                    #)
+                    #if not created:
+                        #relatorio.servico = row['servico']
+                        #relatorio.storage_cluster = row['storage_cluster']
+                        #relatorio.storage_24x7 = row['storage_24x7']
+                        #relatorio.maquina_cluster = row['maquina_cluster']
+                        #relatorio.maquina_24x7 = row['maquina_24x7']
+                        #relatorio.save()
+
+                flash('Relatório importado e salvo com sucesso!')
+                return redirect(url_for('relatorio_mensal'))
+
+    relatorios = {(r.projeto, r.ano, r.mes): r for r in Relatorio.select().where((Relatorio.ano == ano) & (Relatorio.mes == mes))}
+    return render_template('relatorio_mensal.html', grupos=grupos, relatorios=relatorios, ano=ano, mes=mes)
 
 # --- CONFIGURAÇÕES GERAIS  --- #
 @server.route('/config', methods=['GET'])
@@ -1790,12 +1929,14 @@ def exportar():
     user_list = list(Usuario.select().dicts())
     equip_list = list(Equipamento.select().dicts())
     cluster_list = list(Cluster.select().dicts())
+    producao_list = list(Producao.select().dicts())
     
     export = {
         'grupo': group_list,
         'usuario': user_list,
         'equipamento': equip_list,
-        'cluster': cluster_list
+        'cluster': cluster_list,
+        'producao': producao_list,
     }
 
     json_data = json.dumps(export, indent=2)

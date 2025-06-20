@@ -30,8 +30,7 @@
 
             <!--  DESCRIÇÃO  -->
             <label class="form-label">Descrição</label>
-            <textarea class="form-control" id="exampleFormControlTextarea1" name=description rows="3">
-                {% if cluster %}{{ cluster.description }}{% endif %}</textarea>
+            <textarea class="form-control" id="exampleFormControlTextarea1" name=description rows="3">{% if cluster %}{{ cluster.description }}{% endif %}</textarea>
         </div>
 
         <!--  SUBMIT  -->

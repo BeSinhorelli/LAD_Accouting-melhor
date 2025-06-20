@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="cadastro">
+    <h2>Equipamentos do Cluster: {{ cluster.name }}</h2>
+    <ul class="list-group mb-3">
+        {% if equipamentos %}
+            {% for equipamento in equipamentos %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    {{ equipamento.hostname }}
+                </div>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-primary btn-sm" href="{{ url_for('equipamento', equipName=equipamento.hostname) }}">Editar</a>
+                </div>
+            </li>
+            {% endfor %}
+        {% else %}
+            <li class="list-group-item">Nenhum equipamento cadastrado neste cluster.</li>
+        {% endif %}
+    </ul>
+    <a class="btn btn-secondary mt-3" href="{{ url_for('homepage') }}">Voltar</a>
+</div>
+{% endblock %}

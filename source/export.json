@@ -6,10 +6,175 @@
       "demanda": 0,
       "unidade": "00",
       "coordenador": "Coordenador",
-      "status": true,
+      "status": false,
       "date_beg": "05-07-2023",
       "observacoes": "Eu sou um Grupo",
       "tipo": "Pesquisa"
+    },
+    {
+      "id": 2,
+      "nome": "ACADDR",
+      "demanda": 2274,
+      "unidade": "FACIN",
+      "coordenador": "Cesar De Rose",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: cesar.derose@pucrs.br\r\nRamal: 8618",
+      "tipo": ""
+    },
+    {
+      "id": 3,
+      "nome": "AGES",
+      "demanda": 9440,
+      "unidade": "Escola Polit\u00e9cnica",
+      "coordenador": "Willian Magnum Albeche e  Marcelo Hideki Yamaguti",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail Willian: willian.albeche@pucrs.br ou arquiteto.ages@pucrs.br\r\nE-mail Marcelo: marcelo.yamaguti@pucrs.br\r\nRamal: 8829",
+      "tipo": ""
+    },
+    {
+      "id": 4,
+      "nome": "BmDR",
+      "demanda": 10431,
+      "unidade": "Escola de Medicina",
+      "coordenador": "Marcus Herbert Jones",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: mhjones@pucrs.br\r\nRamal: 2221",
+      "tipo": ""
+    },
+    {
+      "id": 5,
+      "nome": "CCD",
+      "demanda": 9609,
+      "unidade": "Polit\u00e9cnica",
+      "coordenador": "Marcio Sarroglia Pinho",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: pinho@pucrs.br\r\nRamal: 8607",
+      "tipo": ""
+    },
+    {
+      "id": 6,
+      "nome": "CLOUDSIM",
+      "demanda": 1815,
+      "unidade": "FACIN",
+      "coordenador": "C\u00e9sar De Rose",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: cesar.derose@pucrs.br\r\n",
+      "tipo": ""
+    },
+    {
+      "id": 7,
+      "nome": "CP",
+      "demanda": 11706,
+      "unidade": "Polit\u00e9cnica",
+      "coordenador": "Cesar De Rose",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: cesar.derose@pucrs.br",
+      "tipo": ""
+    },
+    {
+      "id": 8,
+      "nome": "CPBMF",
+      "demanda": 6891,
+      "unidade": "Escola De Ci\u00eancias",
+      "coordenador": "Cristiano Valim Bizarro",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: cristiano.bizarro@pucrs.br",
+      "tipo": ""
+    },
+    {
+      "id": 9,
+      "nome": "FPPD",
+      "demanda": 10043,
+      "unidade": "Polit\u00e9cnica",
+      "coordenador": "Cesar De Rose",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: cesar.derose@pucrs.br\r\nRamal: 8618",
+      "tipo": ""
+    },
+    {
+      "id": 10,
+      "nome": "FPPD30",
+      "demanda": 11707,
+      "unidade": "Polit\u00e9cnica",
+      "coordenador": "Cesar De Rose",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: cesar.derose@pucrs.br",
+      "tipo": ""
+    },
+    {
+      "id": 11,
+      "nome": "FPPD32",
+      "demanda": 11288,
+      "unidade": "Polit\u00e9cnica",
+      "coordenador": "Marcelo Veiga Neves",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: marcelo.neves@pucrs.br\r\nRamal: 3525",
+      "tipo": ""
+    },
+    {
+      "id": 12,
+      "nome": "FPPD33",
+      "demanda": 11289,
+      "unidade": "Polit\u00e9cnica",
+      "coordenador": "Marcelo Veiga Neves",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: marcelo.neves@pucrs.br\r\nRamal: 3525",
+      "tipo": ""
+    },
+    {
+      "id": 13,
+      "nome": "GMAP",
+      "demanda": 1038,
+      "unidade": "FACIN",
+      "coordenador": "Luiz Gustavo Fernandes",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: luiz.fernandes@pucrs.br\r\nRamal: 8601",
+      "tipo": ""
+    },
+    {
+      "id": 14,
+      "nome": "Golias",
+      "demanda": 11788,
+      "unidade": "EP",
+      "coordenador": "Afonso Henrique Correa De Sale",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: afonso.sales@pucrs.br\r\nRamal: 3558",
+      "tipo": ""
+    },
+    {
+      "id": 15,
+      "nome": "GRIN",
+      "demanda": 2100,
+      "unidade": "FACIN",
+      "coordenador": "Tiago Ferreto",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail: tiago.ferreto@pucrs.br\r\nRamal: 8616",
+      "tipo": ""
+    },
+    {
+      "id": 16,
+      "nome": "Herpetologia",
+      "demanda": 4567,
+      "unidade": "FABIO",
+      "coordenador": "Santiago Jose Castroviejo Fisher",
+      "status": true,
+      "date_beg": "11-06-2025",
+      "observacoes": "E-mail:  santiago.fisher@pucrs.br\r\nRamal: 4411",
+      "tipo": ""
     }
   ],
   "usuario": [
@@ -20,7 +185,7 @@
       "email": "email",
       "date_beg": "05-07-2023",
       "date_end": "",
-      "observacoes": "observações",
+      "observacoes": "observa\u00e7\u00f5es",
       "status": true
     }
   ],
@@ -39,21 +204,6 @@
       "date_beg": "05-07-2023",
       "date_end": "",
       "status": true
-    },
-    {
-      "id": 2,
-      "cluster": 1,
-      "hostname": "VFR",
-      "modelo": "Marca",
-      "tipo": "24x7",
-      "patrimonio": "453",
-      "serviceTag": "345",
-      "nucleo": 4,
-      "memoria": 4,
-      "disco": 0,
-      "date_beg": "28-08-2023",
-      "date_end": "",
-      "status": true
     }
   ],
   "cluster": [
@@ -64,30 +214,6 @@
       "date_beg": "05-07-2023",
       "date_end": "",
       "status": true
-    }
-  ],
-  "ultima_atualizacao": 2023,
-  "comentario": "A chave 'ultima_atualizacao' refere-se ao ano mais recente registrado no sistema de cadastro de produções científicas.",
-  "producao": [
-    {
-      "Unidade/Escola": "Politécnica",
-      "Produção Científica": 109,
-      "TCC, Dissertação ou Tese": 35
-    },
-    {
-      "Unidade/Escola": "Ciências da Saúde e da Vida",
-      "Produção Científica": 51,
-      "TCC, Dissertação ou Tese": 24
-    },
-    {
-      "Unidade/Escola": "Instituto do Cérebro",
-      "Produção Científica": 11,
-      "TCC, Dissertação ou Tese": 4
-    },
-    {
-      "Unidade/Escola": "TOTAL",
-      "Produção Científica": 171,
-      "TCC, Dissertação ou Tese": 63
     }
   ]
 }

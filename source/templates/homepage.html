@@ -11,18 +11,8 @@
             <div class="card m-auto">
                 <h5 class="card-header">{{ cluster.name }}</h5>
                 <div class="card-body">
-                    <ul class="list-group list-group-flush">
-
-                        <!--  LOOP PARA GERAR OS EQUIPAMENTOS  -->
-                        {% for equipamento in cluster.equipamentos %}
-                        <li class="list-group-item">
-                            {{ equipamento.hostname }}<a class="btn btn-primary"
-                                href="{{ url_for('equipamento', equipName=equipamento.hostname) }}" role="button"
-                                style="float: right">Editar</a>
-                        </li>
-                        {% endfor %}
-
-                    </ul>
+                    <a class="btn btn-outline-secondary btn-sm mt-2" href="{{ url_for('lista_equipamentos_cluster', clusterName=cluster.name) }}"> Ver equipamentos
+                    </a>
                 </div>
 
                 <div class="card-footer text-center">
@@ -38,21 +28,26 @@
 
 <!--  SEÇÃO DE GRUPOS  -->
 <section class="grupo">
-    <h2 class="mb-3">Grupos</h2>
-    <div class="row">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-3">Grupos</h2>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('lista_grupos') }}">
+            Ver todos
+        </a>
+    </div>
+    <div class="row g-4 justify-content-center">
 
         <!--  LOOP PARA GERAR OS GRUPOS  -->
         {% for grupo in lista_grupo %}
-        <div class="col m-auto">
-            <div class="card m-auto">
+        <div class="col-12 col-sm-6 col-md-3 mb-4 d-flex align-items-stretch">
+            <div class="card rounded-3 w-100 m-auto">
                 <h5 class="card-header">{{ grupo.nome }}</h5>
                 <div class="card-body">
                     <!-- Coordenador -->
                     <div class="mb-2">
-                        <span class="fw-bold">Coordenador:</span>
+                        <span class="fw-bold">Coordenador:</span> <br>
                         <span>{{ grupo.coordenador }}</span>
                     </div>
-                    <a class="btn btn-outline-secondary btn-sm mt-2" href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}"> Ver usuários do grupo
+                    <a class="btn btn-outline-secondary btn-sm mt-2" href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}"> Ver usuários
                     </a>
                 </div>
 
