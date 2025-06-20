@@ -17,6 +17,11 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import pandas as pd
 
+from dash_routes.layout_home import layout_home
+from dash_routes.layout_demandas import layout_demandas
+from dash_routes.layout_usos import layout_usos
+from dash_routes.layout_producoes import layout_producoes
+
 # --- BIBLIOTECAS PARA DEMANDAS--- #
 import requests
 import re
@@ -245,15 +250,7 @@ def plot_horizontal_bar_chart(filtered_df):
 # ------------------------------------  LEITURA DATABASE - DASH ---------------------------------------- #
 
 # 
-ano_atual = datetime.now().year # definir ano atual
-select_anos = list(range(2020, ano_atual + 1)) # Gerar lista de seleção de anos automaticamente (de 2020 até ano atual) 
-year = str(ano_atual) 
-month = 0
-x = 0
-i = 0
 
-for dataframe in os.listdir('relatorios/' + year):
-    month += 1
 
 # ----------------------------------------  LAYOUT - DASH ---------------------------------------------- #
 
@@ -275,13 +272,16 @@ app.layout = html.Div([
         ], style={'text-align':'center', 'display':'flex', 'gap':'3rem', 'align-items':'center', 'justify-content':'center'}
         ), style={'padding': '2rem', 'background-color': second_color}
     ),
-    # --- NAVEGAÇÃO PARA PAINEL DE DEMANDAS  --- #
-    html.Div([
-        html.A("Painel de Demandas", href="#demand-title", style={'color': fifth_color, 'text-decoration': 'none', 'margin': '0 1rem'}),
-    ], style={'display': 'flex', 'gap': '1rem', 'align-items': 'center', 'justify-content': 'center'}),
+
+    dcc.Tabs([
+        dcc.Tab(label='Home', children=[layout_home]),
+        dcc.Tab(label='Painel de Demandas', children=[layout_demandas]),
+        dcc.Tab(label='Gráficos de uso', children=[layout_usos]),
+        dcc.Tab(label='Prouções Científicas', children=[layout_producoes])
+    ]),
 
    # --------------------------------- SEÇÃO 1 - SELEÇÃO E GRAF. ANUAL -------------------------------- #
-    dbc.Col([
+    '''dbc.Col([
 
         # --- SELEÇÃO DO ANO  --- #
         
@@ -766,7 +766,7 @@ app.layout = html.Div([
             'cursor': 'pointer',
     }, title="Voltar ao Início")
     ], style={'text-align': 'center'}),
-
+'''
 ], style={'background-color':second_color, 'padding':'1rem', 'min-width':'900px'}
 )
 
@@ -1873,7 +1873,6 @@ def relatorio_mensal():
                 df = pd.read_excel(file)
                 df = df.replace(r'^\s*$', 0, regex=True)
                 df = df.fillna(0)
-                print(df.head())
 
                 # Renomear colunas para padronizar
                 df = df.rename(columns={
