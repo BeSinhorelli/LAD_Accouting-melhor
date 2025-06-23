@@ -10,7 +10,7 @@ layout_home = html.Div(
         "align-items": "center",
         "justify-content": "center",
         "text-align": "center",
-        "padding": "2rem"
+        
     },
     children=[
         html.H1("Bem-vindo ao LAD Dashboard", style={"margin-bottom": "2rem"}),

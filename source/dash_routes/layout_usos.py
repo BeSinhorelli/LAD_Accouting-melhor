@@ -1,7 +1,7 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 from datetime import datetime
-from shared import *
+from config import *
 
 layout_usos = html.Div([
 
@@ -11,18 +11,7 @@ layout_usos = html.Div([
         'padding': '1rem'
     }),
 
-    # Dropdown de ano
-    dbc.Col(
-        dcc.Dropdown(
-            options=[{'label': str(ano), 'value': str(ano)} for ano in select_anos],
-            value=year,
-            id='year_dropdown'
-        ),
-        width=2,
-        style={'text-align': 'center', 'margin': 'auto', 'margin-bottom': '1rem'}
-    ),
-
-    # Gráfico de uso anual
+       # --------------------------------- SEÇÃO 1 - SELEÇÃO E GRAF. ANUAL -------------------------------- #
     dbc.Col(
         dbc.Card([
             dbc.CardHeader('Uso de máquina anual', style={'background-color': first_color, 'color': second_color}),
@@ -30,10 +19,10 @@ layout_usos = html.Div([
         ],
         className='shadow text-center',
         style={'border': 'none'}),
-        width=10, className='mx-auto'
+        width=12, className='mx-auto'
     ),
 
-    # Slider de mês
+    # --- SELEÇÃO DO MÊS  --- #
     dbc.Row([
         dbc.Col(
             dcc.Slider(
@@ -49,76 +38,183 @@ layout_usos = html.Div([
                 included=False
             )
         )
-    ], style={'background-color': third_color, 'padding': '1rem', 'border-radius': '.5rem'}),
+    ], style={'margin': '0', 'background-color': third_color, 'padding': '1,25rem', 'border-radius': '0 0 0.5rem 0.5rem'}),
 
     html.Br(),
 
-    # Gráfico de storage e máquina mensal
-    dbc.Row([
+    # ------------------------------ SEÇÃO 2 - GRAF. STORAGE E USO MENSAL ------------------------------ #
+    dbc.Col(
+        dbc.Row([
 
-        dbc.Col(dbc.Card([
-            dbc.CardHeader('Uso de Storage', style={'background-color': first_color, 'color': second_color}),
-            dcc.Graph(id='graph_storage'),
-            html.Div([
-                html.Span("Utilizado: "), html.Span(id='storage_usage', style={'color': 'white'}),
-                html.Span(" | Disponível: "), html.Span(id='storage_availability', style={'color': 'white'})
-            ], style={'text-align': 'center', 'color': 'white', 'margin-bottom': '1rem'})
-        ],
-        className='shadow text-center', style={'background-color': third_color, 'color': 'white'}), width=6),
+            # --- GRÁFICO DE USO DO STORAGE --- #
 
-        dbc.Col(dbc.Card([
-            dbc.CardHeader('Uso de máquina mensal (CPU-Hora)', style={'background-color': first_color, 'color': second_color}),
-            dcc.Graph(id='graph_monthly_usage'),
-            html.Div([
-                html.Span("Utilizado: "), html.Span(id='machine_usage', style={'color': 'white'}),
-                html.Span(" | Disponível: "), html.Span(id='machine_availability', style={'color': 'white'}),
-                html.Span(" | Capacidade: "), html.Span(id='machine_capacity', style={'color': 'white'})
-            ], style={'text-align': 'center', 'color': 'white', 'margin-bottom': '1rem'})
-        ],
-        className='shadow text-center', style={'background-color': third_color, 'color': 'white'}), width=6)
-    ]),
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader('Storage', style={'background-color': first_color, 'color' : second_color}),
+                    dbc.CardBody([
+                        dbc.Col(
+                            dcc.Graph(
+                                id='graph_storage'
+                            )
+                        ),
+                        dbc.Row([
+                            dbc.Col([
+                                html.Span('Utilizado'),
+                                html.Div([
+                                    html.H5(id='storage_usage', style={'display': 'inline', 'color': 'white'}),
+                                    html.Span('GB', style={'color': 'white', 'margin-left': '5px'})
+                                ])
+                            ]),
+                            dbc.Col([
+                                html.Span('Disponível'),
+                                html.Div([
+                                    html.H5(id='storage_availability', style={'display': 'inline', 'color': 'white'}),
+                                    html.Span('GB', style={'color': 'white', 'margin-left': '5px'}),
+                                ])
+                                
+                            ]),
+                            dbc.Col([
+                                html.Span('Capacidade'),
+                                html.Div([
+                                    html.H5('134206', style={'display': 'inline', 'color': 'white'}),
+                                    html.Span('GB', style={'color': 'white', 'margin-left': '5px'}),
+                                ])
+                            ])
+                        ])
+                    ], style={'padding-top':'0'}
+                    )
+                    ],
+                    className='shadow text-center', 
+                    style={'background-color': third_color, 'color': 'white'}
+                ), width=6
+            ),
+
+            # --- GRÁFICO DE USO MENSAL DOS CLUSTERS  --- #
+
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader('Uso de máquina mensal (CPU-Hora)', style={'background-color': first_color, 'color' : second_color}),
+                    dbc.CardBody([
+                        dbc.Col(
+                            dcc.Graph(
+                                id='graph_monthly_usage'
+                            )
+                        ),
+                        dbc.Row([
+                            dbc.Col([
+                                html.Span('Utilizado'),
+                                html.H5(id='machine_usage', style={'color': 'white'}),
+                            ]),
+                            dbc.Col([
+                                html.Span('Disponível'),
+                                html.H5(id='machine_availability', style={'color': 'white'})
+                            ]),
+                            dbc.Col([
+                                html.Span('Capacidade'),
+                                html.H5(id='machine_capacity', style={'color': 'white'})
+                            ])
+                        ])
+                    ], style={'padding-top':'0'}
+                    )
+
+                    ],
+                    className='shadow text-center', 
+                    style={'border': 'none', 'background-color': third_color, 'color': 'white'}
+                ), width=6
+            )
+            
+        ])
+    ),
 
     html.Br(),
 
-    # Gráficos por grupo: máquina em 24x7 e cluster
-    dbc.Row([
-        dbc.Col(dbc.Card([
-            dbc.CardHeader('Uso de máquina em 24x7 por grupo', style={'background-color': fourth_color, 'color': 'white'}),
-            dcc.Graph(id='graph_24x7_machine')
-        ],
-        className='shadow text-center', style={'border': 'none'}), width=6),
+    # ------------------------ SEÇÃO 3 - GRAF. CLUSTER E EM 24 X 7 POR GRUPO --------------------------- #
+    dbc.Col(
+        dbc.Row([
 
-        dbc.Col(dbc.Card([
-            dbc.CardHeader('Uso de máquina em Cluster por grupo', style={'background-color': fourth_color, 'color': 'white'}),
-            dcc.Graph(id='graph_cluster_machine')
-        ],
-        className='shadow text-center', style={'border': 'none'}), width=6)
-    ]),
+            # --- GRÁFICO DE USO DE MÁQUINA EM 24 X 7 POR GRUPO  --- #
+
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader('Uso de máquina em 24x7 por grupo', style={'background-color': fourth_color, 'color': 'white'}),
+                    dcc.Graph(
+                        id='graph_24x7_machine',
+                    )],
+                    className='shadow text-center',
+                    style={'border': 'none'}
+                ),
+                width=6
+            ),
+            
+            # --- GRÁFICO DE USO DE MÁQUINA EM CLUSTER POR GRUPO  --- #
+
+            dbc.Col([
+                dbc.Card([
+                    dbc.CardHeader('Uso de máquina em Cluster por grupo', style={'background-color': fourth_color, 'color': 'white'}),
+                    dcc.Graph(
+                        id='graph_cluster_machine',
+                    )],
+                    className='shadow text-center',
+                    style={'border': 'none'}
+                )],
+                width=6
+            )
+
+        ]),
+        style={'margin': '1rem 0'}
+    ),
 
     html.Br(),
 
-    # Gráfico de storage por grupo
-    dbc.Card([
-        dbc.CardHeader('Uso de Storage (Cluster + 24x7) por grupo', style={'background-color': first_color, 'color': second_color}),
-        dcc.Graph(id='graph_storage_group')
-    ],
-    className='shadow text-center', style={'border': 'none'}),
-    html.Br(),
+    # ----------------------------- SEÇÃO 4 - GRAF. STORAGE POR GRUPO ---------------------------------- #
+    dbc.Col(
+        dbc.Card([
+            dbc.CardHeader('Uso de Storage (Cluster + 24x7) por grupo', style={'background-color': first_color, 'color': second_color}),
+            dcc.Graph(
+                id='graph_storage_group',
+            )],
+            className='shadow text-center',
+            style={'border': 'none'}
+        ),
+        width=10, 
+        className='mx-auto',
+        style={'margin': '1rem 0'}
+    ),
 
-    # Gráficos de uso anual por grupo
-    dbc.Row([
-        dbc.Col(dbc.Card([
-            dbc.CardHeader('Uso anual de máquina em Cluster por grupo', style={'background-color': first_color, 'color': second_color}),
-            dcc.Graph(id='graph_cluster_usage_group')
-        ],
-        className='shadow text-center', style={'border': 'none'}), width=6),
+    # ----------------------- SEÇÃO 5 - GRAF. ANUAL (CLUSTER + 24X7) POR GRUPO  ------------------------ #
 
-        dbc.Col(dbc.Card([
-            dbc.CardHeader('Uso anual de máquina em 24x7 por grupo', style={'background-color': fourth_color, 'color': 'white'}),
-            dcc.Graph(id='graph_24x7_usage_group')
-        ],
-        className='shadow text-center', style={'border': 'none'}), width=6)
-    ]),
+    dbc.Col([
+
+        # --- GRÁFICO DE USO ANUAL DE MÁQUINA EM CLUSTER POR GRUPO  --- #
+
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader('Uso anual de máquina em Cluster por grupo', style={'background-color': first_color, 'color': second_color}),
+                dcc.Graph(
+                    id='graph_cluster_usage_group',
+                )],
+                className='shadow text-center',
+                style={'border': 'none', 'margin': '1rem 0'},
+            )],
+            width=10, 
+            className='mx-auto'
+        ),
+
+        # --- GRÁFICO DE USO ANUAL DE MÁQUINA EM 24 X 7 POR GRUPO  --- #
+               
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader('Uso anual de máquina em 24x7 por grupo', style={'background-color': fourth_color, 'color': 'white'}),
+                dcc.Graph(
+                     id='graph_24x7_usage_group',
+                )],
+                className='shadow text-center',
+                style={'border': 'none', 'margin': '1rem 0'}    
+            )],
+            width=10, 
+            className='mx-auto'
+        )]
+    ),
 
     html.Br(),
 

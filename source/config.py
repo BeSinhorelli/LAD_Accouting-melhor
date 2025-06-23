@@ -1,19 +1,20 @@
 import pandas as pd
+from flask import Flask
 import plotly.graph_objs as go
 import requests
 from datetime import datetime
 import os
+import re
+from peewee import SqliteDatabase
 
-# --- VARIAVÉIS DE CORES  --- #
+# ---  CORES  --- #
 
 first_color = '#FDC366'
 second_color = '#212529'
 third_color = '#111111'
 fourth_color = '#1E6EFF'
 fifth_color = '#EEE'
-# ---------------------------------  CONFIGURAÇÕES PARA DASHBOARDS DE DEMANDAS  --------------------------------- #
 
-# Configuração de cores para demandas
 COLORS = {
     "background": "black",
     "text": "white",
@@ -22,10 +23,20 @@ COLORS = {
     "link": "#007bff",
     "gray": "gray",
 }
+# ---  CONFIGURAÇÕES  API GITHUB --- #
 GITHUB_REPO = "LAD-PUCRS/LAD-Management"
 GITHUB_TOKEN = "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"  # Token do GitHub
 HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
 
+# Configurações do Flask e banco de dados
+DATABASE = 'accounting.db'
+DEBUG = True
+SECRET_KEY = 'hin6bab8ge25*r=x&amp;+5$0kn=-#log$pt^#@vrqjld!^2ci@g*b'
+server = Flask(__name__, static_folder='assets')
+server.config.from_object(__name__)
+database = SqliteDatabase(DATABASE, pragmas={'foreign_keys': 1})
+
+# ---  VARIÁVEIS GLOBAIS  --- #
 ano_atual = datetime.now().year # definir ano atual
 select_anos = list(range(2020, ano_atual + 1)) # Gerar lista de seleção de anos automaticamente (de 2020 até ano atual) 
 year = str(ano_atual) 
@@ -93,7 +104,7 @@ def filter_data_by_year(selected_year):
 # Filtrar demandas com label "_USER"
 demandas_erro = df[df["Labels"].str.contains("_USER", na=False)].copy()
 
-
+# Gráfico anual
 def plot_monthly_comparison():
     month_order = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     monthly_counts = df["Month"].value_counts()
@@ -134,3 +145,72 @@ def plot_monthly_comparison():
         )
     }
 
+# Extrair nomes dos grupos das demandas de label "_USER"
+def extract_names_from_titles(df):
+    pattern = re.compile(r"\[(.*?)\]")
+    return [match.group(1) for title in df["Título"] if (match := pattern.search(title))]
+
+# Função para plotar o gráfico de pizza por mês
+def plot_pie_chart(month):
+    # Filtrar demandas de erro pelo mês fornecido
+    filtered_data = demandas_erro[demandas_erro["Month"] == month]
+    names = extract_names_from_titles(filtered_data)
+    if names:
+        name_counts = pd.Series(names).value_counts()
+        return [go.Pie(labels=name_counts.index, values=name_counts.values, hole=0.3)]
+    return []  # Retorna um gráfico vazio se não houver dados para o mês
+
+# Função para plotar o gráfico de ciclos
+def plot_horizontal_bar_chart(filtered_df):
+    # Contar o número total de demandas abertas no mês
+    total_open_demandas = len(filtered_df)
+
+    # Padronizar os valores de status
+    filtered_df["Status"] = filtered_df["Status"].str.strip().str.title()
+
+    # Contar o número de demandas fechadas
+    closed_count = filtered_df["Status"].value_counts().get("Closed", 0)
+
+    # Dados para o gráfico de ciclo
+    stages = ["Fechadas", "Total Abertas"]
+    values = [
+        closed_count,
+        total_open_demandas,
+    ]
+
+    # Criar o gráfico ciclos
+    return {
+        "data": [
+            go.Bar(
+                x=[total_open_demandas],
+                y=[""],
+                name="Total",
+                orientation="h",
+                marker=dict(color="#4e9054"),
+                text=[f"{total_open_demandas}"],
+                textposition="inside",
+                insidetextanchor="end",
+                hovertemplate="<b>Total:</b> %{x}<extra></extra>",
+            ),
+            go.Bar(
+                x=[closed_count],
+                y=[""],
+                name="Fechadas",
+                orientation="h",
+                marker=dict(color="#7c60b7"),
+                text=[f"{closed_count}"],
+                textposition="inside",
+                insidetextanchor="end",
+                hovertemplate="<b>Fechadas:</b> %{x}<extra></extra>",
+            ),
+        ],
+        "layout": go.Layout(
+            xaxis=dict(title="Quantidade"),
+            yaxis=dict(title="Status"),
+            barmode="overlay",  
+            plot_bgcolor=COLORS["background"],
+            paper_bgcolor=COLORS["background"],
+            font={"color": COLORS["text"]},
+            margin=dict(l=100, r=50, t=20, b=50),
+        ),
+    }
