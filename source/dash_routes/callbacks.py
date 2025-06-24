@@ -6,6 +6,8 @@ from models import Producao
 from config import *
 from peewee import fn
 
+from dash_routes.layout_armazenamento import dados_simulados
+
 
 def register_callbacks(app):
     # ATUALIZAR O TITULO
@@ -288,3 +290,22 @@ def register_callbacks(app):
         except Exception:
             ultima_atualizacao = '----'
         return f"Produções científicas por Unidade (2015-{ultima_atualizacao})"
+    
+    # simulação de dados
+    # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO --------------------------------------- #
+    @app.callback(
+        Output('grafico-armazenamento', 'figure'),
+        Input('grupo-dropdown', 'value')
+    )
+    def atualizar_grafico(grupo):
+        df = dados_simulados(grupo)
+
+        import plotly.graph_objects as go
+        fig = go.Figure()
+        fig.add_trace(go.Bar(name='Usado', x=df['nome'], y=df['usado']))
+        fig.add_trace(go.Bar(name='Disponível', x=df['nome'], y=df['disponivel']))
+        fig.update_layout(
+            barmode='stack',
+            yaxis_title='TB'
+        )
+        return fig
