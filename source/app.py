@@ -16,11 +16,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 import pandas as pd
-from config import server, select_anos, year, fifth_color, second_color
+from config import server, select_anos, year, fifth_color, second_color, tab_style, selected_tab_style
 
 from dash_routes.layout_home import layout_home
 from dash_routes.layout_demandas import layout_demandas
 from dash_routes.layout_usos import layout_usos
+from dash_routes.layout_armazenamento import layout_armazenamento
 from dash_routes.layout_producoes import layout_producoes
 from dash_routes.callbacks import register_callbacks
 from models import *
@@ -76,11 +77,24 @@ app.layout = html.Div([
     ),
 
     dcc.Tabs([
-        dcc.Tab(label='Home', children=[layout_home]),
-        dcc.Tab(label='Painel de Demandas', children=[layout_demandas]),
-        dcc.Tab(label='Gráficos de uso', children=[layout_usos]),
-        dcc.Tab(label='Prouções Científicas', children=[layout_producoes])
-    ], style={'height': '50px'}),
+    dcc.Tab(label='Home', children=[layout_home],
+            style=tab_style, selected_style=selected_tab_style),
+    dcc.Tab(label='Painel de Demandas', children=[layout_demandas],
+            style=tab_style, selected_style=selected_tab_style),
+    dcc.Tab(label='Uso de Máquinas', children=[layout_usos],
+            style=tab_style, selected_style=selected_tab_style),
+    #dcc.Tab(label='Armazenamento', children=[layout_armazenamento],
+            #style=tab_style, selected_style=selected_tab_style),
+    dcc.Tab(label='Produções Científicas', children=[layout_producoes],
+            style=tab_style, selected_style=selected_tab_style)
+], style={
+    'backgroundColor': '#343a40',
+    'borderRadius': '8px',
+    'padding': '0.5rem',
+    'margin': '0 auto',
+    'width': '95%',
+    'boxShadow': '0 2px 8px rgba(0,0,0,0.3)'
+}),
 
 ], style={'background-color':second_color, 'padding':'1rem', 'min-width':'900px'}
 )

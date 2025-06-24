@@ -5,7 +5,7 @@ from config import *
 
 layout_usos = html.Div([
 
-    html.H2("Painel de Utilização de Recursos", style={
+    html.H2("Painel de Uso de Máquinas", style={
         'color': fifth_color,
         'text-align': 'center',
         'padding': '1rem'

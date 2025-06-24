@@ -2,22 +2,45 @@ from dash import html
 
 layout_home = html.Div(
     style={
-        "background-color": "#212529",
-        "color": "white",
-        "min-height": "100vh",
+        "boxSizing": "border-box",
+        "backgroundColor": "#212529",
+        "color": "#f8f9fa",
+        "height": "100vh",
         "display": "flex",
-        "flex-direction": "column",
-        "align-items": "center",
-        "justify-content": "center",
-        "text-align": "center",
-        
+        "flexDirection": "column",
+        "alignItems": "center",
+        "justifyContent": "top",
+        "textAlign": "center",
+        "padding": "2rem",
     },
     children=[
-        html.H1("Bem-vindo ao LAD Dashboard", style={"margin-bottom": "2rem"}),
-        html.P(
-            "Este é o painel de controle do Laboratório de Análise de Dados da PUCRS. "
-            "Aqui você pode visualizar informações sobre demandas, uso de máquinas e produções científicas.",
-            style={"margin-bottom": "2rem"}
-        ),
+        html.Div([
+            html.H1("Bem-vindo ao LAD Dashboard", style={
+                "marginBottom": "1rem",
+                "fontSize": "2.5rem",
+                "fontWeight": "700",
+                "color": "#ffffff",
+                "textShadow": "1px 1px 2px #000"
+            }),
+            html.P(
+                "Este é o painel de controle do Laboratório de Alto Desempenho da PUCRS. "
+                "Aqui você pode visualizar informações sobre demandas, uso de máquinas e produções científicas.",
+                style={
+                    "maxWidth": "800px",
+                    "fontSize": "1.2rem",
+                    "lineHeight": "1.6",
+                    "color": "#ced4da",
+                    "margin": "0 auto",
+                }
+            ),
+        ],
+        style={
+            "padding": "2rem",
+            "borderRadius": "12px",
+            "boxShadow": "0 4px 12px rgba(0, 0, 0, 0.4)",
+            "backgroundColor": "#2c3034",
+            "width": "90%",
+            "maxWidth": "1000px"
+        })
     ]
 )

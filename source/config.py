@@ -23,6 +23,35 @@ COLORS = {
     "link": "#007bff",
     "gray": "gray",
 }
+
+# ---  ESTILOS DOS TABS PARA MENU DO DASHBOARD --- #
+tab_style = {
+    'backgroundColor': '#2c3034',
+    'color': fifth_color,
+    'fontWeight': 'bold',
+    'padding': '10px',
+    'border': '1px solid #3a3f44',
+    'borderBottom': 'none',
+    'borderTopLeftRadius': '6px',
+    'borderTopRightRadius': '6px',
+    'textAlign': 'center',
+    'transition': '0.3s',
+    'cursor': 'pointer'
+}
+
+selected_tab_style = {
+    'backgroundColor': fifth_color,
+    'color': 'black',
+    'fontWeight': 'bold',
+    'padding': '10px',
+    'border': '1px solid #3a3f44',
+    'borderBottom': '3px solid #2c3034',
+    'borderTopLeftRadius': '6px',
+    'borderTopRightRadius': '6px',
+    'textAlign': 'center',
+    'boxShadow': '0 2px 4px rgba(0,0,0,0.2)'
+}
+
 # ---  CONFIGURAÇÕES  API GITHUB --- #
 GITHUB_REPO = "LAD-PUCRS/LAD-Management"
 GITHUB_TOKEN = "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"  # Token do GitHub
