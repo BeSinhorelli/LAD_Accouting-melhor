@@ -49,7 +49,6 @@ register_callbacks(app)
 # ----------------------------------------  LAYOUT - DASH ---------------------------------------------- #
 
 app.layout = html.Div([
-
     # --- NAVEGAÇÃO  --- #
 
     html.Div(
@@ -513,6 +512,15 @@ def update_cluster(cluster, name, description, status):
         return True
     except IntegrityError:
         return False
+    
+# --- EXCLUSÃO DE CLUSTER DO DB  --- #
+@server.route('/cluster/delete/<int:clusterId>', methods=['POST'])
+def cluster_delete(clusterId):
+    cluster = Cluster.get_or_none(Cluster.id == clusterId)
+    if cluster:
+        cluster.delete_instance()
+        flash(f'Cluster "{cluster.name}" excluído com sucesso.', 'success')
+    return redirect(url_for('homepage'))
 
 # --- CONFIGURAÇÕES DE EQUIPAMENTOS  --- #
 @server.route('/cluster/<clusterName>/equipamentos')
@@ -602,6 +610,15 @@ def update_equipamento(equipamento, cluster, hostname, modelo, tipo, patrimonio,
     except IntegrityError:
         return False
     
+# --- EXCLUSÃO DE EQUIPAMENTO DO DB  --- #
+@server.route('/equipamento/delete/<int:equipamentoId>', methods=['POST'])
+def equipamento_delete(equipamentoId):
+    equipamento = Equipamento.get_or_none(Equipamento.id == equipamentoId)
+    if equipamento:
+        equipamento.delete_instance()
+        flash(f'Equipamento "{equipamento.hostname}" excluído com sucesso.', 'success')
+    return redirect(url_for('homepage'))
+    
 # --- CONFIGURAÇÕES DE GRUPOS  --- #
 @server.route('/grupo/<groupName>', methods=['GET', 'POST'])
 def grupo(groupName=None):
@@ -673,6 +690,15 @@ def update_grupo(grupo, nome, demanda, unidade, coordenador, observacoes, tipo, 
         return True
     except IntegrityError:
         return False
+    
+# --- EXCLUSÃO DE GRUPO DO DB  --- #
+@server.route('/grupo/delete/<groupName>', methods=['POST'])
+def grupo_delete(groupName):
+    grupo = Grupo.get_or_none(Grupo.nome == groupName)
+    if grupo:
+        grupo.delete_instance()
+        flash(f'Grupo "{groupName}" excluído com sucesso!', 'success')
+    return redirect(url_for('homepage'))
     
 # --- LISTA DE TODOS OS GRUPOS  --- #
 @server.route('/grupo', methods=['GET'])
@@ -758,6 +784,15 @@ def update_usuario(usuario, grupo, nome, email, observacoes, status):
         return True
     except IntegrityError:
         return False
+    
+# --- EXCLUSÃO DE USUÁRIO DO DB  --- #
+@server.route('/usuario/delete/<int:userId>', methods=['POST'])
+def usuario_delete(userId):
+    usuario = Usuario.get_or_none(Usuario.nome == userId)
+    if usuario:
+        usuario.delete_instance()
+        flash(f'Usuário "{usuario.nome}" excluído com sucesso.', 'success')
+    return redirect(url_for('homepage'))
     
 # --- CONFIGURAÇÕES DE REGISTRO DE PRODUÇÕES --- #
 @server.route('/producao', methods=['GET', 'POST'])    

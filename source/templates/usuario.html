@@ -65,6 +65,16 @@
         {% if msg %}
         <label class="btn btn-outline-warning" for="floatingInputInvalid">{{ msg }}!</label>
         {% endif %}
+        <!--  EXCLUIR DO DB -->
+        {% if usuario %}
+        <form action="{{ url_for('usuario_delete', userId=usuario.id) }}" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?')">
+                Excluir
+            </button>
+        </form>
+        {% endif %}
     </form>
+    
 </div>
 {% endblock %}

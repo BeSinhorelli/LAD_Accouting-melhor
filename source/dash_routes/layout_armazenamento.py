@@ -22,16 +22,24 @@ dropdown_grupos = dcc.Dropdown(
 
 # simulação de dados
 def dados_simulados(grupo):
-    import numpy as np
-    nomes = [f"{grupo.lower()}-storage{i+1}" for i in range(2)]
-    usados = np.random.uniform(0.5, 4.0, size=2)
-    disponiveis = np.random.uniform(1.0, 5.0, size=2)
-    df = pd.DataFrame({
-        'nome': nomes,
-        'usado': usados,
-        'disponivel': disponiveis,
-        'grupo': grupo
-    })
+    dados = {
+        'BmDR': [
+            {'nome': 'bmdr-storage1', 'usado': 3.1, 'disponivel': 2.4},
+            {'nome': 'bmdr-storage2', 'usado': 2.5, 'disponivel': 2.1}
+        ],
+        'ACADDR': [
+            {'nome': 'acaddr-storage1', 'usado': 1.2, 'disponivel': 3.3},
+            {'nome': 'acaddr-storage2', 'usado': 0.9, 'disponivel': 4.1}
+        ],
+        'AGES': [
+            {'nome': 'ages-storage1', 'usado': 1.2, 'disponivel': 3.3},
+            {'nome': 'ages-storage2', 'usado': 0.9, 'disponivel': 4.1}
+        ]
+    }
+
+    registros = dados.get(grupo, [])
+    df = pd.DataFrame(registros)
+    df['grupo'] = grupo
     df['tamanho'] = df['usado'] + df['disponivel']
     return df
 

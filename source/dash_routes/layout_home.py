@@ -12,19 +12,32 @@ layout_home = html.Div(
         "justifyContent": "top",
         "textAlign": "center",
         "padding": "2rem",
+        "marginTop": "2rem"
     },
     children=[
         html.Div([
             html.H1("Bem-vindo ao LAD Dashboard", style={
-                "marginBottom": "1rem",
+                "marginBottom": "2rem",
                 "fontSize": "2.5rem",
                 "fontWeight": "700",
                 "color": "#ffffff",
                 "textShadow": "1px 1px 2px #000"
             }),
             html.P(
-                "Este é o painel de controle do Laboratório de Alto Desempenho da PUCRS. "
-                "Aqui você pode visualizar informações sobre demandas, uso de máquinas e produções científicas.",
+                "Este é o painel de controle do Laboratório de Alto Desempenho da PUCRS.",
+                style={
+                    "maxWidth": "800px",
+                    "fontSize": "1.2rem",
+                    "lineHeight": "1.6",
+                    "color": "#ced4da",
+                    "margin": "0 auto",
+                    "marginBottom":'1rem',
+                }
+            ),
+
+            html.P(
+                "Aqui você pode acompanhar informações sobre demandas, uso de máquinas, capacidades de armazenamento e produções científicas, "
+                "permitindo uma gestão mais eficiente dos recursos do laboratório.",
                 style={
                     "maxWidth": "800px",
                     "fontSize": "1.2rem",
