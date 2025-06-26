@@ -22,6 +22,7 @@ from dash_routes.layout_home import layout_home
 from dash_routes.layout_demandas import layout_demandas
 from dash_routes.layout_usos import layout_usos
 from dash_routes.layout_armazenamento import layout_armazenamento
+from dash_routes.layout_atividade import layout_atividade
 
 from dash_routes.layout_producoes import layout_producoes
 from dash_routes.callbacks import register_callbacks
@@ -79,6 +80,8 @@ app.layout = html.Div([
     dcc.Tabs([
     dcc.Tab(label='Home', children=[layout_home],
             style=tab_style, selected_style=selected_tab_style),
+    dcc.Tab(label='Atividade', children=[layout_atividade],
+            style=tab_style, selected_style=selected_tab_style),  
     dcc.Tab(label='Painel de Demandas', children=[layout_demandas],
             style=tab_style, selected_style=selected_tab_style),
     dcc.Tab(label='Uso de Máquinas', children=[layout_usos],
