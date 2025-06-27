@@ -1,4 +1,5 @@
 from dash import html
+from config import first_color
 
 layout_home = html.Div(
     style={
@@ -20,7 +21,7 @@ layout_home = html.Div(
                 "marginBottom": "2rem",
                 "fontSize": "2.5rem",
                 "fontWeight": "700",
-                "color": "#ffffff",
+                "color": first_color,
                 "textShadow": "1px 1px 2px #000"
             }),
             html.P(

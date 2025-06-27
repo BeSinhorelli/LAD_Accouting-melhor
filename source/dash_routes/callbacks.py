@@ -7,7 +7,7 @@ from config import *
 from peewee import fn
 
 from dash_routes.layout_armazenamento import dados_simulados
-
+from dash_routes.layout_atividade import get_remote_reboot_history
 
 def register_callbacks(app):
     # ATUALIZAR O TITULO
@@ -290,6 +290,38 @@ def register_callbacks(app):
         except Exception:
             ultima_atualizacao = '----'
         return f"Produções científicas por Unidade (2015-{ultima_atualizacao})"
+    
+    # ---------------------------------------  CALLBACK GRAF. ATIVIDADE --------------------------------------- #
+    @app.callback(
+        Output('uptime-line-chart', 'figure'),
+        Input('year_dropdown', 'value'),  # ano global
+        Input('month_dropdown_atividade', 'value')  # mês local
+    )
+    def update_uptime_chart(selected_year, selected_month):
+        year = int(selected_year)
+        month = int(selected_month)
+        data = get_remote_reboot_history(year, month)
+        
+        days = [d['day'] for d in data]
+        uptime = [d['uptime_hours'] for d in data]
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=days,
+            y=uptime,
+            mode='lines+markers',
+            line=dict(color=first_color, width=3),
+            marker=dict(size=8),
+            name="Uptime (h)"
+        ))
+
+        fig.update_layout(
+            xaxis_title='Dia do mês',
+            yaxis_title='Horas em atividade',
+            template='plotly_dark',
+            yaxis=dict(range=[0, 24 + 2])
+        )
+        return fig
     
     # simulação de dados
     # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO --------------------------------------- #
