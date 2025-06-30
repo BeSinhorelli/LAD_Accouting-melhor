@@ -6,8 +6,10 @@ from models import Producao
 from config import *
 from peewee import fn
 
+from dash_routes.layout_home import card_style, get_producoes, read_annual_report
 from dash_routes.layout_armazenamento import dados_simulados
-from dash_routes.layout_atividade import get_remote_reboot_history
+from dash_routes.layout_atividade import get_reboot_history, get_dias_ativos
+
 
 def register_callbacks(app):
     # ATUALIZAR O TITULO
@@ -294,35 +296,114 @@ def register_callbacks(app):
     # ---------------------------------------  CALLBACK GRAF. ATIVIDADE --------------------------------------- #
     @app.callback(
         Output('uptime-line-chart', 'figure'),
-        Input('year_dropdown', 'value'),  # ano global
-        Input('month_dropdown_atividade', 'value')  # mês local
+        Input('year_dropdown', 'value'),  
+        Input('month_dropdown_atividade', 'value')  
     )
     def update_uptime_chart(selected_year, selected_month):
         year = int(selected_year)
         month = int(selected_month)
-        data = get_remote_reboot_history(year, month)
+        data = get_reboot_history(year, month)
+
+        def format_hm(decimal_hours):
+            horas = int(decimal_hours)
+            minutos = int(round((decimal_hours - horas) * 60))
+            return f"{horas}h {minutos:02d}min"
         
         days = [d['day'] for d in data]
         uptime = [d['uptime_hours'] for d in data]
+        downtime = [round(24 - h, 1) for h in uptime] 
+
+        uptime_fmt = [format_hm(h) for h in uptime]
+        downtime_fmt = [format_hm(d) for d in downtime]
+        customdata = list(zip(uptime_fmt, downtime_fmt))
+
+        colors = ['#00ff00' if h == 24 else '#ff3333' for h in uptime]
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=days,
             y=uptime,
             mode='lines+markers',
-            line=dict(color=first_color, width=3),
-            marker=dict(size=8),
-            name="Uptime (h)"
+            line=dict(color="grey", width=3),
+            marker=dict(size=10, color=colors),
+            name="Uptime (h)",
+            customdata=customdata,
+            hovertemplate=
+                "Dia: %{x}<br>" +
+                "Em atividade: %{customdata[0]}<br>" +
+                "Inativo: %{customdata[1]}" 
+                "<extra></extra>"
         ))
 
         fig.update_layout(
             xaxis_title='Dia do mês',
-            yaxis_title='Horas em atividade',
+            yaxis_title='Tempo em atividade',
             template='plotly_dark',
             yaxis=dict(range=[0, 24 + 2])
         )
         return fig
     
+    # ---------------------------------------  CALLBACK CARD DESEMPENHO LAYOUT_HOME --------------------------------------- #
+    @app.callback(
+        Output("summary_cards", "children"),
+        Input("year_dropdown", "value")
+    )
+    def update_summary_cards(selected_year):
+        df_filtered = df[df["Criado em"].dt.year == int(selected_year)].copy()
+
+        total_issues = len(df_filtered)
+        issues_done = len(df_filtered[df_filtered["Status"].str.lower() == "closed"])
+        if total_issues == 0:
+            desempenho = "N/A"
+        else:
+            desempenho = f"{(issues_done / total_issues * 100):.1f}%"
+
+        # Total de horas usadas 
+        df_annual = read_annual_report(selected_year)
+        total_horas = 0
+        if not df_annual.empty:
+            # Tenta somar as duas colunas, se existirem
+            col_cluster = [c for c in df_annual.columns if "Cluster" in c]
+            col_24x7 = [c for c in df_annual.columns if "24x7" in c]
+            if col_cluster and col_24x7:
+                total_horas = df_annual[col_cluster[0]].fillna(0).sum() + df_annual[col_24x7[0]].fillna(0).sum()
+            elif col_cluster:
+                total_horas = df_annual[col_cluster[0]].fillna(0).sum()
+            elif col_24x7:
+                total_horas = df_annual[col_24x7[0]].fillna(0).sum()
+        total_horas_fmt = f"{total_horas:,.0f}".replace(",", ".") if total_horas else "0"
+
+        return html.Div([
+            html.Div([
+                 html.H3("🟢 Atividade"),
+                 html.P(f"{get_dias_ativos()} dias", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
+            html.Small("Desde a última parada")
+        ], style=card_style),
+            html.Div([
+                html.H3("📈 Desempenho"),
+                html.P(desempenho, style={"fontSize": "2.5rem", "fontWeight": "bold"}),
+                html.Small(f"{issues_done} de {total_issues} demandas atendidas")
+            ], style=card_style),
+            html.Div([
+                html.H3("⏱️ Horas Usadas"),
+                html.P(f"{total_horas_fmt} h", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
+                html.Small("Soma de Cluster + 24x7 no ano")
+            ], style=card_style),
+            #html.Div([
+                #html.H3("Volume Disponível"),
+            #]),
+            html.Div([
+                html.H3("📚 Produções"),
+                html.P(f"{get_producoes()}", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
+                html.Small("Inclui Prod. Científicas, TCCs,  Dissertações e Teses")
+            ], style=card_style),
+        ], style={
+            "display": "flex",
+            "justifyContent": "center",
+            "marginTop": "2rem",
+            "gap":"1rem"
+        })
+
     # simulação de dados
     # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO --------------------------------------- #
     @app.callback(

@@ -1,43 +1,47 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from config import fifth_color, second_color, first_color, third_color
+from config import fifth_color, first_color, third_color
 import subprocess
 from datetime import datetime, timedelta
 import calendar
 import re
-
-# substituir esse trecho por def get_boot_time(): quando estiver em produção
+import socket
 import paramiko
-def get_remote_boot_time():
-    try:
-        with paramiko.SSHClient() as ssh:
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(
-                "accounting",
-                username="laduser",
-                password="vg5snLeF924uGkZsxP8FDSYEQX2zLDDqx7",
-                allow_agent=False,
-                look_for_keys=False
-            )
+import os
 
-            stdin, stdout, _ = ssh.exec_command("uptime -s")
-            boot_time_str = stdout.read().decode().strip()
-            return datetime.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
-    except Exception as e:
-        print(f"Erro ao conectar via SSH: {e}")
-        return None
-    ##########
-'''
+# No terminal: export accounting_password="SENHA_VM_ACCOUNTING"
+ssh_password = os.environ.get("accounting_password")
+if not ssh_password:
+    raise EnvironmentError("Variável de ambiente accounting_password não encontrada.")
+
+def is_production():
+    return socket.gethostname() == "accounting"
+
+# Coletar data do último reboot
+# Tenta executar "uptime -s", se não estiver na vm accounting, faz o acesso via ssh e tenta executar o comando novamente
 def get_boot_time():
-    result = subprocess.run(["uptime", "-s"], capture_output=True, text=True)
-    if result.returncode == 0:
-        boot_time_str = result.stdout.strip()
-        return datetime.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
+    if is_production():
+        try:
+            output = subprocess.check_output("uptime -s", shell=True).decode().strip()
+            return datetime.strptime(output, "%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            print(f"Erro ao obter tempo de boot local: {e}")
+            return None
     else:
-        return None
-'''
+        try:
+            with paramiko.SSHClient() as ssh:
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh.connect(
+                    "accounting", username="laduser", password=ssh_password, allow_agent=False,look_for_keys=False
+                )
+                stdin, stdout, _ = ssh.exec_command("uptime -s")
+                boot_time_str = stdout.read().decode().strip()
+                return datetime.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            print(f"Erro ao conectar via SSH: {e}")
+            return None
 def get_dias_ativos():
-    boot_time = get_remote_boot_time()
+    boot_time = get_boot_time()
     if not boot_time:
         return "Erro ao obter o tempo de atividade"
     
@@ -45,24 +49,25 @@ def get_dias_ativos():
     return f"{dias_ativos}"
 
 def get_data_ultima_parada():
-    boot_time = get_remote_boot_time()
+    boot_time = get_boot_time()
     if not boot_time:
         return "Erro ao obter"
     return boot_time.strftime("%d/%m/%Y")
 
-def get_remote_reboot_history(year, month):
+# Coletar o histórico de reboot para o gráfico
+# Tenta executar "last reboot -F", se não estiver na vm accounting, faz o acesso via ssh e tenta executar o comando novamente
+def get_reboot_history(year, month):
     try:
-        with paramiko.SSHClient() as ssh:
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(
-                "accounting",
-                username="laduser",
-                password="vg5snLeF924uGkZsxP8FDSYEQX2zLDDqx7",
-                allow_agent=False,
-                look_for_keys=False
-            )
-            stdin, stdout, _ = ssh.exec_command("last reboot -F")
-            output = stdout.read().decode()
+        if is_production():
+            output = subprocess.check_output("last reboot -F", shell=True).decode()
+        else:
+            with paramiko.SSHClient() as ssh:
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh.connect(
+                    "accounting", username="laduser", password=ssh_password, allow_agent=False, look_for_keys=False
+                )
+                stdin, stdout, _ = ssh.exec_command("last reboot -F")
+                output = stdout.read().decode()
     except Exception as e:
         print(f"Erro ao obter histórico de reboot: {e}")
         return []
@@ -109,7 +114,7 @@ def get_remote_reboot_history(year, month):
                 day_start_time = max(start, datetime.combine(current_day, datetime.min.time()))
                 day_end_time = min(end, datetime.combine(current_day, datetime.max.time()))
 
-                # Calculate uptime for the current day
+                # 
                 delta = (day_end_time - day_start_time).total_seconds() / 3600
                 daily_uptime[current_day] += delta
 
@@ -133,12 +138,14 @@ def get_remote_reboot_history(year, month):
 
     return result
 
+# Layout
 layout_atividade = html.Div([
-
+    # Título
     html.H2("Painel de Atividade", style={
         'color': fifth_color,
         'text-align': 'center',
     }),
+    # Dias em atividade contínua e data da última parada
     html.Div([
         html.Div([
             html.H3("Dias em atividade contínua", style={
@@ -166,7 +173,7 @@ layout_atividade = html.Div([
         }),
 
         html.Div([
-            html.H3("Data da última parada:", style={
+            html.H3("Data da última parada", style={
                 'text-align': 'center',
                 'margin-bottom': '0.5rem',
                 'font-size': '1.5rem'
@@ -196,6 +203,7 @@ layout_atividade = html.Div([
         'color':'white'
     }),
     
+    # Seleção do mês
     dbc.Col(
         dcc.Dropdown(
             id='month_dropdown_atividade',
@@ -211,6 +219,8 @@ layout_atividade = html.Div([
         width=2,
         style={'text-align': 'center', 'margin': '2rem 0 0 0'}
     ),
+
+    # Gráfico de atividade - tempo em atividade X dias do mês
     dbc.Col([
         html.H3(
             "Atividade do Laboratório",
