@@ -23,24 +23,57 @@ dropdown_grupos = dcc.Dropdown(
 # simulação de dados
 def dados_simulados(grupo):
     dados = {
-        'BmDR': [
-            {'nome': 'bmdr-storage1', 'usado': 3.1, 'disponivel': 2.4},
-            {'nome': 'bmdr-storage2', 'usado': 2.5, 'disponivel': 2.1}
-        ],
-        'ACADDR': [
-            {'nome': 'acaddr-storage1', 'usado': 1.2, 'disponivel': 3.3},
-            {'nome': 'acaddr-storage2', 'usado': 0.9, 'disponivel': 4.1}
-        ],
         'AGES': [
-            {'nome': 'ages-storage1', 'usado': 1.2, 'disponivel': 3.3},
-            {'nome': 'ages-storage2', 'usado': 0.9, 'disponivel': 4.1}
-        ]
+            {'nome': 'Host de virtualização (patrimônio 3329729)', 'usado': 0, 'dedicado': 1},
+        ],
+        'BmDR': [
+            {'nome': 'hnstorage', 'usado': 0, 'dedicado': 1},
+        ],
+        'CPBMF': [
+            {'nome': 'cpbmf-storage', 'usado': 0, 'dedicado': 2},
+        ],
+        'GRIN': [
+            {'nome': 'iSCSI PowerVault ME5012', 'usado': 0, 'dedicado': 11},
+        ],
+        'ImunoCOVID': [
+            {'nome': 'imunorepository.lad.pucrs.br', 'usado': 0, 'dedicado': 1},
+        ],
+        'INSCER': [
+            {'nome': 'host inscer.lad.pucrs.br', 'usado': 0, 'dedicado': 12},
+        ],
+        'INVESTGENOMICA-METAGENOMIC': [
+            {'nome': 'investgenomica-storage', 'usado': 0, 'dedicado': 6},
+            {'nome': 'metagenomic-storage', 'usado': 0, 'dedicado': 0.6},
+            {'nome': 'host angiostrongylus.lad.pucrs.br', 'usado': 0, 'dedicado': 0.1},
+        ],
+        'LABGENOMA': [
+            {'nome': 'labgenoma-storage', 'usado': 0, 'dedicado':5.56},
+            {'nome': 'eduardos-storage', 'usado': 0, 'dedicado': 4.6},
+        ],
+        'NIMED-NANOFIS': [
+            {'nome': 'nanofis-storage', 'usado': 0, 'dedicado': 1},
+            {'nome': 'host pacs.lad.pucrs.br', 'usado': 0, 'dedicado': 0.256},
+        ],
+        'PLUMES': [
+            {'nome': 'plumes-storage.lad.pucrs.br', 'usado': 0, 'dedicado':10},
+            {'nome': 'dam-storage.lad.pucrs.br', 'usado': 0, 'dedicado': 11},
+            {'nome': 'laset.lad.pucrs.br ', 'usado': 0, 'dedicado': 0.2},
+        ],
+        'UsaLAB': [
+            {'nome': 'host usalab', 'usado': 0, 'dedicado':0.5},
+            {'nome': 'host sgpusalab', 'usado': 0, 'dedicado': 0.5},
+        ],
+        'VHLab': [
+            {'nome': 'VM vhlab.lad.pucrs.br', 'usado': 0, 'dedicado':0.04},
+        ],
     }
 
     registros = dados.get(grupo, [])
+    if not registros:
+        return pd.DataFrame()
     df = pd.DataFrame(registros)
     df['grupo'] = grupo
-    df['tamanho'] = df['usado'] + df['disponivel']
+    df['disponivel'] = df['dedicado'] - df['usado']
     return df
 
 layout_armazenamento = html.Div([

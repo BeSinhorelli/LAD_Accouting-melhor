@@ -375,25 +375,25 @@ def register_callbacks(app):
 
         return html.Div([
             html.Div([
-                 html.H3("🟢 Atividade"),
+                 html.H3("Atividade", style={"color": first_color}),
                  html.P(f"{get_dias_ativos()} dias", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
             html.Small("Desde a última parada")
         ], style=card_style),
             html.Div([
-                html.H3("📈 Desempenho"),
+                html.H3("Desempenho", style={"color": first_color}),
                 html.P(desempenho, style={"fontSize": "2.5rem", "fontWeight": "bold"}),
                 html.Small(f"{issues_done} de {total_issues} demandas atendidas")
             ], style=card_style),
             html.Div([
-                html.H3("⏱️ Horas Usadas"),
+                html.H3("Horas Usadas", style={"color": first_color}),
                 html.P(f"{total_horas_fmt} h", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
                 html.Small("Soma de Cluster + 24x7 no ano")
             ], style=card_style),
             #html.Div([
-                #html.H3("Volume Disponível"),
+                #html.H3("Volume Disponível", style={"color": first_color}),
             #]),
             html.Div([
-                html.H3("📚 Produções"),
+                html.H3("Produções Totais", style={"color": first_color}),
                 html.P(f"{get_producoes()}", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
                 html.Small("Inclui Prod. Científicas, TCCs,  Dissertações e Teses")
             ], style=card_style),
@@ -414,6 +414,22 @@ def register_callbacks(app):
         df = dados_simulados(grupo)
 
         import plotly.graph_objects as go
+        if df.empty:
+            fig = go.Figure()
+            fig.update_layout(
+                xaxis={'visible': False},
+                yaxis={'visible': False},
+                annotations=[
+                    dict(
+                        text=f'Nenhum dado de armazenamento encontrado o grupo {grupo}.',
+                        xref="paper", yref="paper",
+                        showarrow=False,
+                        font=dict(size=16)
+                    )
+                ]
+            )
+            return fig
+    
         fig = go.Figure()
         fig.add_trace(go.Bar(name='Usado', x=df['nome'], y=df['usado']))
         fig.add_trace(go.Bar(name='Disponível', x=df['nome'], y=df['disponivel']))
@@ -421,4 +437,5 @@ def register_callbacks(app):
             barmode='stack',
             yaxis_title='TB'
         )
+
         return fig

@@ -7,10 +7,12 @@ card_style = {
     "backgroundColor": "#343a40",
     "padding": "1.5rem",
     "borderRadius": "1rem",
-    "width": "300px",
-    "color": "#fff",
-    "boxShadow": "0 0 10px rgba(0,0,0,0.3)",
-    "textAlign": "center"
+    "minWidth": "250px",
+    "maxWidth": "280px",
+    "color": "#f8f9fa",
+    "boxShadow": "0 6px 15px rgba(0,0,0,0.5)",
+    "textAlign": "center",
+    "transition": "transform 0.3s ease-in-out",
 }
 # Card Produções
 def get_producoes():
@@ -59,7 +61,7 @@ layout_home = html.Div(
                 "textShadow": "1px 1px 2px #000"
             }),
             html.P(
-                "Este é o painel de controle do Laboratório de Alto Desempenho da PUCRS.",
+                "Este painel reúne os principais indicadores do LAD: atividade do laboratório, análise e desempenho das demandas, uso de máquinas, armazenamento e produções.",
                 style={
                     "maxWidth": "800px",
                     "fontSize": "1.2rem",
@@ -67,18 +69,6 @@ layout_home = html.Div(
                     "color": "#ced4da",
                     "margin": "0 auto",
                     "marginBottom":'1rem',
-                }
-            ),
-
-            html.P(
-                "Aqui você pode acompanhar a atividade do laboratório, informações sobre demandas, uso de máquinas, capacidades de armazenamento e produções científicas, "
-                "permitindo uma gestão mais eficiente dos recursos do laboratório.",
-                style={
-                    "maxWidth": "800px",
-                    "fontSize": "1.2rem",
-                    "lineHeight": "1.6",
-                    "color": "#ced4da",
-                    "margin": "0 auto",
                 }
             ),
         ],
@@ -91,6 +81,10 @@ layout_home = html.Div(
             "maxWidth": "1000px"
         }),
         # Gráficos em callbaks.py, linha 346
-        html.Div(id="summary_cards", style={"width": "90%"})
+        html.Div(id="summary_cards", style={"display": "flex", 
+                                            "flexWrap": "wrap", 
+                                            "justifyContent": "center", 
+                                            "gap": "1.5rem", 
+                                            "marginTop": "2rem"})
     ]
 )
