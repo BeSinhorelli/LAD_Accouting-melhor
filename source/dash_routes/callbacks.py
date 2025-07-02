@@ -5,6 +5,7 @@ from dash import html
 from models import Producao
 from config import *
 from peewee import fn
+import calendar
 
 from dash_routes.layout_home import card_style, get_producoes, read_annual_report
 from dash_routes.layout_armazenamento import dados_simulados
@@ -319,6 +320,8 @@ def register_callbacks(app):
 
         colors = ['#00ff00' if h == 24 else '#ff3333' for h in uptime]
 
+        last_day = calendar.monthrange(year, month)[1]
+
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=days,
@@ -339,7 +342,8 @@ def register_callbacks(app):
             xaxis_title='Dia do mês',
             yaxis_title='Tempo em atividade',
             template='plotly_dark',
-            yaxis=dict(range=[0, 24 + 2])
+            yaxis=dict(range=[0, 24 + 2], tickmode='linear', dtick=12),  
+            xaxis=dict(tickmode='linear', dtick=5, range=[0.5, last_day + 0.5])         
         )
         return fig
     

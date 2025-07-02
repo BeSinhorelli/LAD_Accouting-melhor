@@ -295,6 +295,9 @@ def update_figure(yearValue, value):
         ).update(layout_showlegend=False)
 
     # -------------------- USO DE MÁQUINA ANUAL POR GRUPO (24X7 E CLUSTER) ----------------------------- #
+    
+    # --- CONVERSÃO PARA INTEIRO PARA EVITAR MESES QUEBRADOS --- #
+    df_annual['Mês'] = df_annual['Mês'].astype(int)
 
     # --- DEFINIÇÃO DA MÁQUINA ANUAL EM CLUSTER POR GRUPO --- #
     df_machine_usage_cluster = df_annual[['Projeto', 'Máquina em Cluster', 'Mês']].dropna().sort_values(by=['Mês']) 
@@ -308,7 +311,9 @@ def update_figure(yearValue, value):
         x = 'Mês', 
         y = 'Máquina em Cluster',
         color = 'Projeto'
-    )                                                          
+    ).update_layout(
+    xaxis=dict(tickmode='linear', dtick=1)
+)                                    
 
     # --- CRIA O GRÁFICO DE MÁQUINA EM 24 X 7 POR GRUPO --- #  
     graph_24x7_usage_group = px.line(
@@ -316,7 +321,9 @@ def update_figure(yearValue, value):
         x = 'Mês', 
         y = 'Máquina em 24x7',
         color = 'Projeto'
-    )
+    ).update_layout(
+    xaxis=dict(tickmode='linear', dtick=1)
+)
     
     # ---------------------------- GRÁF. PRODUÇÕES CIENTÍFICAS ----------------------------------------- #
         # --- CRIA UM RELATÓRIO DE PRODUÇÕES - TEMPORÁRIO! --- #
