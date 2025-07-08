@@ -2,7 +2,7 @@ from dash import Input, Output
 import plotly.graph_objs as go
 import pandas as pd
 from dash import html
-from models import Producao
+from models import Producao, Usuario
 from config import *
 from peewee import fn
 import calendar
@@ -377,12 +377,20 @@ def register_callbacks(app):
                 total_horas = df_annual[col_24x7[0]].fillna(0).sum()
         total_horas_fmt = f"{total_horas:,.0f}".replace(",", ".") if total_horas else "0"
 
+        # usuários ativos
+        usuarios_ativos = Usuario.select().where(Usuario.status == True).count()
+
         return html.Div([
             html.Div([
                  html.H3("Atividade", style={"color": first_color}),
                  html.P(f"{get_dias_ativos()} dias", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
             html.Small("Desde a última parada")
-        ], style=card_style),
+            ], style=card_style),
+            html.Div([
+                 html.H3("Usuários", style={"color": first_color}),
+                 html.P(f"{usuarios_ativos}", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
+            html.Small("Registrados e ativos")
+            ], style=card_style),
             html.Div([
                 html.H3("Desempenho", style={"color": first_color}),
                 html.P(desempenho, style={"fontSize": "2.5rem", "fontWeight": "bold"}),

@@ -30,7 +30,7 @@
             {% for grupo in inativos %}
             <li class="list-group-item d-flex justify-content-between align-items-center" title="{{ grupo.observacoes }}">
                 <div>
-                    {{ grupo.nome }} - {{ grupo.coordenador }}
+                    <strong>{{ grupo.nome }}</strong> - {{ grupo.coordenador }}
                 </div>
                 <div class="d-flex gap-2">
                     <a class="btn btn-secondary btn-sm" href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">Ver usuários</a>
