@@ -218,4 +218,4 @@ layout_usos = html.Div([
 
     html.Br(),
 
-], style={'padding': '2rem'})
+], style={'padding': '1rem'})

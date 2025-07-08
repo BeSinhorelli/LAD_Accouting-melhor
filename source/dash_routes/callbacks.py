@@ -384,22 +384,22 @@ def register_callbacks(app):
             html.Div([
                  html.H3("Atividade", style={"color": first_color}),
                  html.P(f"{get_dias_ativos()} dias", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
-            html.Small("Desde a última parada")
+            html.Small("Desde a última parada", style={"color": "#ced4da"})
             ], style=card_style),
             html.Div([
                  html.H3("Usuários", style={"color": first_color}),
                  html.P(f"{usuarios_ativos}", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
-            html.Small("Registrados e ativos")
+            html.Small("Registrados e ativos", style={"color": "#ced4da"})
             ], style=card_style),
             html.Div([
                 html.H3("Desempenho", style={"color": first_color}),
                 html.P(desempenho, style={"fontSize": "2.5rem", "fontWeight": "bold"}),
-                html.Small(f"{issues_done} de {total_issues} demandas atendidas")
+                html.Small(f"{issues_done} de {total_issues} demandas atendidas", style={"color": "#ced4da"})
             ], style=card_style),
             html.Div([
                 html.H3("Horas Usadas", style={"color": first_color}),
                 html.P(f"{total_horas_fmt} h", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
-                html.Small("Soma de Cluster + 24x7 no ano")
+                html.Small("Soma de Cluster + 24x7 no ano", style={"color": "#ced4da"})
             ], style=card_style),
             #html.Div([
                 #html.H3("Volume Disponível", style={"color": first_color}),
@@ -407,7 +407,7 @@ def register_callbacks(app):
             html.Div([
                 html.H3("Produções Totais", style={"color": first_color}),
                 html.P(f"{get_producoes()}", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
-                html.Small("Inclui Prod. Científicas, TCCs,  Dissertações e Teses")
+                html.Small("Produções Científicas e Acadêmicas", style={"color": "#ced4da"})
             ], style=card_style),
         ], style={
             "display": "flex",

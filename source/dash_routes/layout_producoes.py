@@ -23,4 +23,4 @@ layout_producoes = html.Div([
         width=10, 
         className='mx-auto'
     ),
-], style={'height': '100vh'})
+], style={'height': '100vh', 'padding': '1rem'})
