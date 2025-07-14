@@ -22,7 +22,7 @@ def is_production():
 def get_boot_time():
     if is_production():
         try:
-            output = subprocess.check_output("uptime -s", shell=True).decode().strip()
+            output = subprocess.check_output("/usr/bin/uptime -s", shell=True).decode().strip()
             return datetime.strptime(output, "%Y-%m-%d %H:%M:%S")
         except Exception as e:
             print(f"Erro ao obter tempo de boot local: {e}")
@@ -59,7 +59,7 @@ def get_data_ultima_parada():
 def get_reboot_history(year, month):
     try:
         if is_production():
-            output = subprocess.check_output("last reboot -F", shell=True).decode()
+            output = subprocess.check_output("/usr/bin/last reboot -F", shell=True).decode()
         else:
             with paramiko.SSHClient() as ssh:
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
