@@ -3,9 +3,12 @@ from flask import Flask
 import plotly.graph_objs as go
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
 import os
 import re
 from peewee import SqliteDatabase
+
+load_dotenv()
 
 # ---  CORES  --- #
 
