@@ -95,5 +95,14 @@
         <label class="btn btn-outline-warning" for="floatingInputInvalid">{{ msg }}!</label>
         {% endif %}
     </form>
+    <!--  EXCLUIR DO DB -->
+    {% if equipamento %}
+    <form action="{{ url_for('equipamento_delete', equipamentoId=equipamento.id) }}" method="post" style="margin-top: 10px;">
+        <button type="submit" class="btn btn-danger"
+                onclick="return confirm('Tem certeza que deseja excluir o equipamento {{ equipamento.hostname }}?')">
+            Excluir
+        </button>
+    </form>
+    {% endif %}
 </div>
 {% endblock %}

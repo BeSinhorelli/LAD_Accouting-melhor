@@ -37,7 +37,16 @@
         <button type="submit" class="btn btn-primary">Cadastrar</button>
         {% if msg %}
         <label class="btn btn-outline-warning" for="floatingInputInvalid">{{ msg }}!</label>
-        {% endif %}
+        {% endif %}  
     </form>
+    <!--  EXCLUIR DO DB -->
+    {% if cluster %}
+    <form action="{{ url_for('cluster_delete', clusterId=cluster.id) }}" method="post" style="margin-top: 10px;">
+        <button type="submit" class="btn btn-danger"
+                onclick="return confirm('Tem certeza que deseja excluir o cluster {{ cluster.nome }}?')">
+            Excluir
+        </button>
+    </form>
+    {% endif %}
 </div>
 {% endblock %}

@@ -13,11 +13,10 @@
         <li class="list-group-item">Nenhum usuário cadastrado neste grupo.</li>
         {% endfor %}
     </ul> <br> <br>
-
-    <h4>Inativos</h4>
-    <ul class="list-group mb-4">
-        {% set inativos = usuarios | selectattr('status', 'equalto', False) | list %}
-        {% if inativos %}
+    {% set inativos = usuarios | selectattr('status', 'equalto', False) | list %}
+    {% if inativos %}
+        <h4>Inativos</h4>
+        <ul class="list-group mb-4">
             {% for usuario in inativos %}
             <li class="list-group-item d-flex justify-content-between align-items-center" title="{{ usuario.observacoes }}">
                 <div>
@@ -29,9 +28,9 @@
             </li>
             {% endfor %}
         {% else %}
-            <li class="list-group-item">Nenhum usuário inativo.</li>
+        </ul>    
         {% endif %}
-    </ul>
+
     <a class="btn btn-secondary mt-3" href="javascript:history.back()">Voltar</a>
 </div>
 {% endblock %}
