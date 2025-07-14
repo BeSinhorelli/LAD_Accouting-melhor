@@ -1,4 +1,4 @@
-from dash import Input, Output
+from dash import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
 from dash import html
@@ -6,6 +6,8 @@ from models import Producao, Usuario
 from config import *
 from peewee import fn
 import calendar
+import json
+from datetime import timedelta
 
 from dash_routes.layout_home import card_style, get_producoes, read_annual_report
 from dash_routes.layout_armazenamento import dados_simulados
@@ -415,6 +417,123 @@ def register_callbacks(app):
             "marginTop": "2rem",
             "gap":"1rem"
         })
+    
+     
+    # ---------------------------------------  CALLBACK GRAF. REDE --------------------------------------- #
+    @app.callback(
+        Output("monitoramento-graph", "figure"),
+        Output("monitoramento-status-card", "children"),
+        Input("interval-monitoramento", "n_intervals"),
+        Input("filtro-data-monitoramento", "date"),
+    )
+    def atualizar_grafico_monitoramento(n_intervals, data_filtro):
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        CAMINHO_JSON = os.path.join(BASE_DIR, "monitoramento.json")
+        try:
+            with open(CAMINHO_JSON, "r") as f:
+                dados = json.load(f)
+
+            df = pd.DataFrame(dados)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df["latency"] = pd.to_numeric(df["latency"], errors='coerce')
+            df["packet_loss"] = pd.to_numeric(df["packet_loss"], errors='coerce')
+            df["status"] = df["status"].fillna("Desconhecido")
+            
+            if data_filtro:
+                data_filtro = pd.to_datetime(data_filtro).date()
+                df = df[df["timestamp"].dt.date == data_filtro]
+
+            if df.empty:
+                return go.Figure(), html.Div("Sem dados para a data selecionada", style={"color": "orange"})
+            df["timestamp_10min"] = df["timestamp"].dt.floor("10min")
+            df_agg = df.groupby("timestamp_10min").agg({
+                "latency": "mean",
+                "packet_loss": "mean"
+            }).reset_index()
+
+            # Gráfico
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=df_agg["timestamp_10min"], y=df_agg["latency"],
+                name="Latência (ms)",
+                mode="lines",
+                line=dict(color="#00eaff", width=3),
+                marker=dict(size=7, color="#00eaff", line=dict(width=1, color="white")),
+                hovertemplate="%{y:.1f}"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df_agg["timestamp_10min"], y=df_agg["packet_loss"],
+                name="% Perda de Pacotes",
+                mode="lines",
+                line=dict(color="#ffb300", width=3, dash="dot"),
+                marker=dict(size=7, color="#ffb300", line=dict(width=1, color="white")),
+                yaxis="y2",
+                hovertemplate="%{y:.1f}%"
+            ))
+            fig.update_layout(
+                xaxis_title="Horário",
+                yaxis=dict(title="Latência (ms)", gridcolor="#444", zerolinecolor="#888"),
+                yaxis2=dict(title="Perda de Pacotes (%)", overlaying='y', side='right', range=[0, 100], gridcolor="#444"),
+                plot_bgcolor=third_color,
+                paper_bgcolor=third_color,
+                font=dict(color="white"),
+                margin=dict(l=40, r=40, t=40, b=40),
+                legend=dict(x=0, y=1.15, orientation="h", bgcolor="rgba(0,0,0,0)"),
+                hovermode="x unified"  
+            )
+
+            # Último status
+            status_atual = df.iloc[-1]["status"]
+            cor_status = {
+                "OK": "green",
+                "LENTO": "orange",
+                "QUEDA": "red"
+            }.get(status_atual, "gray")
+
+            status_card = html.Div([
+                html.H4("Status da Rede:", style={"fontSize": "1.5rem", "margin-bottom": "0.5rem", "textAlign": "center"}),
+                html.Div([
+                    html.Span(status_atual, style={
+                        "fontSize": "1.5rem",
+                        "fontWeight": "bold",
+                        "color": cor_status,
+                        "textShadow": "0 0 5px black"
+                    })
+                ], style={"display": "flex", "justifyContent": "center", "alignItems": "center"})
+            ], style={
+                "background": "#343a40",
+                "padding": "1.5rem",
+                "margin": "1rem 0",
+                "borderLeft": f"8px solid {cor_status}",
+                "borderRadius": "1rem",
+                "textAlign": "center",
+                "color": "white",
+                "boxShadow": "0 4px 24px rgba(0,0,0,0.4)"
+            })
+
+            return fig, status_card
+
+        except Exception as e:
+            return go.Figure(), html.Div(f"Erro: {e}", style={"color": "red"})
+
+    @app.callback(
+        Output("filtro-data-monitoramento", "date"),
+        Input("dia-anterior", "n_clicks"),
+        Input("dia-posterior", "n_clicks"),
+        State("filtro-data-monitoramento", "date"),
+        prevent_initial_call=True
+    )
+    def navegar_dias(n_ant, n_post, data_atual):
+        data = pd.to_datetime(data_atual).date()
+
+        if n_ant > n_post:
+            return data - timedelta(days=1)
+        
+        elif n_post > n_ant:
+            return data + timedelta(days=1)
+        
+        return data
+    
 
     # simulação de dados
     # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO --------------------------------------- #
