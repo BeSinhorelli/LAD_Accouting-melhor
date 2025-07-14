@@ -1,7 +1,7 @@
 from dash import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
-from dash import html
+from dash import html, ctx
 from models import Producao, Usuario
 from config import *
 from peewee import fn
@@ -526,10 +526,9 @@ def register_callbacks(app):
     def navegar_dias(n_ant, n_post, data_atual):
         data = pd.to_datetime(data_atual).date()
 
-        if n_ant > n_post:
+        if ctx.triggered_id == "dia-anterior":
             return data - timedelta(days=1)
-        
-        elif n_post > n_ant:
+        elif ctx.triggered_id == "dia-posterior":
             return data + timedelta(days=1)
         
         return data

@@ -172030,5 +172030,1301 @@
         "latency": 16.169,
         "packet_loss": 25.0,
         "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:47:23",
+        "latency": 15.972,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:47:36",
+        "latency": 15.862,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:47:50",
+        "latency": 15.94,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:48:03",
+        "latency": 16.354,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:48:18",
+        "latency": 16.038,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:48:31",
+        "latency": 16.88,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:48:44",
+        "latency": 16.326,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:48:57",
+        "latency": 15.669,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:49:12",
+        "latency": 15.957,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:49:26",
+        "latency": 16.168,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:49:40",
+        "latency": 15.818,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:49:53",
+        "latency": 16.612,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:50:07",
+        "latency": 15.801,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:50:20",
+        "latency": 15.631,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:50:33",
+        "latency": 15.832,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:50:47",
+        "latency": 16.124,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:51:01",
+        "latency": 15.745,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:51:14",
+        "latency": 15.621,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:51:27",
+        "latency": 15.718,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:51:41",
+        "latency": 15.835,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:51:55",
+        "latency": 15.644,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:52:08",
+        "latency": 16.359,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:52:22",
+        "latency": 15.918,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:52:36",
+        "latency": 16.065,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:52:50",
+        "latency": 15.689,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:53:04",
+        "latency": 16.107,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:53:17",
+        "latency": 15.731,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:53:30",
+        "latency": 15.754,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:53:44",
+        "latency": 15.693,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:53:57",
+        "latency": 15.81,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:54:10",
+        "latency": 16.075,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:54:23",
+        "latency": 15.932,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:54:36",
+        "latency": 15.716,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:54:50",
+        "latency": 15.694,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:55:03",
+        "latency": 15.876,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:55:16",
+        "latency": 15.989,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:55:30",
+        "latency": 15.668,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:55:43",
+        "latency": 15.595,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:55:56",
+        "latency": 16.257,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:56:09",
+        "latency": 15.829,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:56:23",
+        "latency": 16.067,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:56:37",
+        "latency": 15.841,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:56:50",
+        "latency": 15.584,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:57:03",
+        "latency": 16.574,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:57:16",
+        "latency": 15.98,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:57:30",
+        "latency": 16.85,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:57:43",
+        "latency": 15.863,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:57:56",
+        "latency": 15.977,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:58:09",
+        "latency": 15.678,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:58:23",
+        "latency": 15.767,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:58:36",
+        "latency": 15.607,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:58:49",
+        "latency": 16.673,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:59:02",
+        "latency": 15.791,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:59:16",
+        "latency": 15.604,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:59:29",
+        "latency": 15.8,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 14:59:43",
+        "latency": 15.838,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 14:59:56",
+        "latency": 15.854,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:00:11",
+        "latency": 15.968,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:00:25",
+        "latency": 15.692,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:00:38",
+        "latency": 16.918,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:00:51",
+        "latency": 15.892,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:01:05",
+        "latency": 15.842,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:01:18",
+        "latency": 15.643,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:01:32",
+        "latency": 16.111,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:01:45",
+        "latency": 17.152,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:01:59",
+        "latency": 15.566,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:02:12",
+        "latency": 15.993,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:02:25",
+        "latency": 15.856,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:02:38",
+        "latency": 15.818,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:02:52",
+        "latency": 15.675,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:03:06",
+        "latency": 15.833,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:03:20",
+        "latency": 16.126,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:03:34",
+        "latency": 16.317,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:03:48",
+        "latency": 15.714,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:04:02",
+        "latency": 15.534,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:04:15",
+        "latency": 15.735,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:04:29",
+        "latency": 15.964,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:04:44",
+        "latency": 15.769,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:04:57",
+        "latency": 15.918,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:05:10",
+        "latency": 15.998,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:05:23",
+        "latency": 16.054,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:05:38",
+        "latency": 15.775,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:05:51",
+        "latency": 16.286,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:06:05",
+        "latency": 15.928,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:06:18",
+        "latency": 15.941,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:06:33",
+        "latency": 15.858,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:06:47",
+        "latency": 15.719,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:07:00",
+        "latency": 16.091,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:07:13",
+        "latency": 15.745,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:07:27",
+        "latency": 16.005,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:07:41",
+        "latency": 15.728,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:07:54",
+        "latency": 15.942,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:08:08",
+        "latency": 16.177,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:08:22",
+        "latency": 15.802,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:08:35",
+        "latency": 15.801,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:08:48",
+        "latency": 16.383,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:09:01",
+        "latency": 15.95,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:09:15",
+        "latency": 15.898,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:09:28",
+        "latency": 15.686,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:09:42",
+        "latency": 15.956,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:09:55",
+        "latency": 16.061,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:10:10",
+        "latency": 16.216,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:10:24",
+        "latency": 16.189,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:10:37",
+        "latency": 15.82,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:10:50",
+        "latency": 16.358,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:11:04",
+        "latency": 16.909,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:11:18",
+        "latency": 15.994,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:11:31",
+        "latency": 16.163,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:11:44",
+        "latency": 16.93,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:11:59",
+        "latency": 15.883,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:12:12",
+        "latency": 15.84,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:12:25",
+        "latency": 16.087,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:12:38",
+        "latency": 17.372,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:12:53",
+        "latency": 16.136,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:13:06",
+        "latency": 16.312,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:13:19",
+        "latency": 15.976,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:13:32",
+        "latency": 15.749,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:13:46",
+        "latency": 15.971,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:13:59",
+        "latency": 15.859,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:14:12",
+        "latency": 15.869,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:14:26",
+        "latency": 15.878,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:14:40",
+        "latency": 15.691,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:14:53",
+        "latency": 16.081,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:15:07",
+        "latency": 16.088,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:15:20",
+        "latency": 15.774,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:15:34",
+        "latency": 15.977,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:15:47",
+        "latency": 15.614,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:16:01",
+        "latency": 15.82,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:16:14",
+        "latency": 15.836,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:16:28",
+        "latency": 16.027,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:16:42",
+        "latency": 16.003,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:16:55",
+        "latency": 15.879,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:17:08",
+        "latency": 15.976,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:17:21",
+        "latency": 15.901,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:17:35",
+        "latency": 16.138,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:17:49",
+        "latency": 16.276,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:18:02",
+        "latency": 15.741,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:18:15",
+        "latency": 15.923,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:18:30",
+        "latency": 16.655,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:18:43",
+        "latency": 15.8,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:18:56",
+        "latency": 15.89,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:19:10",
+        "latency": 15.987,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:19:24",
+        "latency": 16.068,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:19:38",
+        "latency": 15.994,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:19:51",
+        "latency": 15.733,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:20:05",
+        "latency": 17.023,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:20:20",
+        "latency": 15.704,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:20:33",
+        "latency": 15.988,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:20:47",
+        "latency": 16.586,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:21:00",
+        "latency": 16.264,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:21:15",
+        "latency": 15.95,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:21:28",
+        "latency": 15.969,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:21:42",
+        "latency": 15.86,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:21:56",
+        "latency": 15.974,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:22:11",
+        "latency": 16.387,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:22:24",
+        "latency": 16.63,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:22:37",
+        "latency": 16.371,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:22:50",
+        "latency": 16.114,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:23:04",
+        "latency": 15.927,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:23:18",
+        "latency": 15.845,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:23:31",
+        "latency": 15.9,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:23:44",
+        "latency": 15.849,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:23:57",
+        "latency": 15.879,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:24:11",
+        "latency": 16.327,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:24:24",
+        "latency": 15.786,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:24:37",
+        "latency": 15.794,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:24:50",
+        "latency": 16.084,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:25:04",
+        "latency": 16.223,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:25:18",
+        "latency": 15.871,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:25:31",
+        "latency": 16.524,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:25:44",
+        "latency": 15.775,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:25:59",
+        "latency": 15.877,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:26:12",
+        "latency": 16.146,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:26:26",
+        "latency": 16.43,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:26:40",
+        "latency": 15.876,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:26:53",
+        "latency": 16.022,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:27:07",
+        "latency": 15.87,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:27:21",
+        "latency": 15.847,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:27:35",
+        "latency": 15.977,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:27:50",
+        "latency": 15.876,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:28:03",
+        "latency": 16.103,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:28:16",
+        "latency": 16.333,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:28:30",
+        "latency": 16.051,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:28:44",
+        "latency": 16.052,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:28:57",
+        "latency": 15.636,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:29:11",
+        "latency": 16.2,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:29:25",
+        "latency": 17.4,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:29:39",
+        "latency": 16.121,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:29:52",
+        "latency": 16.079,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:30:05",
+        "latency": 15.855,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:30:19",
+        "latency": 19.981,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:30:34",
+        "latency": 15.791,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:30:47",
+        "latency": 16.053,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:31:01",
+        "latency": 19.709,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:31:14",
+        "latency": 17.007,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:31:28",
+        "latency": 16.819,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:31:41",
+        "latency": 15.885,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:31:54",
+        "latency": 15.997,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:32:07",
+        "latency": 15.768,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:32:21",
+        "latency": 15.926,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:32:34",
+        "latency": 16.348,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:32:48",
+        "latency": 17.061,
+        "packet_loss": 50.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:33:01",
+        "latency": 16.126,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:33:14",
+        "latency": 15.867,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:33:28",
+        "latency": 16.493,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:33:42",
+        "latency": 16.005,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:33:55",
+        "latency": 15.739,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:34:10",
+        "latency": 16.26,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:34:23",
+        "latency": 15.829,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:34:36",
+        "latency": 16.081,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:34:50",
+        "latency": 15.93,
+        "packet_loss": 25.0,
+        "status": "LENTO"
+    },
+    {
+        "timestamp": "2025-07-14 15:35:04",
+        "latency": 15.827,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:35:17",
+        "latency": 15.78,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:35:30",
+        "latency": 16.143,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:35:43",
+        "latency": 15.832,
+        "packet_loss": 0.0,
+        "status": "OK"
+    },
+    {
+        "timestamp": "2025-07-14 15:35:58",
+        "latency": 16.528,
+        "packet_loss": 25.0,
+        "status": "LENTO"
     }
 ]
