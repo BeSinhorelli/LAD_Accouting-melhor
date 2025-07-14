@@ -1,6 +1,6 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from config import fifth_color, first_color, third_color
+from config import *
 import subprocess
 from datetime import datetime, timedelta
 import calendar
@@ -10,7 +10,7 @@ import paramiko
 import os
 
 # No terminal: export accounting_password="SENHA_VM_ACCOUNTING"
-ssh_password = os.environ.get("accounting_password")
+ssh_password = os.getenv("accounting_password")
 if not ssh_password:
     raise EnvironmentError("Variável de ambiente accounting_password não encontrada.")
 
