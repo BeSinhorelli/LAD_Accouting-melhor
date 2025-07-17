@@ -249,78 +249,15 @@ layout_atividade = html.Div([
     ], style={'margin': '1rem 3rem 0 3rem', }),
     # Monitoramento de rede
     html.Div([
-        html.H3("Monitoramento de Rede", style={
-            "color": "white",
-            "marginTop": "6rem",
-            "textAlign": "center",
-            "width": "100%", 
-            "marginBottom": "0.5rem" 
-        }),
-            
         html.Div([
             html.Div(id="monitoramento-status-card", style={
+                "marginTop": "4rem",
                 "color": "white",
                 "fontSize": "1.1rem", 
                 "fontWeight": "bold",
                 "textAlign": "center",
                 "minWidth": "220px",
             }),
-
-            # Seleção da data
-            html.Div([
-                html.Div([
-                    html.Button("←", id="dia-anterior", n_clicks=0, style={
-                        "width": "2.5rem",
-                        "height": "2.5rem",
-                        "fontSize": "1.5rem",
-                        "border": "none",
-                        "color": "black",
-                        "background": first_color,
-                        "borderRadius": "0.5rem",
-                        "cursor": "pointer",
-                        "display": "flex",
-                        "alignItems": "center",
-                        "justifyContent": "center"
-                    }),
-                    dcc.DatePickerSingle(
-                        id='filtro-data-monitoramento',
-                        date=datetime.now().date(),
-                        display_format='DD/MM/YYYY',
-                        style={
-                            "width": "10rem",
-                            "height": "2.5rem",
-                            "borderRadius": "0.5rem",
-                            "textAlign": "center"
-                        }
-                    ),
-                    html.Button("→", id="dia-posterior", n_clicks=0, style={
-                        "width": "2.5rem",
-                        "height": "2.5rem",
-                        "fontSize": "1.5rem",
-                        "border": "none",
-                        "color": "black",
-                        "background": first_color,
-                        "borderRadius": "0.5rem",
-                        "cursor": "pointer",
-                        "display": "flex",
-                        "alignItems": "center",
-                        "justifyContent": "center"
-                    }),
-                ], style={
-                    "display": "flex",
-                    "justifyContent": "center",
-                    "alignItems": "center",
-                    "width": "100%",
-                    "backgroundColor": third_color,
-                    "boxShadow": "0 4px 24px rgba(0,0,0,0.4)"
-                })
-            ], style={
-                "display": "flex",
-                "justifyContent": "center",
-                "alignItems": "center",
-                "width": "100%",
-                "color": "white",
-            })
         ], style={
             "display": "flex", 
             "justifyContent": "center",
@@ -330,6 +267,75 @@ layout_atividade = html.Div([
         }),
 
         # Gráfico
+        html.H3(
+            "Monitoramento de Rede",
+            className="h3-subtitle", 
+            style={
+                'color': third_color, 
+                'text-align': 'center', 
+                'background-color': first_color, 
+                'font-size': '1rem', 
+                'padding': '0.5rem', 
+                'border-radius': '0.5rem 0.5rem 0 0',
+                'margin-bottom': '0',
+            }
+        ),
+        # Seleção da data
+        html.Div([
+            html.Div([
+                html.Button("←", id="dia-anterior", n_clicks=0, style={
+                    "width": "2.5rem",
+                    "height": "2.5rem",
+                    "fontSize": "1.5rem",
+                    "border": "none",
+                    "color": "black",
+                    "background": first_color,
+                    "borderRadius": "0.5rem",
+                    "cursor": "pointer",
+                    "display": "flex",
+                    "alignItems": "center",
+                    "justifyContent": "center"
+                }),
+                dcc.DatePickerSingle(
+                    id='filtro-data-monitoramento',
+                    date=datetime.now().date(),
+                    display_format='DD/MM/YYYY',
+                    style={
+                        "width": "10rem",
+                        "height": "2.5rem",
+                        "borderRadius": "0.5rem",
+                        "textAlign": "center"
+                    }
+                ),
+                html.Button("→", id="dia-posterior", n_clicks=0, style={
+                    "width": "2.5rem",
+                    "height": "2.5rem",
+                    "fontSize": "1.5rem",
+                    "border": "none",
+                    "color": "black",
+                    "background": first_color,
+                    "borderRadius": "0.5rem",
+                    "cursor": "pointer",
+                    "display": "flex",
+                    "alignItems": "center",
+                    "justifyContent": "center"
+                }),
+            ], style={
+                "display": "flex",
+                "justifyContent": "center",
+                "alignItems": "center",
+                "width": "100%",
+                "backgroundColor": third_color,
+                "boxShadow": "0 4px 24px rgba(0,0,0,0.4)",
+                "paddingTop": "0.5rem",
+            })
+        ], style={
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "color": "white",
+        }),
         dcc.Graph(id="monitoramento-graph", style={"height": "400px"}),
         dcc.Interval(id="interval-monitoramento", interval=60*1000, n_intervals=0)
     ], style={"width": "80vw"})

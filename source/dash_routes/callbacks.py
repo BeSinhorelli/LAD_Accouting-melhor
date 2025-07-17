@@ -444,17 +444,23 @@ def register_callbacks(app):
                 df = df[df["timestamp"].dt.date == data_filtro]
 
             if df.empty:
-                return go.Figure(), html.Div("Sem dados para a data selecionada", style={"color": "orange"})
-            df["timestamp_10min"] = df["timestamp"].dt.floor("10min")
-            df_agg = df.groupby("timestamp_10min").agg({
+                return go.Figure(), html.Div("Sem dados para a data selecionada", style={"color": "orange", "padding": "25px", "margin": "16px"})
+            
+            df["timestamp_group"] = df["timestamp"].dt.floor("5min")
+            df_agg = df.groupby("timestamp_group").agg({
                 "latency": "mean",
                 "packet_loss": "mean"
             }).reset_index()
 
+            # status de QUEDA
+            df_queda = df[df["status"] == "QUEDA"]
+            df_queda_plot = df_queda.copy()
+            df_queda_plot["latency_vis"] = 96
+
             # Gráfico
             fig = go.Figure()
             fig.add_trace(go.Scatter(
-                x=df_agg["timestamp_10min"], y=df_agg["latency"],
+                x=df_agg["timestamp_group"], y=df_agg["latency"],
                 name="Latência (ms)",
                 mode="lines",
                 line=dict(color="#00eaff", width=3),
@@ -462,17 +468,36 @@ def register_callbacks(app):
                 hovertemplate="%{y:.1f}"
             ))
             fig.add_trace(go.Scatter(
-                x=df_agg["timestamp_10min"], y=df_agg["packet_loss"],
+                x=df_agg["timestamp_group"], y=df_agg["packet_loss"],
                 name="% Perda de Pacotes",
                 mode="lines",
-                line=dict(color="#ffb300", width=3, dash="dot"),
+                line=dict(color="#ffb300", width=3,),
                 marker=dict(size=7, color="#ffb300", line=dict(width=1, color="white")),
                 yaxis="y2",
                 hovertemplate="%{y:.1f}%"
             ))
+            fig.add_trace(go.Scatter(
+                x=df_queda_plot["timestamp"],
+                y=df_queda_plot["latency_vis"],
+                name="Queda de Rede",
+                mode="markers",
+                marker=dict(color="red", size=12, symbol="x", line=dict(width=2, color="white")),
+                hovertemplate="%{x|%H:%M}",
+                yaxis="y2"
+            ))
+            # Destaques visuais 
+            for t in df_queda["timestamp"]:
+                fig.add_vrect(
+                    x0=t - pd.Timedelta(minutes=2),
+                    x1=t + pd.Timedelta(minutes=2),
+                    fillcolor="red",
+                    opacity=0.2,
+                    line_width=0,
+                    layer="below"
+                )
             fig.update_layout(
                 xaxis_title="Horário",
-                yaxis=dict(title="Latência (ms)", gridcolor="#444", zerolinecolor="#888"),
+                yaxis=dict(title="Latência (ms)", gridcolor="#444", zerolinecolor="#888", range=[0, df_agg["latency"].max() + 10]),
                 yaxis2=dict(title="Perda de Pacotes (%)", overlaying='y', side='right', range=[0, 100], gridcolor="#444"),
                 plot_bgcolor=third_color,
                 paper_bgcolor=third_color,
@@ -491,16 +516,19 @@ def register_callbacks(app):
             }.get(status_atual, "gray")
 
             status_card = html.Div([
-                html.H4("Status da Rede:", style={"fontSize": "1.5rem", "margin-bottom": "0.5rem", "textAlign": "center"}),
+                html.H4("Status da Rede:", style={"margin": "0 10px 0 0"}),
                 html.Div([
                     html.Span(status_atual, style={
-                        "fontSize": "1.5rem",
                         "fontWeight": "bold",
                         "color": cor_status,
                         "textShadow": "0 0 5px black"
                     })
-                ], style={"display": "flex", "justifyContent": "center", "alignItems": "center"})
+                ])
             ], style={
+                "display": "flex",
+                "justifyContent": "center",
+                "alignItems": "center",
+                "fontSize": "1.5rem",
                 "background": "#343a40",
                 "padding": "1.5rem",
                 "margin": "1rem 0",
