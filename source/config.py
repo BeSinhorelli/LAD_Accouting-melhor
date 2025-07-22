@@ -61,7 +61,8 @@ GITHUB_TOKEN = "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"  # Token do GitHub
 HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
 
 # Configurações do Flask e banco de dados
-DATABASE = 'accounting.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, 'accounting.db')
 DEBUG = True
 SECRET_KEY = 'hin6bab8ge25*r=x&amp;+5$0kn=-#log$pt^#@vrqjld!^2ci@g*b'
 server = Flask(__name__, static_folder='assets')
@@ -76,8 +77,12 @@ month = 0
 x = 0
 i = 0
 
-for dataframe in os.listdir('relatorios/' + year):
-    month += 1
+relatorio_path = os.path.join(BASE_DIR, "relatorios", year)
+if os.path.exists(relatorio_path):
+    for dataframe in os.listdir(relatorio_path):
+        month += 1
+else:
+    print(f"Diretório {relatorio_path} não existe. Ignorando leitura dos relatórios.")
 
 def fetch_all_issues():
     issues = []

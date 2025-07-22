@@ -423,7 +423,7 @@ def read_database_excel (yearValue, month):
 
 def create_tables():
     with database:
-        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio])
+        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, MonitoramentoRede])
 
 def drop_tables():
     with database:

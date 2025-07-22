@@ -2,11 +2,10 @@ from dash import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
 from dash import html, ctx
-from models import Producao, Usuario
+from models import Producao, Usuario, MonitoramentoRede
 from config import *
 from peewee import fn
 import calendar
-import json
 from datetime import timedelta
 
 from dash_routes.layout_home import card_style, get_producoes, read_annual_report
@@ -427,13 +426,13 @@ def register_callbacks(app):
         Input("filtro-data-monitoramento", "date"),
     )
     def atualizar_grafico_monitoramento(n_intervals, data_filtro):
-        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        CAMINHO_JSON = os.path.join(BASE_DIR, "monitoramento.json")
         try:
-            with open(CAMINHO_JSON, "r") as f:
-                dados = json.load(f)
+            # Consulta todos os registros do banco
+            registros = list(MonitoramentoRede.select().dicts())
+            if not registros:
+                return go.Figure(), html.Div("Sem dados de monitoramento", style={"color": "orange", "padding": "25px", "margin": "16px"})
 
-            df = pd.DataFrame(dados)
+            df = pd.DataFrame(registros)
             df["timestamp"] = pd.to_datetime(df["timestamp"])
             df["latency"] = pd.to_numeric(df["latency"], errors='coerce')
             df["packet_loss"] = pd.to_numeric(df["packet_loss"], errors='coerce')

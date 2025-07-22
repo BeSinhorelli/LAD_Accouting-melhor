@@ -62,3 +62,9 @@ class Relatorio(BaseModel):
     storage_24x7 = FloatField()
     maquina_cluster = FloatField()
     maquina_24x7 = FloatField()
+
+class MonitoramentoRede(BaseModel):
+    timestamp = DateTimeField()
+    latency = FloatField(null=True)
+    packet_loss = FloatField(null=True)
+    status = CharField()
