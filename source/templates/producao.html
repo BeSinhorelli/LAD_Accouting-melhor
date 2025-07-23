@@ -42,6 +42,7 @@
         <th>Unidade/Escola</th>
         <th>Produção Científica</th>
         <th>TCC, Dissertação ou Tese</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -50,6 +51,11 @@
         <td>{{ item['Unidade/Escola'] }}</td>
         <td>{{ item['Produção Científica'] }}</td>
         <td>{{ item['TCC, Dissertação ou Tese'] }}</td>
+        <td>
+          {% if item['Unidade/Escola'] != 'Total' %}
+            <a href="{{ url_for('editar_producao', unidade=item['Unidade/Escola']) }}" class="btn btn-warning btn-sm">Editar</a>
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>

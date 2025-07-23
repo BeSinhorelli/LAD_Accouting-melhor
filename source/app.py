@@ -880,6 +880,21 @@ def registrar_producao():
         producao = []
 
     return render_template('producao.html', producao=producao, now=datetime.now)
+@server.route('/producao/editar/<unidade>', methods=['GET', 'POST'])
+def editar_producao(unidade):
+    producao = Producao.get_or_none(Producao.unidade == unidade)
+    if not producao:
+        flash('Produções não encontradas.', 'danger')
+        return redirect(url_for('registrar_producao'))
+
+    if request.method == 'POST':
+        producao.cientifica = int(request.form['cientifica'])
+        producao.tcc = int(request.form['tcc'])
+        producao.save()
+        flash('Dados atualizados com sucesso!', 'success')
+        return redirect(url_for('registrar_producao'))
+
+    return render_template('editar_producao.html', producao=producao)
 
 # --- RELATÓRIO MENSAL  --- #
 @server.route('/relatorio_mensal', methods=['GET', 'POST'])

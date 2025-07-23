@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="cadastro">
+  <h2>Editar Registros - {{ producao.unidade }}</h2>
+  <form method="POST">
+    <div class="mb-3">
+      <label for="cientifica" class="form-label">Produção Científica</label>
+      <input type="number" class="form-control" id="cientifica" name="cientifica" min="0" value="{{ producao.cientifica }}" required>
+    </div>
+    <div class="mb-3">
+      <label for="tcc" class="form-label">TCC, Dissertação ou Tese</label>
+      <input type="number" class="form-control" id="tcc" name="tcc" min="0" value="{{ producao.tcc }}" required>
+    </div>
+    <button type="submit" class="btn btn-success">Salvar</button>
+    <a href="{{ url_for('registrar_producao') }}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}
