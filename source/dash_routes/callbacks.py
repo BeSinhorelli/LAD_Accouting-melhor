@@ -424,8 +424,9 @@ def register_callbacks(app):
         Output("monitoramento-status-card", "children"),
         Input("interval-monitoramento", "n_intervals"),
         Input("filtro-data-monitoramento", "date"),
+        Input("modo-visualizacao", "value")
     )
-    def atualizar_grafico_monitoramento(n_intervals, data_filtro):
+    def atualizar_grafico_monitoramento(n_intervals, data_filtro, modo_visualizacao):
         try:
             # Consulta todos os registros do banco
             registros = list(MonitoramentoRede.select().dicts())
@@ -445,12 +446,16 @@ def register_callbacks(app):
             if df.empty:
                 return go.Figure(), html.Div("Sem dados para a data selecionada", style={"color": "orange", "padding": "25px", "margin": "16px"})
             
-            df["timestamp_group"] = df["timestamp"].dt.floor("5min")
-            df_agg = df.groupby("timestamp_group").agg({
-                "latency": "mean",
-                "packet_loss": "mean"
-            }).reset_index()
-
+            if modo_visualizacao == "agrupado":
+                df["timestamp_group"] = df["timestamp"].dt.floor("5min")
+                df_agg = df.groupby("timestamp_group").agg({
+                    "latency": "mean",
+                    "packet_loss": "mean"
+                }).reset_index()
+            else:
+                df_agg = df[["timestamp", "latency", "packet_loss"]].copy()
+                df_agg.rename(columns={"timestamp": "timestamp_group"}, inplace=True)
+                df_agg.sort_values("timestamp_group", inplace=True)
             # status de QUEDA
             df_queda = df[df["status"] == "QUEDA"]
             df_queda_plot = df_queda.copy()

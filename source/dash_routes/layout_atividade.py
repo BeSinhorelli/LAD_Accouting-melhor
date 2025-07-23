@@ -320,6 +320,7 @@ layout_atividade = html.Div([
                     "alignItems": "center",
                     "justifyContent": "center"
                 }),
+                
             ], style={
                 "display": "flex",
                 "justifyContent": "center",
@@ -328,13 +329,34 @@ layout_atividade = html.Div([
                 "backgroundColor": third_color,
                 "boxShadow": "0 4px 24px rgba(0,0,0,0.4)",
                 "paddingTop": "0.5rem",
-            })
+            }),
+
         ], style={
             "display": "flex",
             "justifyContent": "center",
             "alignItems": "center",
             "width": "100%",
             "color": "white",
+        }),
+        html.Div([
+            html.Label("Modo de Visualização:", style={"color": "white", "marginRight": "10px"}),
+            dcc.RadioItems(
+                id="modo-visualizacao",
+                options=[
+                    {"label": "Média (intervalo de 5 min)", "value": "agrupado"},
+                    {"label": "Dados Brutos", "value": "bruto"},
+                ],
+                value="agrupado",
+                labelStyle={"display": "inline-block", "marginRight": "20px", "color": "white"},
+                inputStyle={"marginRight": "5px"}
+            )
+        ], style={
+            "backgroundColor": third_color,
+            "width": "100%",
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "padding": "1rem 0 0 0"
         }),
         dcc.Graph(id="monitoramento-graph", style={"height": "400px"}),
         dcc.Interval(id="interval-monitoramento", interval=60*1000, n_intervals=0)
