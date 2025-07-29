@@ -1,36 +1,129 @@
-{% extends "layout.html" %} 
+{% extends "layout.html" %}
 {% block body %}
 <div class="cadastro">
     <h2>Usuários do {{ grupo.nome }}</h2>
-    <ul class="list-group">
+    <ul class="list-group bg-white">
         {% for usuario in usuarios %}
-        <li class="list-group-item d-flex justify-content-between align-items-center"  title="{{ usuario.observacoes }}">
-            <strong>{{ usuario.nome }}</strong>
-            {{usuario.email}}
-            <a class="btn btn-primary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
+        <li class="list-group-item d-flex justify-content-between align-items-center p-3 hover-card">
+            <div>
+                <strong>{{ usuario.nome }}</strong> <br>
+                <span class="text-muted text-truncate d-inline-block w-100" title="{{ usuario.email }}"
+                    style="max-width: 500px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{
+                    usuario.email }}</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-warning btn-sm text-white" href="javascript:void(0);"
+                    onclick="toggleInfo('{{ usuario.nome }}')">
+                    <i class="bi bi-info-circle"></i>
+                </a>
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
+            </div>
         </li>
+        <div id="info-{{ usuario.nome }}" class="grupo-info observacao-card" style="display:none;">
+            <div class="observacao-header">
+                <strong>Informações:</strong>
+            </div>
+            <div class="observacao-texto" style="white-space: pre-line;">
+                {{ usuario.observacoes or "Sem informações." }}
+            </div>
+        </div>
         {% else %}
         <li class="list-group-item">Nenhum usuário cadastrado neste grupo.</li>
         {% endfor %}
-    </ul> <br> <br>
+    </ul>
+
     {% set inativos = usuarios | selectattr('status', 'equalto', False) | list %}
     {% if inativos %}
-        <h4>Inativos</h4>
-        <ul class="list-group mb-4">
-            {% for usuario in inativos %}
-            <li class="list-group-item d-flex justify-content-between align-items-center" title="{{ usuario.observacoes }}">
-                <div>
-                    <strong>{{ usuario.nome }}</strong> {{usuario.email}}
-                </div>
-                <div class="d-flex gap-2">
-                    <a class="btn btn-primary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
-                </div>
-            </li>
-            {% endfor %}
-        {% else %}
-        </ul>    
-        {% endif %}
+    <h4>Inativos</h4>
+    <ul class="list-group mb-4 bg-white">
+        {% for usuario in inativos %}
+        <li class="list-group-item d-flex justify-content-between align-items-center p-3 hover-card"
+            title="{{ usuario.observacoes }}">
+            <div>
+                <strong>{{ usuario.nome }}</strong> <br>
+                {{ usuario.email }}
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-primary btn-sm" href="javascript:void(0);"
+                    onclick="toggleInfo('{{ usuario.nome }}')">+</a>
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
+            </div>
+        </li>
+        <div id="info-{{ usuario.nome }}" class="grupo-info observacao-card" style="display:none;">
+            <div class="observacao-header">
+                <strong>Informações:</strong>
+            </div>
+            <div class="observacao-texto" style="white-space: pre-line;">
+                {{ usuario.observacoes or "Sem informações." }}
+            </div>
+        </div>
+        {% endfor %}
+    </ul>
+    {% endif %}
 
     <a class="btn btn-secondary mt-3" href="javascript:history.back()">Voltar</a>
 </div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s ease-in-out;
+        box-shadow: 0.2s ease-in-out;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .observacao-card {
+        background: #f9fafb;
+        border-left: 5px solid #ffb703;
+        padding: 12px;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .observacao-header {
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .observacao-header i {
+        color: #ff8800;
+        font-size: 1.1rem;
+    }
+
+    .observacao-texto {
+        color: #555;
+        line-height: 1.4;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+    function toggleInfo(nome) {
+        var el = document.getElementById('info-' + nome);
+        if (el.style.display === "none") {
+            el.style.display = "block";
+        } else {
+            el.style.display = "none";
+        }
+    }
+</script>
 {% endblock %}
