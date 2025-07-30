@@ -10,13 +10,13 @@
             <div class="card shadow-sm rounded-3 h-100 hover-card">
                 <h5 class="card-header bg-light fw-bold text-center">{{ cluster.name }}</h5>
                 <div class="card-body d-flex flex-column text-center">
-                    <a class="btn btn-outline-secondary btn-sm mt-auto w-100"
+                    <a class="btn btn-primary btn-sm mt-auto w-100"
                         href="{{ url_for('lista_equipamentos_cluster', clusterName=cluster.name) }}">
                         Ver equipamentos
                     </a>
                 </div>
                 <div class="card-footer text-center">
-                    <a class="btn btn-primary btn-sm w-100" href="{{ url_for('cluster', clusterName=cluster.name) }}">
+                    <a class="btn btn-secondary btn-sm w-100" href="{{ url_for('cluster', clusterName=cluster.name) }}">
                         Editar
                     </a>
                 </div>
@@ -54,13 +54,13 @@
                         {{ grupo.coordenador }}
                         </span>
                     </p>
-                    <a class="btn btn-outline-secondary btn-sm mt-auto w-100"
+                    <a class="btn btn-primary btn-sm mt-auto w-100"
                         href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">
                         Ver usuários
                     </a>
                 </div>
                 <div class="card-footer text-center">
-                    <a class="btn btn-primary btn-sm w-100" href="{{ url_for('grupo', groupName=grupo.nome) }}">
+                    <a class="btn btn-secondary btn-sm w-100" href="{{ url_for('grupo', groupName=grupo.nome) }}">
                         Editar
                     </a>
                 </div>

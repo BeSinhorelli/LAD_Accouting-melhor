@@ -12,20 +12,21 @@
     <!--  FORMULÁRIO  -->
     <form
         action="{% if grupo %} {{ url_for('grupo', groupName=grupo.nome) }} {% else %} {{ url_for('grupo', groupName='cadastro') }} {% endif %}"
-        method=post>
+        method=post enctype="multipart/form-data">
         <div class="mb-3">
             <!--  STATUS  -->
             {% if grupo %}
             <label class="form-label">Status</label>
             <select class="mb-3 form-select" aria-label="Default select example" name="status">
-                <option value="ativar" {% if grupo.status %}selected {% endif %} >Ativo</option>
+                <option value="ativar" {% if grupo.status %}selected {% endif %}>Ativo</option>
                 <option value="desativar" {% if not grupo.status %}selected {% endif %}>Inativo</option>
             </select>
             {% endif %}
 
             <!--  NOME  -->
             <label class="form-label">Nome</label>
-            <input type="text" class="mb-3 form-control" name=nome value="{% if grupo %}{{ grupo.nome }}{% endif %}" required placeholder="Para separar nomes, use o traço (-) em vez da barra (/)">
+            <input type="text" class="mb-3 form-control" name=nome value="{% if grupo %}{{ grupo.nome }}{% endif %}"
+                required placeholder="Para separar nomes, use o traço (-) em vez da barra (/)">
 
             <!--  DEMANDA  -->
             <label class="form-label">Demanda</label>
@@ -34,11 +35,12 @@
 
             <!--  UNIDADE  -->
             <label class="form-label">Unidade</label>
-            <input type="text" class="mb-3 form-control" name=unidade value="{% if grupo %}{{ grupo.unidade }}{% endif %}">
+            <input type="text" class="mb-3 form-control" name=unidade
+                value="{% if grupo %}{{ grupo.unidade }}{% endif %}">
             <datalist id="unidades">
                 {% for grupo in lista_grupos %}
                 <option value="{{ grupo.unidade }}">
-                {% endfor %}
+                    {% endfor %}
             </datalist>
 
             <!--  COORDENADOR  -->
@@ -48,11 +50,16 @@
 
             <!--  OBSERVAÇÕES  -->
             <label class="form-label">Observações</label>
-            <textarea class="form-control" id="exampleFormControlTextarea1" name=observacoes rows="3">{% if grupo %}{{ grupo.observacoes }}{% endif %}</textarea>
-            
+            <textarea class="mb-3 form-control" id="exampleFormControlTextarea1" name=observacoes
+                rows="3">{% if grupo %}{{ grupo.observacoes }}{% endif %}</textarea>
+
             <!--  TIPO  -->
             <label class="form-label">Tipo</label>
             <input type="text" class="mb-3 form-control" name=tipo value="{% if grupo %}{{ grupo.tipo }}{% endif %}">
+
+            <!--  LOGOTIPO  -->
+            <label class="form-label">Enviar logotipo (.png)</label>
+            <input type="file" class="mb-3 form-control" name="logotipo" accept=".png">
         </div>
 
         <!--  SUBMIT  -->
@@ -60,15 +67,17 @@
         {% if msg %}
         <label class="btn btn-outline-warning" for="floatingInputInvalid">{{ msg }}!</label>
         {% endif %}
-            <!--  EXCLUIR DO DB  -->
-        {% if grupo %}
+    </form>
+    <!--  EXCLUIR DO DB  -->
+    {% if grupo %}
+    <div style="display: flex; width: 100%; justify-content: end;">
         <form action="{{ url_for('grupo_delete', groupName=grupo.nome) }}" method="post" style="display:inline;">
             <button type="submit" class="btn btn-danger"
-                    onclick="return confirm('Tem certeza que deseja excluir o grupo {{ grupo.nome }}?')">
-                Excluir
+                onclick="return confirm('Tem certeza que deseja excluir o grupo {{ grupo.nome }}?')">
+                Excluir grupo
             </button>
         </form>
-        {% endif %}
-    </form>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

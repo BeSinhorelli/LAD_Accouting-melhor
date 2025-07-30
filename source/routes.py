@@ -6,6 +6,7 @@ from peewee import IntegrityError
 import json, os, calendar
 import pandas as pd
 from flask import app
+from werkzeug.utils import secure_filename
 
 # --------------------------------  DEFINIÇÃO DE FUNÇÕES - FLASK --------------------------------------- #
 def create_tables():
@@ -217,6 +218,8 @@ def equipamento_delete(equipamentoId):
     return redirect(url_for('homepage'))
     
 # --- CONFIGURAÇÕES DE GRUPOS  --- #
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "assets", "images")
 @server.route('/grupo/<groupName>', methods=['GET', 'POST'])
 def grupo(groupName=None):
     mensagem = None
@@ -226,29 +229,44 @@ def grupo(groupName=None):
     # --- CASO SEJA CADASTRO DE GRUPO --- #
     if groupName == 'cadastro':
         if request.method == 'POST':
-
             nome = form['nome']
 
             if nome:
                 if create_grupo(nome, form['demanda'], form['unidade'], form['coordenador'], form['observacoes'], form['tipo']):
+                    
+                    if "logotipo" in request.files:
+                        file = request.files["logotipo"]
+                        if file and file.filename.lower().endswith(".png"):
+                            filename = secure_filename(f"{nome}.png")
+                            file.save(os.path.join(UPLOAD_FOLDER, filename))
+
                     return redirect(url_for('homepage'))
-                else: mensagem = 'Grupo já existe'
+                else:
+                    mensagem = 'Grupo já existe'
 
         return render_template('grupo.html', groupName='cadastro', msg=mensagem, lista_grupo=lista_grupo)
-    
+
     # --- CASO SEJA ATUALIZAÇÃO DE GRUPO --- #
     else:
         if groupName:
             grupo = get_object_or_404(Grupo, Grupo.nome == groupName)
-            if request.method == 'POST':
 
+            if request.method == 'POST':
                 nome = form['nome']
 
                 if nome:
                     if update_grupo(grupo, nome, form['demanda'], form['unidade'], form['coordenador'], form['observacoes'], form['tipo'], form['status']):
-                        return redirect(url_for('homepage'))
-                    else: mensagem = 'Grupo já existe'
-                    
+
+                        if "logotipo" in request.files:
+                            file = request.files["logotipo"]
+                            if file and file.filename.lower().endswith(".png"):
+                                filename = secure_filename(f"{nome}.png")
+                                file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+                        return redirect(url_for('lista_grupos'))
+                    else:
+                        mensagem = 'Grupo já existe'
+
         return render_template('grupo.html', grupo=grupo, msg=mensagem, lista_grupo=lista_grupo)
 
 def create_grupo(nome, demanda, unidade, coordenador, observacoes, tipo):
@@ -288,11 +306,18 @@ def update_grupo(grupo, nome, demanda, unidade, coordenador, observacoes, tipo, 
     except IntegrityError:
         return False
     
-# --- EXCLUSÃO DE GRUPO DO DB  --- #
+# --- EXCLUSÃO DE GRUPO DO DB  E IMAGEM --- #
 @server.route('/grupo/delete/<groupName>', methods=['POST'])
 def grupo_delete(groupName):
     grupo = Grupo.get_or_none(Grupo.nome == groupName)
     if grupo:
+        filename = secure_filename(f"{grupo.nome}.png")
+        image_path = os.path.join(BASE_DIR, "assets", "images", filename)
+        if os.path.exists(image_path):
+            try:
+                os.remove(image_path)
+            except Exception as e:
+                print(f"Erro ao remover imagem: {e}")
         grupo.delete_instance()
         flash(f'Grupo "{groupName}" excluído com sucesso!', 'success')
     return redirect(url_for('homepage'))
