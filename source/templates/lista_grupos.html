@@ -8,7 +8,8 @@
         {% set ativos = lista_grupo | selectattr('status', 'equalto', True) | list %}
         {% if ativos %}
         {% for grupo in ativos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card">
+        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card"
+            href="javascript:void(0);" onclick="toggleInfo('{{ grupo.nome }}')" title="Clique para exibir informações">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
                     {% set logo_path = url_for('static', filename='images/' ~ grupo.nome ~ '.png') %}
@@ -24,16 +25,14 @@
                 </div>
             </div>
             <div class="d-flex gap-2">
-                <a class="btn btn-warning btn-sm text-white" href="javascript:void(0);"
-                    onclick="toggleInfo('{{ grupo.nome }}')">
-                    <i class="bi bi-info-circle"></i>
-                </a>
                 <a class="btn btn-primary btn-sm"
                     href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">Usuários</a>
                 <a class="btn btn-secondary btn-sm" href="{{ url_for('grupo', groupName=grupo.nome) }}">Editar</a>
             </div>
         </li>
-        <div id="info-{{ grupo.nome }}" class="grupo-info observacao-card" style="display:none;">
+        <div id="info-{{ grupo.nome }}" class="grupo-info observacao-card" {% if grupo_aberto==grupo.nome
+            %}style="display:block;" {% else %}style="display:none;" {% endif %}>
+
             <div class="observacao-texto" style="white-space: pre-line;">
                 <strong>Demanda:</strong> {{ grupo. demanda }}
                 <strong>Unidade:</strong> {{ grupo.unidade}}
@@ -53,30 +52,31 @@
         {% set inativos = lista_grupo | selectattr('status', 'equalto', False) | list %}
         {% if inativos %}
         {% for grupo in inativos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-2 shadow-sm hover-card">
-            <div class="d-flex align-items-center gap-4">
-                {% set logo_path = url_for('static', filename='images/' ~ grupo.nome ~ '.png') %}
-                {% set fallback_logo = url_for('static', filename='images/default.png') %}
-                <img src="{{ logo_path }}" alt="Logo {{ grupo.nome }}" class="rounded border bg-white shadow-sm p-2"
-                    style="max-height:60px; max-width:60px; object-fit:contain;"
-                    onerror="this.onerror=null; this.src='{{ fallback_logo }}';">
-
-                <div>
-                    <strong>{{ grupo.nome }}</strong> <br>
-                    {{ grupo.coordenador }}
+        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card"
+            href="javascript:void(0);" onclick="toggleInfo('{{ grupo.nome }}')" title="Clique para exibir informações">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    {% set logo_path = url_for('static', filename='images/' ~ grupo.nome ~ '.png') %}
+                    {% set fallback_logo = url_for('static', filename='images/default.png') %}
+                    <img src="{{ logo_path }}" alt="Logo {{ grupo.nome }}" class="rounded border bg-white shadow-sm p-2"
+                        style="max-height:60px; max-width:60px; object-fit:contain;"
+                        onerror="this.onerror=null; this.src='{{ fallback_logo }}';">
+                    <div>
+                        <strong class="fs-6">{{ grupo.nome }}</strong> <br>
+                        <small class="text-muted text-truncate d-inline-block" style="max-width:400px;">{{
+                            grupo.coordenador }}</small>
+                    </div>
                 </div>
             </div>
             <div class="d-flex gap-2">
-                <a class="btn btn-warning btn-sm text-white" href="javascript:void(0);"
-                    onclick="toggleInfo('{{ grupo.nome }}')">
-                    <i class="bi bi-info-circle"></i>
-                </a>
                 <a class="btn btn-primary btn-sm"
                     href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">Usuários</a>
                 <a class="btn btn-secondary btn-sm" href="{{ url_for('grupo', groupName=grupo.nome) }}">Editar</a>
             </div>
         </li>
-        <div id="info-{{ grupo.nome }}" class="grupo-info observacao-card" style="display:none;">
+        <div id="info-{{ grupo.nome }}" class="grupo-info observacao-card" {% if grupo_aberto==grupo.nome
+            %}style="display:block;" {% else %}style="display:none;" {% endif %}>
+            
             <div class="observacao-texto" style="white-space: pre-line;">
                 <strong>Demanda:</strong> {{ grupo. demanda }}
                 <strong>Unidade:</strong> {{ grupo.unidade}}
@@ -96,12 +96,12 @@
 <style>
     .hover-card {
         transition: transform 0.2s ease-in-out;
-
     }
 
     .hover-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
     }
 
     .observacao-card {
@@ -130,6 +130,11 @@
         }
     }
 </style>
+{% if grupo_aberto %}
+<script>
+    document.getElementById("info-{{ grupo_aberto }}")?.scrollIntoView({ behavior: "smooth", block: "center" });
+</script>
+{% endif %}
 <script>
     function toggleInfo(nome) {
         var el = document.getElementById('info-' + nome);

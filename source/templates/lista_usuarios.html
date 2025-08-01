@@ -4,7 +4,7 @@
     <h2>Usuários do {{ grupo.nome }}</h2>
     <ul class="list-group bg-white">
         {% for usuario in usuarios %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-3 hover-card">
+        <li class="list-group-item d-flex justify-content-between align-items-center p-3 hover-card" href="javascript:void(0);" onclick="toggleInfo('{{ usuario.nome }}')" title="Clique para exibir informações">
             <div>
                 <strong>{{ usuario.nome }}</strong> <br>
                 <span class="text-muted text-truncate d-inline-block w-100" title="{{ usuario.email }}"
@@ -12,10 +12,6 @@
                     usuario.email }}</span>
             </div>
             <div class="d-flex gap-2">
-                <a class="btn btn-warning btn-sm text-white" href="javascript:void(0);"
-                    onclick="toggleInfo('{{ usuario.nome }}')">
-                    <i class="bi bi-info-circle"></i>
-                </a>
                 <a class="btn btn-secondary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
             </div>
         </li>
@@ -30,22 +26,22 @@
         {% else %}
         <li class="list-group-item">Nenhum usuário cadastrado neste grupo.</li>
         {% endfor %}
-    </ul>
+    </ul> <br>
 
     {% set inativos = usuarios | selectattr('status', 'equalto', False) | list %}
     {% if inativos %}
     <h4>Inativos</h4>
-    <ul class="list-group mb-4 bg-white">
+    <ul class="list-group bg-white">
         {% for usuario in inativos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-3 hover-card"
-            title="{{ usuario.observacoes }}">
+        <li class="list-group-item d-flex justify-content-between align-items-center p-3 hover-card" href="javascript:void(0);" onclick="toggleInfo('{{ usuario.nome }}')"
+        title="{{ usuario.observacoes }}">
             <div>
                 <strong>{{ usuario.nome }}</strong> <br>
-                {{ usuario.email }}
+                <span class="text-muted text-truncate d-inline-block w-100" title="{{ usuario.email }}"
+                    style="max-width: 500px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{
+                    usuario.email }}</span>
             </div>
             <div class="d-flex gap-2">
-                <a class="btn btn-primary btn-sm" href="javascript:void(0);"
-                    onclick="toggleInfo('{{ usuario.nome }}')">+</a>
                 <a class="btn btn-secondary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
             </div>
         </li>
@@ -73,6 +69,7 @@
     .hover-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
     }
 
     .observacao-card {

@@ -38,7 +38,7 @@ def after_request(response):
 @server.route('/', methods=['GET', 'POST'])
 def homepage():
     lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
-    lista_grupo = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome).limit(4)
+    lista_grupo = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome)
 
     return render_template('homepage.html', lista_cluster=lista_cluster, lista_grupo=lista_grupo)
 
@@ -326,7 +326,8 @@ def grupo_delete(groupName):
 @server.route('/grupo', methods=['GET'])
 def lista_grupos():
     lista_grupo = Grupo.select().order_by(Grupo.nome)
-    return render_template('lista_grupos.html', lista_grupo=lista_grupo)
+    grupo_aberto = request.args.get("grupo")
+    return render_template('lista_grupos.html', lista_grupo=lista_grupo, grupo_aberto=grupo_aberto)
 
 # --- LISTA DE USUÁRIOS POR GRUPO  --- #  
 @server.route('/grupo/<groupName>/usuarios')
@@ -334,7 +335,7 @@ def lista_usuarios(groupName):
     grupo = Grupo.get_or_none(Grupo.nome == groupName)
     if not grupo:
         abort(404)
-    usuarios = Usuario.select().where(Usuario.grupo == grupo)
+    usuarios = Usuario.select().where(Usuario.grupo == grupo).order_by(Usuario.nome.asc())
     return render_template('lista_usuarios.html', grupo=grupo, usuarios=usuarios)
 
 # --- CONFIGURAÇÕES DE USUÁRIOS  --- #
