@@ -104,7 +104,8 @@ h4 {
 
 .cadastro, .config {
   max-width: 50%;
-  margin: auto;
+  margin: 1rem auto;
+  padding: 2rem;
 }
 
 .form-label {

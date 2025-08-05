@@ -27,16 +27,16 @@
             <!--  GRUPO  -->
             <label class="form-label">Grupo</label>
             <select class="mb-3 form-select" aria-label="Default select example" name="group_name" required>
-                
+
                 <!-- PARTE DE ATUALIZAÇÃO -->
                 {% if usuario %}
-                 {% for grupo in lista_grupo %}
-                  {% if grupo.nome == usuario.grupo.nome %}
+                {% for grupo in lista_grupo %}
+                {% if grupo.nome == usuario.grupo.nome %}
                 <option selected value="{{ grupo.nome }}">{{ grupo.nome }}</option>
-                  {% else %}
+                {% else %}
                 <option value="{{ grupo.nome }}">{{ grupo.nome }}</option>
-                  {% endif %}
-                 {% endfor %}
+                {% endif %}
+                {% endfor %}
 
                 <!-- PARTE DE CADASTRO -->
                 {% else %}
@@ -49,15 +49,18 @@
 
             <!--  NOME  -->
             <label class="form-label">Nome</label>
-            <input type="text" class="mb-3 form-control" name=nome value="{% if usuario %}{{ usuario.nome }}{% endif %}">
-                
+            <input type="text" class="mb-3 form-control" name=nome
+                value="{% if usuario %}{{ usuario.nome }}{% endif %}">
+
             <!--  E-MAIL  -->
             <label class="form-label">E-mail</label>
-            <input type="text" class="mb-3 form-control" name=email value="{% if usuario %}{{ usuario.email }}{% endif %}">
-            
+            <input type="text" class="mb-3 form-control" name=email
+                value="{% if usuario %}{{ usuario.email }}{% endif %}">
+
             <!--  OBSERVAÇÕES  -->
             <label class="form-label">Observações</label>
-            <textarea class="form-control" id="exampleFormControlTextarea1" name=observacoes rows="3">{% if usuario %}{{ usuario.observacoes }}{% endif %}</textarea>
+            <textarea class="form-control" id="exampleFormControlTextarea1" name=observacoes
+                rows="3">{% if usuario %}{{ usuario.observacoes }}{% endif %}</textarea>
         </div>
 
         <!--  SUBMIT  -->
@@ -65,16 +68,17 @@
         {% if msg %}
         <label class="btn btn-outline-warning" for="floatingInputInvalid">{{ msg }}!</label>
         {% endif %}
-        <!--  EXCLUIR DO DB -->
-        {% if usuario %}
+    </form>
+    <!--  EXCLUIR DO DB -->
+    {% if usuario %}
+    <div style="display: flex; width: 100%; justify-content: end;">
         <form action="{{ url_for('usuario_delete', userId=usuario.id) }}" method="post" style="display:inline;">
             <button type="submit" class="btn btn-danger"
-                    onclick="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?')">
-                Excluir
+                onclick="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?')">
+                Excluir usuário
             </button>
         </form>
-        {% endif %}
-    </form>
-    
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
