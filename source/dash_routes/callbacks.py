@@ -344,7 +344,8 @@ def register_callbacks(app):
             yaxis_title='Tempo em atividade',
             template='plotly_dark',
             yaxis=dict(range=[0, 24 + 2], tickmode='linear', dtick=12),  
-            xaxis=dict(tickmode='linear', dtick=5, range=[0.5, last_day + 0.5])         
+            xaxis=dict(tickmode='linear', dtick=5, range=[0.5, last_day + 0.5]),
+            margin=dict(t= 40,b=40),         
         )
         return fig
     
