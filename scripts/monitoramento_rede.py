@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import subprocess
 import os
 import time
@@ -12,7 +13,7 @@ from models import MonitoramentoRede, database
 DESTINO = "8.8.8.8"
 
 def avaliar_ping():
-    result = subprocess.run(['ping', '-c', '4', DESTINO], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run(['/usr/bin/ping', '-c', '4', DESTINO], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output = result.stdout.decode()
     
     if "0 received" in output or "100% packet loss" in output:
