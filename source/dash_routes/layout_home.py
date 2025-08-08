@@ -53,24 +53,67 @@ layout_home = html.Div(
     },
     children=[
         html.Div([
-            html.H1("Bem-vindo ao LAD Dashboard", style={
-                "marginBottom": "2rem",
-                "fontSize": "2.5rem",
-                "fontWeight": "700",
-                "color": first_color,
-                "textShadow": "1px 1px 2px #000"
-            }),
-            html.P(
-                "Este painel reúne os principais indicadores do LAD: atividade do laboratório, análise e desempenho das demandas, uso de máquinas, armazenamento e produções.",
+            html.H1(
+                 "Disponibilidade Anual", 
+                 style={
+                      'color': first_color,
+                      'text-align': 'center',
+                      'font-size': '1.5rem'
+            }
+            ),
+            html.Small(
+                "Monitoramento iniciado em 10 de maio de 2025",
                 style={
-                    "maxWidth": "800px",
-                    "fontSize": "1.2rem",
-                    "lineHeight": "1.6",
-                    "color": "#ced4da",
-                    "margin": "0 auto",
-                    "marginBottom":'1rem',
+                    'color': '#ccc',
+                    'textAlign': 'center',
+                    'display': 'block',
+                    'marginBottom': '1.5rem',
+                    'fontStyle': 'italic'
                 }
             ),
+            html.Div([
+               html.Div([
+                    html.H4("Uptime", 
+                            style={
+                                'text-align': 'center', 
+                                'margin-bottom': '0.2rem'
+                                }),
+                    html.P(id='uptime-percent', 
+                           style={
+                            'font-size': '2rem', 
+                            'color': first_color, 
+                            'fontWeight': 'bold'
+                            }),
+                    html.Small(id='uptime-hours')
+               ], style={
+                    'flex': '1', 
+                    'padding': '0 1rem', 
+                    'border-right': 
+                    '1px solid #555'}),
+               html.Div([
+                    html.H4("Dowtime", 
+                            style={
+                                'text-align': 'center', 
+                                'margin-bottom': '0.2rem'
+                                }),
+                    html.P(id='downtime-percent', 
+                           style={
+                            'font-size': '2rem', 
+                            'color': first_color,
+                            'fontWeight': 'bold'
+                            }),
+                    html.Small(id='downtime-hours')
+               ], style={
+                    'flex': '1', 
+                    'padding': 
+                    '0 1rem', 
+                    }),
+            ], style={
+                 'display': 'flex', 
+                 'justify-content': 'space-around',
+                 'align-items': 'center',
+                 'gap': '0.5rem'
+                 }),
         ],
         style={
             "padding": "2rem",
@@ -78,13 +121,10 @@ layout_home = html.Div(
             "boxShadow": "0 4px 12px rgba(0, 0, 0, 0.4)",
             "backgroundColor": "#343a40",
             "width": "90%",
-            "maxWidth": "1000px"
+            "maxWidth": "900px"
         }),
-        # Gráficos em callbaks.py, linha 346
-        html.Div(id="summary_cards", style={"display": "flex", 
-                                            "flexWrap": "wrap", 
-                                            "justifyContent": "center", 
-                                            "gap": "1.5rem", 
-                                            "marginTop": "2rem"})
+        # Gráficos em callbaks.py
+        html.Div(id="summary_cards",
+                 style={"display": "flex", "flexWrap": "wrap", "justifyContent": "center", "gap": "1.5rem", "marginTop": "2rem"})
     ]
 )

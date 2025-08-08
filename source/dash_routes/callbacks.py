@@ -6,11 +6,11 @@ from models import Producao, Usuario, MonitoramentoRede
 from config import *
 from peewee import fn
 import calendar
-from datetime import timedelta
+from datetime import timedelta, date
 
 from dash_routes.layout_home import card_style, get_producoes, read_annual_report
 from dash_routes.layout_armazenamento import dados_simulados
-from dash_routes.layout_atividade import get_reboot_history, get_dias_ativos
+from dash_routes.layout_atividade import monitoramento_atividade, get_reboot_history, get_dias_ativos, get_total_paradas, get_paradas_ano
 
 
 def register_callbacks(app):
@@ -295,6 +295,23 @@ def register_callbacks(app):
             ultima_atualizacao = '----'
         return f"Produções científicas por Unidade (2015-{ultima_atualizacao})"
     
+    # ---------------------------------------  CALLBACK CARD PARADAS REGISTRADAS LAYOUT_ATIVIDADE
+    # --------------------------------------- #
+    @app.callback(
+        Output('paradas-total', 'children'),
+        Input('year_dropdown', 'value'),
+    )
+    def update_total_paradas(selected_year):
+        total = get_total_paradas(selected_year)
+        return f"{total}"
+    
+    @app.callback(
+        Output('paradas-title', 'children'),
+        Input('year_dropdown', 'value'),
+    )
+    def update_paradas_title(year):
+        return f"Paradas Registradas em {year}"
+    
     # ---------------------------------------  CALLBACK GRAF. ATIVIDADE --------------------------------------- #
     @app.callback(
         Output('uptime-line-chart', 'figure'),
@@ -311,8 +328,16 @@ def register_callbacks(app):
             minutos = int(round((decimal_hours - horas) * 60))
             return f"{horas}h {minutos:02d}min"
         
-        days = [d['day'] for d in data]
-        uptime = [d['uptime_hours'] for d in data]
+        monitoramento_inicio = monitoramento_atividade
+        data_filtrada = []
+
+        for d in data:
+            data_atual = date(year, month, d['day'])
+            if data_atual >= monitoramento_inicio:
+                data_filtrada.append(d)
+        
+        days = [d['day'] for d in data_filtrada]
+        uptime = [d['uptime_hours'] for d in data_filtrada]
         downtime = [round(24 - h, 1) for h in uptime] 
 
         uptime_fmt = [format_hm(h) for h in uptime]
@@ -338,7 +363,23 @@ def register_callbacks(app):
                 "Inativo: %{customdata[1]}" 
                 "<extra></extra>"
         ))
+        if year == 2025 and month == 5:
+            fig.add_vline(
+                x=10,
+                line=dict(color='orange', width=2, dash='dash'),
+                annotation_text="Início do monitoramento",
+                annotation_position="top left",
+                annotation_font_color="orange"
+            )
 
+        if (year < 2025) or (year == 2025 and month < 5):
+            fig.add_annotation(
+                xref="paper", yref="paper",
+                x=0.5, y=0.5,
+                text="Monitoramento ainda não iniciado nesse mês",
+                showarrow=False,
+                font=dict(size=14, color="red"),
+        )
         fig.update_layout(
             xaxis_title='Dia do mês',
             yaxis_title='Tempo em atividade',
@@ -349,6 +390,123 @@ def register_callbacks(app):
         )
         return fig
     
+    # ---------------------------------------  CALLBACK GRAF. ANUAL DE PARADAS --------------------------------------- #
+    @app.callback(
+        Output('paradas-gerais-fig', 'figure'),
+        Input('year_dropdown', 'value'),
+    )
+    def update_paradas_gerais(selected_year):
+        paradas = get_paradas_ano(selected_year)
+        if not paradas:
+            return go.Figure().update_layout(
+                annotations=[{
+                    'text': "Nenhuma parada registrada no ano selecionado",
+                    'xref': 'paper',
+                    'yref': 'paper',
+                    'showarrow': False,
+                    'font': dict(size=14, color="red"),
+                    'x': 0.5,
+                    'y': 0.5,
+                    'xanchor': 'center',
+                    'yanchor': 'middle'
+                }],
+                template='plotly_dark',
+                margin=dict(t=40, b=40)
+            )
+        x_labels = []
+        hover_texts = []
+        y_values = []
+
+        for p in paradas:
+            inicio = p['inicio']
+            fim = p['fim']
+            duracao = p['duracao']
+            if (fim - inicio).days >= 1:
+                label = f"{inicio.strftime('%d/%m')} - {fim.strftime('%d/%m')}"
+                hover = (
+                    f"<b>Início:</b> {inicio.strftime('%d/%m/%Y')}<br>"
+                    f"<b>Retorno:</b> {fim.strftime('%d/%m/%Y')}<br>"
+                    f"<b>Duração:</b> {int(duracao//24)}d {int(duracao%24)}h"
+                )
+            else:
+                label = inicio.strftime('%d/%m')
+                horas = int(duracao)
+                minutos = int(round((duracao % 1) * 60))
+                hover = (
+                    f"<b>Data:</b> {inicio.strftime('%d/%m/%Y')}<br>"
+                    f"<b>Duração:</b> {horas}h {minutos:02d}min"
+                )
+            x_labels.append(label)
+            hover_texts.append(hover)
+            y_values.append(duracao)
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=x_labels,
+            y=y_values,
+            name="Horas de inatividade",
+            marker=dict(color='crimson'),
+            customdata=hover_texts,
+            hovertemplate="%{customdata}<extra></extra>"
+        ))
+
+        fig.update_layout(
+            xaxis_title="Período da Parada",
+            yaxis_title="Duração Total (h)",
+            template='plotly_dark',
+            margin=dict(t=40, b=40)
+        )
+        return fig
+
+
+    # ---------------------------------------  CALLBACK DESEMPENHO ANUAL LAYOUT_HOME --------------------------------------- #
+    def get_annual_uptime_summary(year):
+        monitoramento_inicio = monitoramento_atividade
+        total_uptime = 0
+        total_downtime = 0
+
+        for month in range(1, 13):
+            monthly_data = get_reboot_history(year, month)
+            for day_data in monthly_data:
+                day = day_data['day']
+                current_date = date(year, month, day)
+
+                if current_date < monitoramento_inicio:
+                    continue  # Ignora dias anteriores ao início do monitoramento que foi em 10/05/2025
+
+                uptime = day_data['uptime_hours']
+                downtime = 24 - uptime
+                total_uptime += uptime
+                total_downtime += downtime
+
+        total_hours = total_uptime + total_downtime
+        uptime_percent = (total_uptime / total_hours) * 100 if total_hours > 0 else 0
+        downtime_percent = 100 - uptime_percent
+
+        return {
+            "uptime_hours": total_uptime,
+            "downtime_hours": total_downtime,
+            "uptime_percent": round(uptime_percent, 1),
+            "downtime_percent": round(downtime_percent, 1)
+        }
+    @app.callback(
+        Output('uptime-percent', 'children'),
+        Output('uptime-hours', 'children'),
+        Output('downtime-percent', 'children'),
+        Output('downtime-hours', 'children'),
+        Input('year_dropdown', 'value')
+    )
+    def update_annual_uptime_summary(selected_year):
+        year = int(selected_year)
+        summary = get_annual_uptime_summary(year)
+
+        return (
+            f"{summary['uptime_percent']}%",
+            f"{int(summary['uptime_hours'])} horas",
+            f"{summary['downtime_percent']}%",
+            f"{int(summary['downtime_hours'])} horas"
+        )
+
     # ---------------------------------------  CALLBACK CARD DESEMPENHO LAYOUT_HOME --------------------------------------- #
     @app.callback(
         Output("summary_cards", "children"),

@@ -2,12 +2,15 @@ from dash import html, dcc
 import dash_bootstrap_components as dbc
 from config import *
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import calendar
 import re
 import socket
 import paramiko
 import os
+
+# Definição da data de inicio do monitoramento
+monitoramento_atividade = date(2025, 5, 10)
 
 ssh_password = os.getenv("accounting_password")
 if not ssh_password:
@@ -164,6 +167,72 @@ def get_reboot_history(year, month):
 
     return result
 
+# Card total de paradas anuais
+def get_total_paradas(selected_year):
+    monitoramento_inicio = monitoramento_atividade
+    year = int(selected_year)
+    total_paradas = 0
+    in_parada = False
+
+    for month in range(1, 13):
+        data = get_reboot_history(year, month)
+        for d in data:
+            dia = d['day']
+            data_atual = date(year, month, dia)
+            if data_atual < monitoramento_inicio:
+                continue 
+            uptime = d.get('uptime_hours', 24)
+            if uptime < 24:
+                if not in_parada:
+                    total_paradas += 1 
+                    in_parada = True
+            else:
+                in_parada = False
+    return total_paradas
+
+# Gráfico de paradas anuais
+def get_paradas_ano(selected_year):
+    monitoramento_inicio = monitoramento_atividade
+    year = int(selected_year)
+    paradas = []
+    em_parada = False
+    parada_inicio = None
+    parada_fim = None
+    parada_duracao = 0
+
+    for month in range(1, 13):
+        data = get_reboot_history(year, month)
+        for d in data:
+            dia = d['day']
+            data_atual = date(year, month, dia)
+            if data_atual >= monitoramento_inicio:
+                if d['uptime_hours'] < 24:
+                    if not em_parada:
+                        parada_inicio = data_atual
+                        parada_duracao = 24 - d['uptime_hours']
+                        em_parada = True
+                    else:
+                        parada_duracao += 24 - d['uptime_hours']
+                    parada_fim = data_atual 
+                else:
+                    if em_parada:
+                        paradas.append({
+                            'inicio': parada_inicio,
+                            'fim': parada_fim,
+                            'duracao': round(parada_duracao, 1)
+                        })
+                        em_parada = False
+                        parada_inicio = None
+                        parada_fim = None
+                        parada_duracao = 0
+    if em_parada and parada_inicio:
+        paradas.append({
+            'inicio': parada_inicio,
+            'fim': parada_fim,
+            'duracao': round(parada_duracao, 1)
+        })
+    return paradas
+
 # Layout
 layout_atividade = html.Div([
     # Título
@@ -195,7 +264,7 @@ layout_atividade = html.Div([
             'padding': '1.5rem',
             'margin': '1rem',
             'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
-            'flex': '0 1 35%',
+            'flex': '0 1 20%',
             'min-width': '280px'
         }),
 
@@ -250,7 +319,33 @@ layout_atividade = html.Div([
             'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
             'flex': '1',
             'min-width': '400px'
-        })
+        }),
+        # Card total de paradas no ano
+        html.Div([
+            html.H3(id='paradas-title', style={
+                'text-align': 'center',
+                'margin-bottom': '1rem',
+                'font-size': '1.5rem'
+            }),
+            html.P(id='paradas-total', style={
+                'color': first_color,
+                'text-align': 'center',
+                'font-size': '3rem',
+                'font-weight': 'bold',
+                'margin': '0',
+                'text-shadow': '2px 2px 10px rgba(0,0,0,0.6)',
+                'transition': 'all 0.3s ease-in-out'
+            }),
+        ], style={
+            'background': '#343a40',
+            'border-left': f'6px solid {first_color}',
+            'border-radius': '1rem',
+            'padding': '1.5rem',
+            'margin': '1rem',
+            'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
+            'flex': '0 1 20%',
+            'min-width': '280px'
+        }),
     ], style={
         'display': 'flex',
         'flex-direction': 'row',
@@ -302,9 +397,40 @@ layout_atividade = html.Div([
                    'border': 'none', 
                    'margin-top': '0',
                    'width': '80vw',
-                   }
+                }
         )
     ], style={'margin': '1rem 3rem 0 3rem', }),
+
+# Gráfico geral paradas anuais
+    dbc.Col([
+        html.H3(
+            "Paradas Registradas no Ano",
+            className="h3-subtitle", 
+            style={
+                'color': third_color, 
+                'text-align': 'center', 
+                'background-color': first_color, 
+                'font-size': '1rem', 
+                'padding': '0.5rem', 
+                'border-radius': '0.5rem 0.5rem 0 0',
+                'margin-bottom': '0',
+            }
+        ),
+        dbc.Card(
+            dcc.Graph(
+                id='paradas-gerais-fig',
+                style={'height': '300px'}
+            ),
+            className='shadow text-center',
+            style={
+                'background-color': third_color,
+                'border': 'none',
+                'margin-top': '0',
+                'width': '80vw',
+            }
+        )
+    ], style={'margin': '1rem 3rem 2rem 3rem'}),
+
     # Monitoramento de rede
     html.Div([
         html.Div([
