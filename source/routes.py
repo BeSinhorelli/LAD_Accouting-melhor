@@ -1,6 +1,6 @@
 from config import server, database
 from flask import g, render_template, request, redirect, url_for, flash, abort, send_file
-from models import Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, MonitoramentoRede
+from models import *
 from datetime import datetime
 from peewee import IntegrityError
 import json, os, calendar
@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 # --------------------------------  DEFINIÇÃO DE FUNÇÕES - FLASK --------------------------------------- #
 def create_tables():
     with database:
-        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, MonitoramentoRede])
+        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, Atividade, RebootHistory, MonitoramentoRede])
 
 def drop_tables():
     with database:

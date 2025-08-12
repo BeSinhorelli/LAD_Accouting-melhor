@@ -424,8 +424,8 @@ def register_callbacks(app):
             if (fim - inicio).days >= 1:
                 label = f"{inicio.strftime('%d/%m')} - {fim.strftime('%d/%m')}"
                 hover = (
-                    f"<b>Início:</b> {inicio.strftime('%d/%m/%Y')}<br>"
-                    f"<b>Retorno:</b> {fim.strftime('%d/%m/%Y')}<br>"
+                    f"<b>Início:</b> {inicio.strftime('%d/%m/%Y - %H:%M')}<br>"
+                    f"<b>Retorno:</b> {fim.strftime('%d/%m/%Y - %H:%M')}<br>"
                     f"<b>Duração:</b> {int(duracao//24)}d {int(duracao%24)}h"
                 )
             else:
@@ -434,6 +434,7 @@ def register_callbacks(app):
                 minutos = int(round((duracao % 1) * 60))
                 hover = (
                     f"<b>Data:</b> {inicio.strftime('%d/%m/%Y')}<br>"
+                    f"<b>Período:</b> {inicio.strftime('%H:%M')} - {fim.strftime('%H:%M')}<br>"
                     f"<b>Duração:</b> {horas}h {minutos:02d}min"
                 )
             x_labels.append(label)
