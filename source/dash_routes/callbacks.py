@@ -8,7 +8,7 @@ from peewee import fn
 import calendar
 from datetime import timedelta, date
 
-from dash_routes.layout_home import card_style, get_producoes, read_annual_report
+from dash_routes.layout_home import card_style, get_producoes, read_annual_report_with_cache
 from dash_routes.layout_armazenamento import dados_simulados
 from dash_routes.layout_atividade import monitoramento_atividade, get_reboot_history, get_dias_ativos, get_total_paradas, get_paradas_ano
 
@@ -524,7 +524,7 @@ def register_callbacks(app):
             desempenho = f"{(issues_done / total_issues * 100):.1f}%"
 
         # Total de horas usadas 
-        df_annual = read_annual_report(selected_year)
+        df_annual = read_annual_report_with_cache(selected_year)
         total_horas = 0
         if not df_annual.empty:
             # Tenta somar as duas colunas, se existirem
@@ -753,11 +753,41 @@ def register_callbacks(app):
             return fig
     
         fig = go.Figure()
-        fig.add_trace(go.Bar(name='Usado', x=df['nome'], y=df['usado']))
-        fig.add_trace(go.Bar(name='Disponível', x=df['nome'], y=df['disponivel']))
+    
+        # Usado
+        fig.add_trace(go.Bar(
+            name='Usado',
+            x=df['nome'],
+            y=df['usado'],
+            marker_color='#d62728', 
+        ))
+        
+        # Disponível
+        fig.add_trace(go.Bar(
+            name='Disponível',
+            x=df['nome'],
+            y=df['disponivel'],
+            marker_color='#2ca02c',
+        ))
+        
+        # Linha com o valor dedicado
+        fig.add_trace(go.Scatter(
+            x=df['nome'],
+            y=df['dedicado'],
+            mode='markers+text',
+            name='Dedicado',
+            line=dict(color='orange', width=2),
+            marker=dict(size=8, color='orange'),
+            text=df['dedicado'].apply(lambda x: f'<b>{x:.2f} TB</b>'),
+            textposition='top center',
+            textfont=dict(color='white')
+        ))
+        
         fig.update_layout(
             barmode='stack',
-            yaxis_title='TB'
+            yaxis_title='Volume em TB',
+            font=dict(color="#f8f9fa"),
+            hovermode="x unified",
+            legend_traceorder='reversed'
         )
-
         return fig

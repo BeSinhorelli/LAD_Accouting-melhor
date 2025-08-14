@@ -1,8 +1,11 @@
-from dash import html
+from dash import html, dcc
 from config import *
 from models import Producao
 from peewee import fn
+import os
+import pandas as pd
 
+annual_reports_cache = {}
 card_style = {
     "backgroundColor": "#343a40",
     "padding": "1.5rem",
@@ -25,17 +28,24 @@ def get_producoes():
     return total
 
 # Card Horas Usadas
-def read_annual_report(yearValue):
-    #Lê todos os arquivos Excel do ano e concatena em um DataFrame anual.
-        relatorio_dir = f'relatorios/{yearValue}'
-        if not os.path.exists(relatorio_dir):
-            return pd.DataFrame()
-        df_annual = pd.DataFrame()
-        for file in os.listdir(relatorio_dir):
-            if file.endswith('.xlsx'):
-                df = pd.read_excel(os.path.join(relatorio_dir, file))
-                df_annual = pd.concat([df_annual, df], ignore_index=True)
-        return df_annual
+def read_annual_report_with_cache(yearValue):
+    global annual_reports_cache
+    #Verifica se o DataFrame para o ano já está no cache
+    if yearValue in annual_reports_cache:
+        print(f"[CACHE] Retornando dados do cache para o ano {yearValue}")
+        return annual_reports_cache[yearValue]
+    #Se não estiver no cache, lê do disco
+    print(f"[CACHE] Carregando dados do disco para o ano {yearValue}")
+    relatorio_dir = f'relatorios/{yearValue}'
+    if not os.path.exists(relatorio_dir):
+        return pd.DataFrame()
+    df_annual = pd.DataFrame()
+    for file in os.listdir(relatorio_dir):
+        if file.endswith('.xlsx'):
+            df = pd.read_excel(os.path.join(relatorio_dir, file))
+            df_annual = pd.concat([df_annual, df], ignore_index=True)
+    annual_reports_cache[yearValue] = df_annual
+    return df_annual
 
 layout_home = html.Div(
     style={
@@ -124,7 +134,12 @@ layout_home = html.Div(
             "maxWidth": "900px"
         }),
         # Gráficos em callbaks.py
-        html.Div(id="summary_cards",
+        dcc.Loading(
+            id="loading-summary-cards",
+            type="default",
+            children=html.Div(id="summary_cards",
                  style={"display": "flex", "flexWrap": "wrap", "justifyContent": "center", "gap": "1.5rem", "marginTop": "2rem"})
+        )
+        
     ]
 )

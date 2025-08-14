@@ -5,9 +5,9 @@ import paramiko
 from datetime import datetime, date
 import sys
 import re
-from models import Atividade, RebootHistory, database
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'source')))
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'source')))
+from models import Atividade, RebootHistory, database
 ssh_password = os.getenv("accounting_password")
 if not ssh_password:
     raise EnvironmentError("Variável de ambiente accounting_password não encontrada.")

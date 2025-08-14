@@ -1,9 +1,10 @@
-from dash import html
-from dash import dcc
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 from config import *
 import sqlite3
 
+# ------------------ VOLUMES POR GRUPO --------------------------- #
+# Obter os grupos ativos do banco de dados
 def obter_grupos_ativos():
     conn = sqlite3.connect("accounting.db")
     cursor = conn.cursor()
@@ -12,80 +13,71 @@ def obter_grupos_ativos():
     conn.close()
     return grupos
 
-grupos_ativos = obter_grupos_ativos()
-dropdown_grupos = dcc.Dropdown(
-    id='grupo-dropdown',
-    options=[{'label': g, 'value': g} for g in grupos_ativos],
-    value=grupos_ativos[0] if grupos_ativos else None,
-    clearable=False
-    )
+dados = {
+    'BmDR': [
+        {'nome': 'BmDRarea', 'usado': 0, 'dedicado': 1},
+    ],
+    'CPBMF': [
+        {'nome': 'cpbmfarea', 'usado': 1.8, 'dedicado': 1.9},
+    ],
+    'INVESTGENOMICA-METAGENOMIC': [
+        {'nome': 'investgenomicaarea', 'usado': 5.7, 'dedicado': 6},
+        {'nome': 'metagenomicarea', 'usado': 0.352, 'dedicado': 0.590},
+    ],
+    'LABGENOMA': [
+        {'nome': 'labgenomaarea', 'usado': 4.8, 'dedicado':5.4},
+        {'nome': 'eduardoSarea', 'usado': 2.9, 'dedicado': 4.5},
+    ],
+    'NIMED-NANOFIS': [
+        {'nome': 'nanofisarea', 'usado': 0.108, 'dedicado': 1},
+    ],
+    'PLUMES': [
+        {'nome': 'plumesarea', 'usado': 9.5, 'dedicado':10},
+        {'nome': 'DAMAREA', 'usado': 11, 'dedicado': 11},
+    ],
+}
 
-# simulação de dados
 def dados_simulados(grupo):
-    dados = {
-        'AGES': [
-            {'nome': 'Host de virtualização (patrimônio 3329729)', 'usado': 0, 'dedicado': 1},
-        ],
-        'BmDR': [
-            {'nome': 'hnstorage', 'usado': 0, 'dedicado': 1},
-        ],
-        'CPBMF': [
-            {'nome': 'cpbmf-storage', 'usado': 0, 'dedicado': 2},
-        ],
-        'GRIN': [
-            {'nome': 'iSCSI PowerVault ME5012', 'usado': 0, 'dedicado': 11},
-        ],
-        'ImunoCOVID': [
-            {'nome': 'imunorepository.lad.pucrs.br', 'usado': 0, 'dedicado': 1},
-        ],
-        'INSCER': [
-            {'nome': 'host inscer.lad.pucrs.br', 'usado': 0, 'dedicado': 12},
-        ],
-        'INVESTGENOMICA-METAGENOMIC': [
-            {'nome': 'investgenomica-storage', 'usado': 0, 'dedicado': 6},
-            {'nome': 'metagenomic-storage', 'usado': 0, 'dedicado': 0.6},
-            {'nome': 'host angiostrongylus.lad.pucrs.br', 'usado': 0, 'dedicado': 0.1},
-        ],
-        'LABGENOMA': [
-            {'nome': 'labgenoma-storage', 'usado': 0, 'dedicado':5.56},
-            {'nome': 'eduardos-storage', 'usado': 0, 'dedicado': 4.6},
-        ],
-        'NIMED-NANOFIS': [
-            {'nome': 'nanofis-storage', 'usado': 0, 'dedicado': 1},
-            {'nome': 'host pacs.lad.pucrs.br', 'usado': 0, 'dedicado': 0.256},
-        ],
-        'PLUMES': [
-            {'nome': 'plumes-storage.lad.pucrs.br', 'usado': 0, 'dedicado':10},
-            {'nome': 'dam-storage.lad.pucrs.br', 'usado': 0, 'dedicado': 11},
-            {'nome': 'laset.lad.pucrs.br ', 'usado': 0, 'dedicado': 0.2},
-        ],
-        'UsaLAB': [
-            {'nome': 'host usalab', 'usado': 0, 'dedicado':0.5},
-            {'nome': 'host sgpusalab', 'usado': 0, 'dedicado': 0.5},
-        ],
-        'VHLab': [
-            {'nome': 'VM vhlab.lad.pucrs.br', 'usado': 0, 'dedicado':0.04},
-        ],
-    }
-
-    registros = dados.get(grupo, [])
-    if not registros:
-        return pd.DataFrame()
-    df = pd.DataFrame(registros)
-    df['grupo'] = grupo
+    if grupo == 'Geral':
+        todos_registros = []
+        for g, registros in dados.items():
+            for reg in registros:
+                todos_registros.append(reg)
+        if not todos_registros:
+            return pd.DataFrame()
+        df = pd.DataFrame(todos_registros)
+    else:
+        registros = dados.get(grupo, [])
+        if not registros:
+            return pd.DataFrame()
+        df = pd.DataFrame(registros)
     df['disponivel'] = df['dedicado'] - df['usado']
     return df
 
+# Filtrar dos grupos ativos apenas os que possuem dados
+grupos_ativos = obter_grupos_ativos()
+grupos_com_dados = dados.keys()
+grupos_com_dados_ativos = [g for g in grupos_ativos if g in grupos_com_dados]
+opcoes_grupos = [{'label': 'Geral', 'value': 'Geral'}] + \
+                [{'label': g, 'value': g} for g in grupos_com_dados_ativos]
+dropdown_grupos = dcc.RadioItems(
+    id='grupo-dropdown',
+    options=opcoes_grupos,
+    value='Geral',
+    labelStyle={'display': 'inline-block', 'margin-right': '20px'},
+    style={'margin-top': '10px', 'margin-bottom': '10px'}
+)
+
 layout_armazenamento = html.Div([
 
-    html.H2("Painel de Armazenamento por grupo", style={
+    html.H2("Painel de Armazenamento", style={
         'color': fifth_color,
         'text-align': 'center',
         'padding': '1rem'
     }),
     dbc.Col(
         dbc.Card([
-            dbc.CardHeader('Armazenamento por grupo', style={'background-color': first_color, 'color': second_color}),
+            dbc.CardHeader('Volumes por grupo', style={'background-color': first_color, 'color': second_color}),
             dropdown_grupos,
             dcc.Graph(id='grafico-armazenamento')
         ],
