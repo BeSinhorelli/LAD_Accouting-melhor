@@ -7,11 +7,9 @@ from config import *
 from peewee import fn
 import calendar
 from datetime import timedelta, date
-
 from dash_routes.layout_home import card_style, get_producoes, read_annual_report_with_cache
-from dash_routes.layout_armazenamento import dados_simulados
+from dash_routes.layout_armazenamento import dados_simulados, dados_por_storage
 from dash_routes.layout_atividade import monitoramento_atividade, get_reboot_history, get_dias_ativos, get_total_paradas, get_paradas_ano
-
 
 def register_callbacks(app):
     # ATUALIZAR O TITULO
@@ -726,8 +724,72 @@ def register_callbacks(app):
         return data
     
 
-    # simulação de dados
-    # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO --------------------------------------- #
+    # ---------------------------------------  CALLBACK GRAF. STORAGE (atualizados pelos relatorios mensais) --------------------------------------- #
+    @app.callback(
+        Output('grafico-storage', 'figure'),
+        Output('grafico-storage-group', 'figure'),
+        Input('year_dropdown', 'value'),
+        Input('month_slider_storage', 'value'),
+    )
+    def update_storage_graphs(yearValue, month):
+        
+        if not yearValue or not month:
+            return go.Figure(), go.Figure() 
+
+        df_data = read_database_excel(yearValue, month)
+        df_storage = df_data[['Projeto', 'Storage em cluster(GB)', 'Storage em 24x7(GB)']].dropna(thresh=2).fillna(0)
+
+        df_storage['Total'] = df_storage['Storage em cluster(GB)'] + df_storage['Storage em 24x7(GB)']
+
+        storage_capacity = 134206
+        storage_usage = df_storage['Total'].sum()
+        storage_availability = storage_capacity - storage_usage
+
+        new_row = pd.DataFrame([['Disponível', 0, 0, storage_availability]], columns=df_storage.columns)
+        df_storage = pd.concat([new_row, df_storage], ignore_index=True)
+
+        storage_usage_percent = round((storage_usage / storage_capacity) * 100, 2)
+        annotations = [
+            dict(x=0, y=['Total'], text="Utilizado", xanchor="left", showarrow=False),
+            dict(x=storage_usage, y=['Total'], text=f"{storage_usage_percent}%", xanchor="auto", showarrow=False)
+        ]
+
+        graph_storage = go.Figure(
+            data=[
+                go.Bar(name='Utilizado', x=[storage_usage], y=['Total'], orientation='h', marker_color='darkorange'),
+                go.Bar(name='Disponível', x=[storage_availability], y=['Total'], orientation='h', marker_color='#efefef')
+            ]
+        )
+        graph_storage.update_layout(
+            barmode='stack',
+            yaxis={'visible': False, 'showticklabels': False},
+            xaxis={'visible': False, 'showticklabels': False, 'showline': False},
+            height=90,
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=10, r=0, b=10, t=0),
+            legend=dict(yanchor="top", y=0.5, xanchor="right", x=1.2),
+            annotations=annotations
+        )
+
+        labels = df_storage['Projeto']
+        values = df_storage['Total']
+
+        graph_storage_group = go.Figure(
+            data=[
+                go.Pie(labels=labels, values=values, pull=[0.1])
+            ]
+        )
+        graph_storage_group.update_traces(
+            textposition='inside', 
+            textinfo='label+percent'
+        )
+        graph_storage_group.update_layout(
+            margin=dict(l=20, r=20, b=20, t=10),
+        )
+
+        return graph_storage, graph_storage_group
+    
+    # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO (Uso de Volumes por Grupo)--------------------------------------- #
     @app.callback(
         Output('grafico-armazenamento', 'figure'),
         Input('grupo-dropdown', 'value')
@@ -735,7 +797,6 @@ def register_callbacks(app):
     def atualizar_grafico(grupo):
         df = dados_simulados(grupo)
 
-        import plotly.graph_objects as go
         if df.empty:
             fig = go.Figure()
             fig.update_layout(
@@ -760,6 +821,7 @@ def register_callbacks(app):
             x=df['nome'],
             y=df['usado'],
             marker_color='#d62728', 
+            hovertemplate="<b>Usado:</b> %{y:.2f} TB<extra></extra>"
         ))
         
         # Disponível
@@ -768,6 +830,7 @@ def register_callbacks(app):
             x=df['nome'],
             y=df['disponivel'],
             marker_color='#2ca02c',
+            hovertemplate="<b>Disponível:</b> %{y:.2f} TB<extra></extra>"
         ))
         
         # Linha com o valor dedicado
@@ -780,13 +843,90 @@ def register_callbacks(app):
             marker=dict(size=8, color='orange'),
             text=df['dedicado'].apply(lambda x: f'<b>{x:.2f} TB</b>'),
             textposition='top center',
-            textfont=dict(color='white')
+            textfont=dict(color='white'),
+            hovertemplate="<b>Dedicado:</b> %{y:.2f} TB<extra></extra>"
         ))
         
         fig.update_layout(
             barmode='stack',
             yaxis_title='Volume em TB',
             font=dict(color="#f8f9fa"),
+            margin=dict(l=20, r=20, b=20, t=20),
+            hovermode="x unified",
+            legend_traceorder='reversed'
+        )
+        return fig
+    
+    # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO (Uso de Volumes por Storage)--------------------------------------- #
+    @app.callback(
+        Output('grafico-storage-servidor', 'figure'),
+        Input('grupo-dropdown', 'value')
+    )
+    def atualizar_grafico_storage(grupo):
+        df = dados_por_storage(grupo)
+
+        if df.empty:
+            fig = go.Figure()
+            fig.update_layout(
+                xaxis={'visible': False},
+                yaxis={'visible': False},
+                annotations=[
+                    dict(
+                        text=f'Nenhum dado de armazenamento encontrado para {grupo}.',
+                        xref="paper", yref="paper",
+                        showarrow=False,
+                        font=dict(size=16)
+                    )
+                ]
+            )
+            return fig
+
+        df_group = df.groupby("storage").agg({
+            "usado": "sum",
+            "dedicado": "sum",
+            "disponivel": "sum",
+            "nome": lambda v: ", ".join(sorted(set(v)))  
+        }).reset_index()
+
+        fig = go.Figure()
+
+        # Usado
+        fig.add_trace(go.Bar(
+            name='Usado',
+            x=df_group['storage'],
+            y=df_group['usado'],
+            marker_color='#d62728',
+            hovertemplate="<b>Usado:</b> %{y:.2f} TB<extra></extra>"
+        ))
+
+        # Disponível
+        fig.add_trace(go.Bar(
+            name='Disponível',
+            x=df_group['storage'],
+            y=df_group['disponivel'],
+            marker_color='#2ca02c',
+            hovertemplate="<b>Disponível:</b> %{y:.2f} TB<extra></extra>"
+        ))
+
+        # Dedicado
+        fig.add_trace(go.Scatter(
+            x=df_group['storage'],
+            y=df_group['dedicado'],
+            mode='markers+text',
+            name='Dedicado',
+            marker=dict(size=8, color='orange'),
+            text=df_group['dedicado'].apply(lambda x: f"<b>{x:.2f} TB</b>"),
+            textposition='top center',
+            textfont=dict(color='white'),
+            hovertemplate="<b>Dedicado:</b> %{y:.2f} TB<extra></extra>"
+        ))
+
+        # Layout
+        fig.update_layout(
+            barmode='stack',
+            yaxis_title='Volume em TB',
+            font=dict(color="#f8f9fa"),
+            margin=dict(l=20, r=20, b=20, t=20),
             hovermode="x unified",
             legend_traceorder='reversed'
         )

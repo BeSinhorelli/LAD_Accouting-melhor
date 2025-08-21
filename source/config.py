@@ -55,6 +55,30 @@ selected_tab_style = {
     'boxShadow': '0 2px 4px rgba(0,0,0,0.2)'
 }
 
+# ---  CONFIGURAÇÕES  --- #
+def verify_leap_year (yearValue):
+    return int(yearValue) % 400 == 0 or int(yearValue) % 4 == 0 and int(yearValue) % 100 != 0
+
+def month_days (month, yearValue):
+        
+        fev = 29 if verify_leap_year(yearValue) else 28
+
+        month_days = {
+        1: 31, 2: fev, 3: 31, 4: 30,
+        5: 31, 6: 30, 7: 31, 8: 31,
+        9: 30, 10: 31, 11: 30, 12: 31
+        }[month]
+        return month_days
+
+def read_database_excel (yearValue, month):
+        
+    month_names = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    month_name = month_names[month - 1]
+    file_path = f'relatorios/{yearValue}/{month}-{month_name}.xlsx'
+    df_data = pd.read_excel(file_path)
+    return df_data
+
+
 # ---  CONFIGURAÇÕES  API GITHUB --- #
 GITHUB_REPO = "LAD-PUCRS/LAD-Management"
 GITHUB_TOKEN = "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"  # Token do GitHub

@@ -61,14 +61,14 @@ layout_usos = html.Div([
                             dbc.Col([
                                 html.Span('Utilizado'),
                                 html.Div([
-                                    html.H5(id='storage_usage', style={'display': 'inline', 'color': 'white'}),
+                                    html.H5(id='', style={'display': 'inline', 'color': 'white'}),
                                     html.Span('GB', style={'color': 'white', 'margin-left': '5px'})
                                 ])
                             ]),
                             dbc.Col([
                                 html.Span('Disponível'),
                                 html.Div([
-                                    html.H5(id='storage_availability', style={'display': 'inline', 'color': 'white'}),
+                                    html.H5(id='', style={'display': 'inline', 'color': 'white'}),
                                     html.Span('GB', style={'color': 'white', 'margin-left': '5px'}),
                                 ])
                                 
