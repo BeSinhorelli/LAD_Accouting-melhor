@@ -1,8 +1,11 @@
-from dash import html
+from dash import html, dcc
 from config import *
 from models import Producao
 from peewee import fn
+import os
+import pandas as pd
 
+annual_reports_cache = {}
 card_style = {
     "backgroundColor": "#343a40",
     "padding": "1.5rem",
@@ -25,17 +28,24 @@ def get_producoes():
     return total
 
 # Card Horas Usadas
-def read_annual_report(yearValue):
-    #Lê todos os arquivos Excel do ano e concatena em um DataFrame anual.
-        relatorio_dir = f'relatorios/{yearValue}'
-        if not os.path.exists(relatorio_dir):
-            return pd.DataFrame()
-        df_annual = pd.DataFrame()
-        for file in os.listdir(relatorio_dir):
-            if file.endswith('.xlsx'):
-                df = pd.read_excel(os.path.join(relatorio_dir, file))
-                df_annual = pd.concat([df_annual, df], ignore_index=True)
-        return df_annual
+def read_annual_report_with_cache(yearValue):
+    global annual_reports_cache
+    #Verifica se o DataFrame para o ano já está no cache
+    if yearValue in annual_reports_cache:
+        print(f"[CACHE] Retornando dados do cache para o ano {yearValue}")
+        return annual_reports_cache[yearValue]
+    #Se não estiver no cache, lê do disco
+    print(f"[CACHE] Carregando dados do disco para o ano {yearValue}")
+    relatorio_dir = f'relatorios/{yearValue}'
+    if not os.path.exists(relatorio_dir):
+        return pd.DataFrame()
+    df_annual = pd.DataFrame()
+    for file in os.listdir(relatorio_dir):
+        if file.endswith('.xlsx'):
+            df = pd.read_excel(os.path.join(relatorio_dir, file))
+            df_annual = pd.concat([df_annual, df], ignore_index=True)
+    annual_reports_cache[yearValue] = df_annual
+    return df_annual
 
 layout_home = html.Div(
     style={
@@ -53,24 +63,67 @@ layout_home = html.Div(
     },
     children=[
         html.Div([
-            html.H1("Bem-vindo ao LAD Dashboard", style={
-                "marginBottom": "2rem",
-                "fontSize": "2.5rem",
-                "fontWeight": "700",
-                "color": first_color,
-                "textShadow": "1px 1px 2px #000"
-            }),
-            html.P(
-                "Este painel reúne os principais indicadores do LAD: atividade do laboratório, análise e desempenho das demandas, uso de máquinas, armazenamento e produções.",
+            html.H1(
+                 "Disponibilidade Anual", 
+                 style={
+                      'color': first_color,
+                      'text-align': 'center',
+                      'font-size': '1.5rem'
+            }
+            ),
+            html.Small(
+                "Monitoramento iniciado em 10 de maio de 2025",
                 style={
-                    "maxWidth": "800px",
-                    "fontSize": "1.2rem",
-                    "lineHeight": "1.6",
-                    "color": "#ced4da",
-                    "margin": "0 auto",
-                    "marginBottom":'1rem',
+                    'color': '#ccc',
+                    'textAlign': 'center',
+                    'display': 'block',
+                    'marginBottom': '1.5rem',
+                    'fontStyle': 'italic'
                 }
             ),
+            html.Div([
+               html.Div([
+                    html.H4("Uptime", 
+                            style={
+                                'text-align': 'center', 
+                                'margin-bottom': '0.2rem'
+                                }),
+                    html.P(id='uptime-percent', 
+                           style={
+                            'font-size': '2rem', 
+                            'color': first_color, 
+                            'fontWeight': 'bold'
+                            }),
+                    html.Small(id='uptime-hours')
+               ], style={
+                    'flex': '1', 
+                    'padding': '0 1rem', 
+                    'border-right': 
+                    '1px solid #555'}),
+               html.Div([
+                    html.H4("Dowtime", 
+                            style={
+                                'text-align': 'center', 
+                                'margin-bottom': '0.2rem'
+                                }),
+                    html.P(id='downtime-percent', 
+                           style={
+                            'font-size': '2rem', 
+                            'color': first_color,
+                            'fontWeight': 'bold'
+                            }),
+                    html.Small(id='downtime-hours')
+               ], style={
+                    'flex': '1', 
+                    'padding': 
+                    '0 1rem', 
+                    }),
+            ], style={
+                 'display': 'flex', 
+                 'justify-content': 'space-around',
+                 'align-items': 'center',
+                 'gap': '0.5rem'
+                 }),
         ],
         style={
             "padding": "2rem",
@@ -78,13 +131,15 @@ layout_home = html.Div(
             "boxShadow": "0 4px 12px rgba(0, 0, 0, 0.4)",
             "backgroundColor": "#343a40",
             "width": "90%",
-            "maxWidth": "1000px"
+            "maxWidth": "900px"
         }),
-        # Gráficos em callbaks.py, linha 346
-        html.Div(id="summary_cards", style={"display": "flex", 
-                                            "flexWrap": "wrap", 
-                                            "justifyContent": "center", 
-                                            "gap": "1.5rem", 
-                                            "marginTop": "2rem"})
+        # Gráficos em callbaks.py
+        dcc.Loading(
+            id="loading-summary-cards",
+            type="default",
+            children=html.Div(id="summary_cards",
+                 style={"display": "flex", "flexWrap": "wrap", "justifyContent": "center", "gap": "1.5rem", "marginTop": "2rem"})
+        )
+        
     ]
 )

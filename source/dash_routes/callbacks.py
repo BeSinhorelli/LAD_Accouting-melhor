@@ -6,12 +6,10 @@ from models import Producao, Usuario, MonitoramentoRede
 from config import *
 from peewee import fn
 import calendar
-from datetime import timedelta
-
-from dash_routes.layout_home import card_style, get_producoes, read_annual_report
-from dash_routes.layout_armazenamento import dados_simulados
-from dash_routes.layout_atividade import get_reboot_history, get_dias_ativos
-
+from datetime import timedelta, date
+from dash_routes.layout_home import card_style, get_producoes, read_annual_report_with_cache
+from dash_routes.layout_armazenamento import dados_simulados, dados_por_storage
+from dash_routes.layout_atividade import monitoramento_atividade, get_reboot_history, get_dias_ativos, get_total_paradas, get_paradas_ano
 
 def register_callbacks(app):
     # ATUALIZAR O TITULO
@@ -295,6 +293,23 @@ def register_callbacks(app):
             ultima_atualizacao = '----'
         return f"Produções científicas por Unidade (2015-{ultima_atualizacao})"
     
+    # ---------------------------------------  CALLBACK CARD PARADAS REGISTRADAS LAYOUT_ATIVIDADE
+    # --------------------------------------- #
+    @app.callback(
+        Output('paradas-total', 'children'),
+        Input('year_dropdown', 'value'),
+    )
+    def update_total_paradas(selected_year):
+        total = get_total_paradas(selected_year)
+        return f"{total}"
+    
+    @app.callback(
+        Output('paradas-title', 'children'),
+        Input('year_dropdown', 'value'),
+    )
+    def update_paradas_title(year):
+        return f"Paradas Registradas em {year}"
+    
     # ---------------------------------------  CALLBACK GRAF. ATIVIDADE --------------------------------------- #
     @app.callback(
         Output('uptime-line-chart', 'figure'),
@@ -311,8 +326,16 @@ def register_callbacks(app):
             minutos = int(round((decimal_hours - horas) * 60))
             return f"{horas}h {minutos:02d}min"
         
-        days = [d['day'] for d in data]
-        uptime = [d['uptime_hours'] for d in data]
+        monitoramento_inicio = monitoramento_atividade
+        data_filtrada = []
+
+        for d in data:
+            data_atual = date(year, month, d['day'])
+            if data_atual >= monitoramento_inicio:
+                data_filtrada.append(d)
+        
+        days = [d['day'] for d in data_filtrada]
+        uptime = [d['uptime_hours'] for d in data_filtrada]
         downtime = [round(24 - h, 1) for h in uptime] 
 
         uptime_fmt = [format_hm(h) for h in uptime]
@@ -338,7 +361,23 @@ def register_callbacks(app):
                 "Inativo: %{customdata[1]}" 
                 "<extra></extra>"
         ))
+        if year == 2025 and month == 5:
+            fig.add_vline(
+                x=10,
+                line=dict(color='orange', width=2, dash='dash'),
+                annotation_text="Início do monitoramento",
+                annotation_position="top left",
+                annotation_font_color="orange"
+            )
 
+        if (year < 2025) or (year == 2025 and month < 5):
+            fig.add_annotation(
+                xref="paper", yref="paper",
+                x=0.5, y=0.5,
+                text="Monitoramento ainda não iniciado nesse mês",
+                showarrow=False,
+                font=dict(size=14, color="red"),
+        )
         fig.update_layout(
             xaxis_title='Dia do mês',
             yaxis_title='Tempo em atividade',
@@ -349,6 +388,124 @@ def register_callbacks(app):
         )
         return fig
     
+    # ---------------------------------------  CALLBACK GRAF. ANUAL DE PARADAS --------------------------------------- #
+    @app.callback(
+        Output('paradas-gerais-fig', 'figure'),
+        Input('year_dropdown', 'value'),
+    )
+    def update_paradas_gerais(selected_year):
+        paradas = get_paradas_ano(selected_year)
+        if not paradas:
+            return go.Figure().update_layout(
+                annotations=[{
+                    'text': "Nenhuma parada registrada no ano selecionado",
+                    'xref': 'paper',
+                    'yref': 'paper',
+                    'showarrow': False,
+                    'font': dict(size=14, color="red"),
+                    'x': 0.5,
+                    'y': 0.5,
+                    'xanchor': 'center',
+                    'yanchor': 'middle'
+                }],
+                template='plotly_dark',
+                margin=dict(t=40, b=40)
+            )
+        x_labels = []
+        hover_texts = []
+        y_values = []
+
+        for p in paradas:
+            inicio = p['inicio']
+            fim = p['fim']
+            duracao = p['duracao']
+            if (fim - inicio).days >= 1:
+                label = f"{inicio.strftime('%d/%m')} - {fim.strftime('%d/%m')}"
+                hover = (
+                    f"<b>Início:</b> {inicio.strftime('%d/%m/%Y - %H:%M')}<br>"
+                    f"<b>Retorno:</b> {fim.strftime('%d/%m/%Y - %H:%M')}<br>"
+                    f"<b>Duração:</b> {int(duracao//24)}d {int(duracao%24)}h"
+                )
+            else:
+                label = inicio.strftime('%d/%m')
+                horas = int(duracao)
+                minutos = int(round((duracao % 1) * 60))
+                hover = (
+                    f"<b>Data:</b> {inicio.strftime('%d/%m/%Y')}<br>"
+                    f"<b>Período:</b> {inicio.strftime('%H:%M')} - {fim.strftime('%H:%M')}<br>"
+                    f"<b>Duração:</b> {horas}h {minutos:02d}min"
+                )
+            x_labels.append(label)
+            hover_texts.append(hover)
+            y_values.append(duracao)
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=x_labels,
+            y=y_values,
+            name="Horas de inatividade",
+            marker=dict(color='crimson'),
+            customdata=hover_texts,
+            hovertemplate="%{customdata}<extra></extra>"
+        ))
+
+        fig.update_layout(
+            xaxis_title="Período da Parada",
+            yaxis_title="Duração Total (h)",
+            template='plotly_dark',
+            margin=dict(t=40, b=40)
+        )
+        return fig
+
+
+    # ---------------------------------------  CALLBACK DESEMPENHO ANUAL LAYOUT_HOME --------------------------------------- #
+    def get_annual_uptime_summary(year):
+        monitoramento_inicio = monitoramento_atividade
+        total_uptime = 0
+        total_downtime = 0
+
+        for month in range(1, 13):
+            monthly_data = get_reboot_history(year, month)
+            for day_data in monthly_data:
+                day = day_data['day']
+                current_date = date(year, month, day)
+
+                if current_date < monitoramento_inicio:
+                    continue  # Ignora dias anteriores ao início do monitoramento que foi em 10/05/2025
+
+                uptime = day_data['uptime_hours']
+                downtime = 24 - uptime
+                total_uptime += uptime
+                total_downtime += downtime
+
+        total_hours = total_uptime + total_downtime
+        uptime_percent = (total_uptime / total_hours) * 100 if total_hours > 0 else 0
+        downtime_percent = 100 - uptime_percent
+
+        return {
+            "uptime_hours": total_uptime,
+            "downtime_hours": total_downtime,
+            "uptime_percent": round(uptime_percent, 1),
+            "downtime_percent": round(downtime_percent, 1)
+        }
+    @app.callback(
+        Output('uptime-percent', 'children'),
+        Output('uptime-hours', 'children'),
+        Output('downtime-percent', 'children'),
+        Output('downtime-hours', 'children'),
+        Input('year_dropdown', 'value')
+    )
+    def update_annual_uptime_summary(selected_year):
+        year = int(selected_year)
+        summary = get_annual_uptime_summary(year)
+
+        return (
+            f"{summary['uptime_percent']}%",
+            f"{int(summary['uptime_hours'])} horas",
+            f"{summary['downtime_percent']}%",
+            f"{int(summary['downtime_hours'])} horas"
+        )
+
     # ---------------------------------------  CALLBACK CARD DESEMPENHO LAYOUT_HOME --------------------------------------- #
     @app.callback(
         Output("summary_cards", "children"),
@@ -365,7 +522,7 @@ def register_callbacks(app):
             desempenho = f"{(issues_done / total_issues * 100):.1f}%"
 
         # Total de horas usadas 
-        df_annual = read_annual_report(selected_year)
+        df_annual = read_annual_report_with_cache(selected_year)
         total_horas = 0
         if not df_annual.empty:
             # Tenta somar as duas colunas, se existirem
@@ -567,8 +724,72 @@ def register_callbacks(app):
         return data
     
 
-    # simulação de dados
-    # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO --------------------------------------- #
+    # ---------------------------------------  CALLBACK GRAF. STORAGE (atualizados pelos relatorios mensais) --------------------------------------- #
+    @app.callback(
+        Output('grafico-storage', 'figure'),
+        Output('grafico-storage-group', 'figure'),
+        Input('year_dropdown', 'value'),
+        Input('month_slider_storage', 'value'),
+    )
+    def update_storage_graphs(yearValue, month):
+        
+        if not yearValue or not month:
+            return go.Figure(), go.Figure() 
+
+        df_data = read_database_excel(yearValue, month)
+        df_storage = df_data[['Projeto', 'Storage em cluster(GB)', 'Storage em 24x7(GB)']].dropna(thresh=2).fillna(0)
+
+        df_storage['Total'] = df_storage['Storage em cluster(GB)'] + df_storage['Storage em 24x7(GB)']
+
+        storage_capacity = 134206
+        storage_usage = df_storage['Total'].sum()
+        storage_availability = storage_capacity - storage_usage
+
+        new_row = pd.DataFrame([['Disponível', 0, 0, storage_availability]], columns=df_storage.columns)
+        df_storage = pd.concat([new_row, df_storage], ignore_index=True)
+
+        storage_usage_percent = round((storage_usage / storage_capacity) * 100, 2)
+        annotations = [
+            dict(x=0, y=['Total'], text="Utilizado", xanchor="left", showarrow=False),
+            dict(x=storage_usage, y=['Total'], text=f"{storage_usage_percent}%", xanchor="auto", showarrow=False)
+        ]
+
+        graph_storage = go.Figure(
+            data=[
+                go.Bar(name='Utilizado', x=[storage_usage], y=['Total'], orientation='h', marker_color='darkorange'),
+                go.Bar(name='Disponível', x=[storage_availability], y=['Total'], orientation='h', marker_color='#efefef')
+            ]
+        )
+        graph_storage.update_layout(
+            barmode='stack',
+            yaxis={'visible': False, 'showticklabels': False},
+            xaxis={'visible': False, 'showticklabels': False, 'showline': False},
+            height=90,
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=10, r=0, b=10, t=0),
+            legend=dict(yanchor="top", y=0.5, xanchor="right", x=1.2),
+            annotations=annotations
+        )
+
+        labels = df_storage['Projeto']
+        values = df_storage['Total']
+
+        graph_storage_group = go.Figure(
+            data=[
+                go.Pie(labels=labels, values=values, pull=[0.1])
+            ]
+        )
+        graph_storage_group.update_traces(
+            textposition='inside', 
+            textinfo='label+percent'
+        )
+        graph_storage_group.update_layout(
+            margin=dict(l=20, r=20, b=20, t=10),
+        )
+
+        return graph_storage, graph_storage_group
+    
+    # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO (Uso de Volumes por Grupo)--------------------------------------- #
     @app.callback(
         Output('grafico-armazenamento', 'figure'),
         Input('grupo-dropdown', 'value')
@@ -576,7 +797,6 @@ def register_callbacks(app):
     def atualizar_grafico(grupo):
         df = dados_simulados(grupo)
 
-        import plotly.graph_objects as go
         if df.empty:
             fig = go.Figure()
             fig.update_layout(
@@ -594,11 +814,120 @@ def register_callbacks(app):
             return fig
     
         fig = go.Figure()
-        fig.add_trace(go.Bar(name='Usado', x=df['nome'], y=df['usado']))
-        fig.add_trace(go.Bar(name='Disponível', x=df['nome'], y=df['disponivel']))
+    
+        # Usado
+        fig.add_trace(go.Bar(
+            name='Usado',
+            x=df['nome'],
+            y=df['usado'],
+            marker_color='#d62728', 
+            hovertemplate="<b>Usado:</b> %{y:.2f} TB<extra></extra>"
+        ))
+        
+        # Disponível
+        fig.add_trace(go.Bar(
+            name='Disponível',
+            x=df['nome'],
+            y=df['disponivel'],
+            marker_color='#2ca02c',
+            hovertemplate="<b>Disponível:</b> %{y:.2f} TB<extra></extra>"
+        ))
+        
+        # Linha com o valor dedicado
+        fig.add_trace(go.Scatter(
+            x=df['nome'],
+            y=df['dedicado'],
+            mode='markers+text',
+            name='Dedicado',
+            line=dict(color='orange', width=2),
+            marker=dict(size=8, color='orange'),
+            text=df['dedicado'].apply(lambda x: f'<b>{x:.2f} TB</b>'),
+            textposition='top center',
+            textfont=dict(color='white'),
+            hovertemplate="<b>Dedicado:</b> %{y:.2f} TB<extra></extra>"
+        ))
+        
         fig.update_layout(
             barmode='stack',
-            yaxis_title='TB'
+            yaxis_title='Volume em TB',
+            font=dict(color="#f8f9fa"),
+            margin=dict(l=20, r=20, b=20, t=20),
+            hovermode="x unified",
+            legend_traceorder='reversed'
         )
+        return fig
+    
+    # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO (Uso de Volumes por Storage)--------------------------------------- #
+    @app.callback(
+        Output('grafico-storage-servidor', 'figure'),
+        Input('grupo-dropdown', 'value')
+    )
+    def atualizar_grafico_storage(grupo):
+        df = dados_por_storage(grupo)
 
+        if df.empty:
+            fig = go.Figure()
+            fig.update_layout(
+                xaxis={'visible': False},
+                yaxis={'visible': False},
+                annotations=[
+                    dict(
+                        text=f'Nenhum dado de armazenamento encontrado para {grupo}.',
+                        xref="paper", yref="paper",
+                        showarrow=False,
+                        font=dict(size=16)
+                    )
+                ]
+            )
+            return fig
+
+        df_group = df.groupby("storage").agg({
+            "usado": "sum",
+            "dedicado": "sum",
+            "disponivel": "sum",
+            "nome": lambda v: ", ".join(sorted(set(v)))  
+        }).reset_index()
+
+        fig = go.Figure()
+
+        # Usado
+        fig.add_trace(go.Bar(
+            name='Usado',
+            x=df_group['storage'],
+            y=df_group['usado'],
+            marker_color='#d62728',
+            hovertemplate="<b>Usado:</b> %{y:.2f} TB<extra></extra>"
+        ))
+
+        # Disponível
+        fig.add_trace(go.Bar(
+            name='Disponível',
+            x=df_group['storage'],
+            y=df_group['disponivel'],
+            marker_color='#2ca02c',
+            hovertemplate="<b>Disponível:</b> %{y:.2f} TB<extra></extra>"
+        ))
+
+        # Dedicado
+        fig.add_trace(go.Scatter(
+            x=df_group['storage'],
+            y=df_group['dedicado'],
+            mode='markers+text',
+            name='Dedicado',
+            marker=dict(size=8, color='orange'),
+            text=df_group['dedicado'].apply(lambda x: f"<b>{x:.2f} TB</b>"),
+            textposition='top center',
+            textfont=dict(color='white'),
+            hovertemplate="<b>Dedicado:</b> %{y:.2f} TB<extra></extra>"
+        ))
+
+        # Layout
+        fig.update_layout(
+            barmode='stack',
+            yaxis_title='Volume em TB',
+            font=dict(color="#f8f9fa"),
+            margin=dict(l=20, r=20, b=20, t=20),
+            hovermode="x unified",
+            legend_traceorder='reversed'
+        )
         return fig

@@ -1,168 +1,222 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 from config import *
-import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import calendar
-import re
-import socket
-import paramiko
-import os
+from peewee import fn
+from models import Atividade, RebootHistory, database
 
-ssh_password = os.getenv("accounting_password")
-if not ssh_password:
-    raise EnvironmentError("Variável de ambiente accounting_password não encontrada.")
-
-def is_production():
-    return socket.gethostname() == "accounting"
-
-# Função auxiliar para executar comandos
-def execute_command(cmd):
-    try:
-        if is_production():
-            output = subprocess.check_output(cmd, shell=True).decode()
-        else:
-            with paramiko.SSHClient() as ssh:
-                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                ssh.connect(
-                    "accounting", username="laduser", password=ssh_password, allow_agent=False, look_for_keys=False
-                )
-                stdin, stdout, _ = ssh.exec_command(cmd)
-                output = stdout.read().decode()
-        return output
-    except Exception as e:
-        print(f"Erro ao executar o comando '{cmd}': {e}")
-        return None
-
-# Coletar data do último reboot
-def get_boot_time():
-    output = execute_command("/usr/bin/uptime -s")
-    if output:
-        return datetime.strptime(output.strip(), "%Y-%m-%d %H:%M:%S")
-    return None
-
-# Coletar histórico de reboot
-def get_reboot_history_raw():
-    return execute_command("/usr/bin/last reboot -F")
+# Definição da data de inicio do monitoramento
+monitoramento_atividade = date(2025, 5, 10)
+def conectar_banco():
+    if database.is_closed():
+        database.connect()
 
 # Pega o último uptime
 def get_dias_ativos():
-    boot_time = get_boot_time()
-    if not boot_time:
-        return "Erro ao obter o tempo de atividade"
-    
-    dias_ativos = (datetime.now() - boot_time).days
-    return f"{dias_ativos}"
+    conectar_banco()
+    try:
+        # Busca o último registro de atividade
+        ultima_atividade = Atividade.select().order_by(Atividade.data.desc()).get()
+        boot_time_str = ultima_atividade.uptime
+        boot_time = datetime.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
+        
+        dias_ativos = (datetime.now() - max(boot_time, datetime.combine(monitoramento_atividade, datetime.min.time()))).days
+        return f"{dias_ativos}"
+    except Atividade.DoesNotExist:
+        return "Nenhum dado de atividade"
+    except Exception as e:
+        print(f"Erro ao obter dias ativos do banco: {e}")
+        return "Erro"
 
 # Pega a data de retorno da última parada
 def get_data_retorno_ultima_parada():
-    boot_time = get_boot_time()
-    if not boot_time:
+    conectar_banco()
+    try:
+        ultima_atividade = Atividade.select().order_by(Atividade.id.desc()).get()
+        boot_time_str = ultima_atividade.uptime
+        boot_time = datetime.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
+        return boot_time.strftime("%d/%m/%Y - %H:%M")
+    except Atividade.DoesNotExist:
         return "Erro ao obter"
-    return boot_time.strftime("%d/%m/%Y - %H:%M")
+    except Exception as e:
+        print(f"Erro ao obter data de retorno do banco: {e}")
+        return "Erro"
 
-def get_ultima_parada_datetime():
-    output = get_reboot_history_raw()
-    if not output:
-        return None
-        
-    end_times = []
-    for line in output.splitlines():
-        if "system boot" in line:
-            end_match = re.search(r'- (\w{3} \w{3}\s+\d+ \d{2}:\d{2}:\d{2} \d{4})', line)
-            if end_match:
-                try:
-                    end_time = datetime.strptime(end_match.group(1), "%a %b %d %H:%M:%S %Y")
-                    end_times.append(end_time)
-                except ValueError:
-                    continue 
-    if end_times:
-        return end_times[0]  
-    return None
-
-# Pega a data da última parada para exibição
 def get_data_ultima_parada():
-    parada_time = get_ultima_parada_datetime()
-    if parada_time:
-        return parada_time.strftime("%d/%m/%Y - %H:%M")
-    return "Sem paradas registradas"
+    conectar_banco()
+    try:
+        ultima_parada = RebootHistory.select().order_by(RebootHistory.data_fim.desc()).get()
+        return ultima_parada.data_fim.strftime("%d/%m/%Y - %H:%M")
+    except RebootHistory.DoesNotExist:
+        return "Sem paradas registradas"
+    except Exception as e:
+        print(f"Erro ao obter data da última parada do banco: {e}")
+        return "Erro"
 
+# Calcula a duração da última parada
 def get_duracao_parada():
-    retorno_time = get_boot_time()
-    parada_time = get_ultima_parada_datetime()
-    if not retorno_time or not parada_time:
-        return "N/A" 
-    duracao = retorno_time - parada_time
-    total_seconds = duracao.total_seconds()
-    
-    dias = int(total_seconds // 86400)
-    horas = int((total_seconds % 86400) // 3600)
-    minutos = int((total_seconds % 3600) // 60)
-    
-    parts = []
-    if dias > 0:
-        parts.append(f"{dias}d")
-    if horas > 0:
-        parts.append(f"{horas}h")
-    if minutos > 0:
-        parts.append(f"{minutos}m") 
-    return " ".join(parts) if parts else "0m"
+    conectar_banco()
+    try:
+        ultima_parada_fim = datetime.strptime(
+            Atividade.select().order_by(Atividade.id.desc()).get().uptime,
+            "%Y-%m-%d %H:%M:%S"
+        )
+        ultima_parada_inicio = RebootHistory.select().order_by(RebootHistory.data_fim.desc()).get().data_fim
+        
+        duracao = ultima_parada_fim - ultima_parada_inicio
+        total_seconds = duracao.total_seconds()
+        
+        dias = int(total_seconds // 86400)
+        horas = int((total_seconds % 86400) // 3600)
+        minutos = int((total_seconds % 3600) // 60)
+        
+        parts = []
+        if dias > 0:
+            parts.append(f"{dias}d")
+        if horas > 0:
+            parts.append(f"{horas}h")
+        if minutos > 0:
+            parts.append(f"{minutos}m") 
+        return " ".join(parts) if parts else "0m"
+    except (Atividade.DoesNotExist, RebootHistory.DoesNotExist):
+        return "N/A"
+    except Exception as e:
+        print(f"Erro ao calcular duração da parada: {e}")
+        return "Erro"
 
 # Coletar o histórico de reboot para o gráfico
 def get_reboot_history(year, month):
-    output = get_reboot_history_raw()
-    if not output:
-        return []
+    conectar_banco()
+    reboots = RebootHistory.select().where(
+        ((fn.strftime('%Y', RebootHistory.data_inicio) == str(year)) | (fn.strftime('%Y', RebootHistory.data_fim) == str(year))) &
+        ((fn.strftime('%m', RebootHistory.data_inicio) == f'{month:02d}') | (fn.strftime('%m', RebootHistory.data_fim) == f'{month:02d}')) &
+        (RebootHistory.data_inicio >= datetime.combine(monitoramento_atividade, datetime.min.time()))
+    ).order_by(RebootHistory.data_inicio)
 
-    reboot_ranges = []
-    for line in output.splitlines():
-        if "system boot" not in line:
-            continue
-
-        start_match = re.search(r'(\w{3} \w{3}\s+\d+ \d{2}:\d{2}:\d{2} \d{4})', line)
-        end_match = re.search(r'- (\w{3} \w{3}\s+\d+ \d{2}:\d{2}:\d{2} \d{4})', line)
-
-        if not start_match:
-            continue
-
-        try:
-            start_time = datetime.strptime(start_match.group(1), "%a %b %d %H:%M:%S %Y")
-            end_time = datetime.strptime(end_match.group(1), "%a %b %d %H:%M:%S %Y") if end_match else datetime.now()
-        except ValueError:
-            continue
-
-        reboot_ranges.append((start_time, end_time))
-
-    daily_uptime = {}
-    for start, end in reboot_ranges:
-        current_day = start.date()
-        while current_day <= end.date():
-            if current_day.year == year and current_day.month == month:
-                daily_uptime.setdefault(current_day, 0.0)
-                
-                day_start_time = max(start, datetime.combine(current_day, datetime.min.time()))
-                day_end_time = min(end, datetime.combine(current_day, datetime.max.time()))
-                delta = (day_end_time - day_start_time).total_seconds() / 3600
-                daily_uptime[current_day] += delta
-
-            current_day += timedelta(days=1)
-
+    # Períodos de parada
+    shutdown_periods = []
+    try:
+        ultima_atividade = Atividade.select().order_by(Atividade.id.desc()).get()
+        current_boot_time = datetime.strptime(ultima_atividade.uptime, "%Y-%m-%d %H:%M:%S")
+        reboots_list = list(reboots)
+        if reboots_list:
+            last_reboot_end = reboots_list[-1].data_fim
+            shutdown_periods.append((last_reboot_end, current_boot_time))
+    except (Atividade.DoesNotExist, RebootHistory.DoesNotExist):
+        reboots_list = list(reboots)
+    
+    # Processa os demais reboots (fora o atual)
+    for i in range(len(reboots_list) - 1):
+        parada_inicio = reboots_list[i].data_fim
+        parada_fim = reboots_list[i+1].data_inicio
+        shutdown_periods.append((parada_inicio, parada_fim))
+    
     today = datetime.now().date()
     last_day = calendar.monthrange(year, month)[1]
     result = []
     for d in range(1, last_day + 1):
-        dt = datetime(year, month, d).date()
-        if dt > today:
-            break
-        if dt == today:
+        dt = date(year, month, d)
+        
+        if dt < monitoramento_atividade:
             continue
-        uptime_hours = daily_uptime.get(dt, 0.0)
+        if dt == today:
+            break
+            
+        uptime_hours = 24.0
+        
+        for parada_inicio, parada_fim in shutdown_periods:
+            if dt >= parada_inicio.date() and dt <= parada_fim.date():
+                day_start = datetime.combine(dt, datetime.min.time())
+                day_end = datetime.combine(dt, datetime.max.time())
+                
+                parada_interval_start = max(day_start, parada_inicio)
+                parada_interval_end = min(day_end, parada_fim)
+                
+                parada_duration_seconds = (parada_interval_end - parada_interval_start).total_seconds()
+                uptime_hours -= parada_duration_seconds / 3600
+        
         result.append({
             "day": d,
-            "uptime_hours": min(round(uptime_hours, 1), 24.0)
+            "uptime_hours": max(0.0, min(round(uptime_hours, 1), 24.0))
         })
 
     return result
+
+# Card total de paradas anuais
+def get_total_paradas(selected_year):
+    conectar_banco()
+    year = int(selected_year)
+    reboots = RebootHistory.select().where(
+        (fn.strftime('%Y', RebootHistory.data_inicio) == str(year)) &
+        (RebootHistory.data_inicio >= datetime.combine(monitoramento_atividade, datetime.min.time()))
+    ).order_by(RebootHistory.data_inicio)
+    
+    if not reboots:
+        return 0
+    
+    parada_times = [reboot.data_fim for reboot in reboots]
+    
+    try:
+        current_boot_time = datetime.strptime(
+            Atividade.select().order_by(Atividade.id.desc()).get().uptime,
+            "%Y-%m-%d %H:%M:%S"
+        )
+        parada_times.append(current_boot_time)
+    except Atividade.DoesNotExist:
+        pass
+    
+    if len(parada_times) < 2:
+        return 0
+        
+    total_paradas = 0
+    for i in range(len(parada_times) - 1):
+        duracao = parada_times[i+1] - parada_times[i]
+        if duracao.total_seconds() > 60:
+            total_paradas += 1
+            
+    return total_paradas
+
+# Gráfico de paradas anuais
+def get_paradas_ano(selected_year):
+    conectar_banco()
+    year = int(selected_year)
+    reboots_list = list(RebootHistory.select().where(
+        (fn.strftime('%Y', RebootHistory.data_inicio) == str(year)) &
+        (RebootHistory.data_inicio >= datetime.combine(monitoramento_atividade, datetime.min.time()))
+    ).order_by(RebootHistory.data_inicio))
+    
+    paradas = []
+    # Processa as paradas entre os reboots
+    for i in range(len(reboots_list) - 1):
+        parada_inicio = reboots_list[i].data_fim
+        parada_fim = reboots_list[i+1].data_inicio
+        
+        duracao_seconds = (parada_fim - parada_inicio).total_seconds()
+        if duracao_seconds > 60:
+            paradas.append({
+                'inicio': parada_inicio,
+                'fim': parada_fim,
+                'duracao': duracao_seconds / 3600
+            })
+    # Adiciona a parada atual
+    if reboots_list:
+        try:
+            last_reboot_end = reboots_list[-1].data_fim
+            current_boot_time = datetime.strptime(
+                Atividade.select().order_by(Atividade.id.desc()).get().uptime,
+                "%Y-%m-%d %H:%M:%S"
+            )
+            duracao_seconds = (current_boot_time - last_reboot_end).total_seconds()
+            if duracao_seconds > 60:
+                paradas.append({
+                    'inicio': last_reboot_end,
+                    'fim': current_boot_time,
+                    'duracao': duracao_seconds / 3600
+                })
+        except (Atividade.DoesNotExist, RebootHistory.DoesNotExist):
+            pass
+    return paradas
 
 # Layout
 layout_atividade = html.Div([
@@ -195,7 +249,7 @@ layout_atividade = html.Div([
             'padding': '1.5rem',
             'margin': '1rem',
             'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
-            'flex': '0 1 35%',
+            'flex': '0 1 20%',
             'min-width': '280px'
         }),
 
@@ -250,7 +304,33 @@ layout_atividade = html.Div([
             'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
             'flex': '1',
             'min-width': '400px'
-        })
+        }),
+        # Card total de paradas no ano
+        html.Div([
+            html.H3(id='paradas-title', style={
+                'text-align': 'center',
+                'margin-bottom': '1rem',
+                'font-size': '1.5rem'
+            }),
+            html.P(id='paradas-total', style={
+                'color': first_color,
+                'text-align': 'center',
+                'font-size': '3rem',
+                'font-weight': 'bold',
+                'margin': '0',
+                'text-shadow': '2px 2px 10px rgba(0,0,0,0.6)',
+                'transition': 'all 0.3s ease-in-out'
+            }),
+        ], style={
+            'background': '#343a40',
+            'border-left': f'6px solid {first_color}',
+            'border-radius': '1rem',
+            'padding': '1.5rem',
+            'margin': '1rem',
+            'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
+            'flex': '0 1 20%',
+            'min-width': '280px'
+        }),
     ], style={
         'display': 'flex',
         'flex-direction': 'row',
@@ -302,9 +382,40 @@ layout_atividade = html.Div([
                    'border': 'none', 
                    'margin-top': '0',
                    'width': '80vw',
-                   }
+                }
         )
     ], style={'margin': '1rem 3rem 0 3rem', }),
+
+# Gráfico geral paradas anuais
+    dbc.Col([
+        html.H3(
+            "Paradas Registradas no Ano",
+            className="h3-subtitle", 
+            style={
+                'color': third_color, 
+                'text-align': 'center', 
+                'background-color': first_color, 
+                'font-size': '1rem', 
+                'padding': '0.5rem', 
+                'border-radius': '0.5rem 0.5rem 0 0',
+                'margin-bottom': '0',
+            }
+        ),
+        dbc.Card(
+            dcc.Graph(
+                id='paradas-gerais-fig',
+                style={'height': '300px'}
+            ),
+            className='shadow text-center',
+            style={
+                'background-color': third_color,
+                'border': 'none',
+                'margin-top': '0',
+                'width': '80vw',
+            }
+        )
+    ], style={'margin': '1rem 3rem 2rem 3rem'}),
+
     # Monitoramento de rede
     html.Div([
         html.Div([
