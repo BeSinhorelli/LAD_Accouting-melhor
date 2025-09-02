@@ -63,6 +63,14 @@ class Relatorio(BaseModel):
     maquina_cluster = FloatField()
     maquina_24x7 = FloatField()
 
+class Atividade(BaseModel):
+    data = DateTimeField()
+    uptime = CharField()
+
+class RebootHistory(BaseModel):
+    data_inicio = DateTimeField()
+    data_fim = DateTimeField()
+
 class MonitoramentoRede(BaseModel):
     timestamp = DateTimeField()
     latency = FloatField(null=True)
