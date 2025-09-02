@@ -78,6 +78,67 @@ def read_database_excel (yearValue, month):
     df_data = pd.read_excel(file_path)
     return df_data
 
+# ---  APLICAÇÕES  --- #
+# Função para ler o arquivo de aplicações
+def get_aplicacoes():
+    file_path = os.path.join(os.path.dirname(__file__), 'relatorios', 'aplicacao.xlsx')
+    df = pd.read_excel(file_path)
+    df = df.rename(columns={
+        "Aplicação": "nome",
+        "Versão": "versao",
+        "Tipo": "tipo",
+        "Área": "area",
+        "Função Principal": "descricao",
+        "Host": "host",
+        "Grupo": "grupo",
+        "Dependências de": "dependencia",
+        "Site": "site",
+    })
+    df = df.fillna("")  # Preencher NaN com string vazia
+    
+    aplicacoes_agrupadas = {}
+
+    for _, row in df.iterrows():
+        nome_app = row['nome']
+        
+        if nome_app not in aplicacoes_agrupadas:
+            aplicacoes_agrupadas[nome_app] = {
+                'nome': nome_app,
+                'tipo': row['tipo'],
+                'area': row['area'],
+                'descricao': row['descricao'],
+                'grupo': row['grupo'],
+                'dependencia': row['dependencia'],
+                'site': row['site'],
+                'versoes_e_hosts': {}
+            }
+        
+        versao = str(row['versao']).strip()
+        host = str(row['host']).strip()
+
+        if versao == "" and host == "":
+            continue  
+
+        if host not in aplicacoes_agrupadas[nome_app]['versoes_e_hosts']:
+            aplicacoes_agrupadas[nome_app]['versoes_e_hosts'][host] = []
+
+        if versao and versao not in aplicacoes_agrupadas[nome_app]['versoes_e_hosts'][host]:
+            aplicacoes_agrupadas[nome_app]['versoes_e_hosts'][host].append(versao)
+
+    # Converte para lista final
+    for nome_app in aplicacoes_agrupadas:
+        versoes_e_hosts_lista = []
+        for host, versoes in aplicacoes_agrupadas[nome_app]['versoes_e_hosts'].items():
+            if not versoes and not host:
+                continue
+            versoes_e_hosts_lista.append({
+                'host': host if host else "",
+                'versao': ', '.join([v for v in versoes if v])
+            })
+        aplicacoes_agrupadas[nome_app]['versoes_e_hosts'] = versoes_e_hosts_lista
+
+    return list(aplicacoes_agrupadas.values())
+
 
 # ---  CONFIGURAÇÕES  API GITHUB --- #
 GITHUB_REPO = "LAD-PUCRS/LAD-Management"
