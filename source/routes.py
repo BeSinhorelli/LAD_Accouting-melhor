@@ -1,4 +1,4 @@
-from config import server, database
+from config import server, database, get_aplicacoes
 from flask import g, render_template, request, redirect, url_for, flash, abort, send_file
 from models import *
 from datetime import datetime
@@ -26,12 +26,13 @@ def get_object_or_404(model, *expressions):
 @server.before_request
 def before_request():
     g.db = database
-    g.db.connect()
+    if g.db.is_closed():
+        g.db.connect()
 
-@server.after_request
-def after_request(response):
-    g.db.close()
-    return response
+@server.teardown_request
+def teardown_request(exception):
+    if not g.db.is_closed():
+        g.db.close()
 
 # -------------------------  DEFINIÇÃO DE ROTAS E DIRECIONAMENTOS - FLASK ------------------------------ #
 # --- HOMEPAGE  --- #
@@ -39,8 +40,9 @@ def after_request(response):
 def homepage():
     lista_cluster = Cluster.select().order_by(Cluster.name).prefetch(Equipamento)
     lista_grupo = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome)
+    aplicacoes = get_aplicacoes()  
 
-    return render_template('homepage.html', lista_cluster=lista_cluster, lista_grupo=lista_grupo)
+    return render_template('homepage.html', lista_cluster=lista_cluster, lista_grupo=lista_grupo, aplicacoes=aplicacoes)
 
 # --- DASH APP  --- #
 @server.route("/dash")
@@ -119,6 +121,12 @@ def cluster_delete(clusterId):
         cluster.delete_instance()
         flash(f'Cluster "{cluster.name}" excluído com sucesso.', 'success')
     return redirect(url_for('homepage'))
+
+# --- LISTA DE TODOS OS CLUSTERS  --- #
+@server.route('/cluster', methods=['GET'])
+def lista_cluster():
+    return render_template('lista_cluster.html')
+
 
 # --- CONFIGURAÇÕES DE EQUIPAMENTOS  --- #
 @server.route('/cluster/<clusterName>/equipamentos')
@@ -337,6 +345,12 @@ def lista_usuarios(groupName):
         abort(404)
     usuarios = Usuario.select().where(Usuario.grupo == grupo).order_by(Usuario.nome.asc())
     return render_template('lista_usuarios.html', grupo=grupo, usuarios=usuarios)
+
+# --- LISTA DAS APLICAÇÕES  --- #  
+@server.route('/aplicacao', methods=['GET'])
+def lista_aplicacao():
+    aplicacoes = get_aplicacoes()
+    return render_template("lista_aplicacao.html", aplicacoes=aplicacoes)
 
 # --- CONFIGURAÇÕES DE USUÁRIOS  --- #
 @server.route('/usuario/<userName>', methods=['GET', 'POST'])
