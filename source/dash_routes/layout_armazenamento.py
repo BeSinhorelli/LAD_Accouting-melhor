@@ -22,8 +22,8 @@ dados = {
         {'nome': 'cpbmfarea', 'storage': 'cpbmf-storage', 'usado': 1.8, 'dedicado': 1.9},
     ],
     'INVESTGENOMICA-METAGENOMIC': [
-        {'nome': 'investgenomicaarea', 'storage': 'hnstorage', 'usado': 5.7, 'dedicado': 6},
-        {'nome': 'metagenomicarea', 'storage': 'hnstorage', 'usado': 0.352, 'dedicado': 0.590},
+        {'nome': 'investgenomicaarea', 'storage': 'hnstorage', 'usado': 5.6, 'dedicado': 6},
+        {'nome': 'metagenomicarea', 'storage': 'hnstorage', 'usado': 0.444, 'dedicado': 0.590},
     ],
     'LABGENOMA': [
         {'nome': 'labgenomaarea', 'storage': 'labgenoma-storage', 'usado': 4.8, 'dedicado':5.4},
@@ -37,10 +37,10 @@ dados = {
         {'nome': 'DAMAREA', 'storage': 'dam-storage', 'usado': 11, 'dedicado': 11},
     ],
     'HOME': [
-        {'nome': 'HOME', 'storage': 'home-storage', 'usado': 2.5, 'dedicado':6},
+        {'nome': 'HOME', 'storage': 'home-storage', 'usado': 2.8, 'dedicado':6},
     ],
     'USRLOCALPANTANAL': [
-        {'nome': 'USRLOCALPANTANAL', 'storage': 'usrlocal-storage', 'storage': 'plumes-storage', 'usado': 0.401, 'dedicado':0.500},
+        {'nome': 'USRLOCALPANTANAL', 'storage': 'usrlocal-storage', 'usado': 0.407, 'dedicado':0.500},
     ],
 }
 
@@ -190,6 +190,15 @@ layout_armazenamento = html.Div([
         style={'border': 'none', 'margin-top': '30px'}),
         width=10, className='mx-auto'
     ),
+    dbc.Col(
+        dbc.Card([
+            dbc.CardHeader('Distribuição dos arquivos por período de acesso', style={'background-color': first_color, 'color': second_color}),
+            dcc.Graph(id='grafico-acesso-tempo')
+        ],
+        className='shadow text-center',
+        style={'border': 'none', 'margin-bottom': '0', 'margin-top': '30px'}),
+        width=10, className='mx-auto'
+    )
 
 ], style={'box-sizing': 'border-box',
     'background-color': '#212529',
