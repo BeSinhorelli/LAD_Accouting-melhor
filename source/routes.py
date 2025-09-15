@@ -537,8 +537,7 @@ def relatorio_mensal():
                 #salvar o arquivo na pasta relatorios/ano
                 upload_dir = f'relatorios/{ano}'
                 os.makedirs(upload_dir, exist_ok=True)
-                month_name = calendar.month_abbr[mes].lower()
-                file_path = os.path.join(upload_dir, f'{mes}-{month_name}.xlsx')
+                file_path = os.path.join(upload_dir, file.filename)
                 file.save(file_path)
                 # Ler o arquivo 
                 df = pd.read_excel(file)
