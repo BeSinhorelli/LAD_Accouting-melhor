@@ -931,3 +931,92 @@ def register_callbacks(app):
             legend_traceorder='reversed'
         )
         return fig
+    
+    # ---------------------------------------  CALLBACK GRÁFICO DE ACESSO POR TEMPO --------------------------------------- #
+    @app.callback(
+        Output('grafico-acesso-tempo', 'figure'),
+        Input('grupo-dropdown', 'value') 
+    )
+    def update_access_time_graph(selected_group):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(base_dir, '..', 'relatorios', 'dados_acessos.xlsx')
+
+        if not os.path.exists(data_path):
+            print(f"Arquivo não encontrado: {data_path}")
+            return go.Figure()
+
+        try:
+            # Lê o arquivo
+            df = pd.read_excel(data_path)
+
+            # Renomeia as colunas
+            df = df.rename(columns={
+                'Últimos 12 meses': 'Acessado_nos_ultimos_12_meses',
+                'Entre 1 e 2 anos': 'Acessado_entre_1_e_2_anos',
+                'mais de 2 anos': 'Acessado_ha_mais_de_2_anos'
+            })
+
+            df_melted = df.melt(
+                id_vars=['Volume'], 
+                value_vars=[
+                    'Acessado_nos_ultimos_12_meses', 
+                    'Acessado_entre_1_e_2_anos', 
+                    'Acessado_ha_mais_de_2_anos'
+                ],
+                var_name='Periodo',
+                value_name='TamanhoGB'
+            )
+            
+            # Converte os tamanhos de bytes para Gigabytes
+            df_melted['TamanhoGB'] = df_melted['TamanhoGB'] / (1024**3)
+            
+            # Filtra grupos que têm valor
+            volumes_com_dados = df_melted.groupby('Volume')['TamanhoGB'].sum()
+            volumes_com_dados = volumes_com_dados[volumes_com_dados > 0].index.tolist()
+            
+            # Filtra o DataFrame original para incluir apenas esses volumes
+            df_melted = df_melted[df_melted['Volume'].isin(volumes_com_dados)]
+            
+            if df_melted.empty:
+                return go.Figure()
+            # Cria a figura
+            fig = go.Figure()
+            
+            period_colors = {
+                'Acessado_nos_ultimos_12_meses': '#2ca02c', 
+                'Acessado_entre_1_e_2_anos': '#ff7f0e', 
+                'Acessado_ha_mais_de_2_anos': '#d62728'  
+            }
+            
+            period_names = {
+                'Acessado_nos_ultimos_12_meses': 'Últimos 12 meses',
+                'Acessado_entre_1_e_2_anos': 'Entre 1 e 2 anos',
+                'Acessado_ha_mais_de_2_anos': 'Mais de 2 anos'
+            }
+
+            # Adiciona as barras para cada período
+            for periodo, cor in period_colors.items():
+                df_periodo = df_melted[df_melted['Periodo'] == periodo]
+                fig.add_trace(go.Bar(
+                    name=period_names[periodo],
+                    x=df_periodo['Volume'],
+                    y=df_periodo['TamanhoGB'],
+                    marker_color=cor,
+                    hovertemplate="<b>%{y:.2f} GB</b><extra></extra>"
+                ))
+
+            fig.update_layout(
+                barmode='stack',
+                xaxis_title='Volume',
+                yaxis_title='Tamanho Ocupado (GB)',
+                font=dict(color="#f8f9fa"),
+                margin=dict(l=20, r=20, b=20, t=20),
+                hovermode="x unified",
+                legend_traceorder='normal'
+            )
+
+            return fig
+
+        except Exception as e:
+            print(f"Erro ao ler o arquivo Excel: {e}")
+            return go.Figure()
