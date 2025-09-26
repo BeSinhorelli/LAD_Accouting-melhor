@@ -35,7 +35,7 @@
                                         {% if app.grupo %}
                                         {% set grupos = app.grupo.split('/') %}
                                         {% for grupo in grupos %}
-                                        <span class="badge bg-warning text-dark">
+                                        <span class="badge bg-warning text-dark text-truncate d-inline-block" style="max-width: 250px;" title="{{ grupo }}">
                                             <i class="bi bi-people me-1"></i> Grupo: {{ grupo }}
                                         </span>
                                         {% endfor %}
@@ -137,7 +137,7 @@
                                         {% if app.grupo %}
                                         {% set grupos = app.grupo.split('/') %}
                                         {% for grupo in grupos %}
-                                        <span class="badge bg-warning text-dark">
+                                        <span class="badge bg-warning text-dark text-truncate d-inline-block" style="max-width: 250px;" title="{{ grupo }}">
                                             <i class="bi bi-people me-1"></i> Grupo: {{ grupo }}
                                         </span>
                                         {% endfor %}

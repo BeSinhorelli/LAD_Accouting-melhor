@@ -2,22 +2,107 @@
 {% block body %}
 <div class="cadastro">
     <h2>Equipamentos do Cluster: {{ cluster.name }}</h2>
-    <ul class="list-group mb-3">
-        {% if equipamentos %}
-            {% for equipamento in equipamentos %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
+
+    {% for tipo, lista_equipamentos in equipamentos_agrupados.items() %}
+    {% if lista_equipamentos %}
+
+    {% if tipo == 'inativo' %}
+    <h4 class="mt-4">{{ tipo.capitalize() }}s</h4>
+    {% endif %}
+
+    <ul class="list-group mb-4 bg-white">
+        {% for equipamento in lista_equipamentos %}
+        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card equipment-item"
+            onclick="toggleInfo('{{ equipamento.hostname }}')" title="Clique para exibir informações">
+
+            <div class="d-flex align-items-center gap-3 flex-grow-1">
+                <i class="toggle-icon fas fa-caret-right"></i>
                 <div>
-                    {{ equipamento.hostname }}
+                    <strong class="fs-6">{{ equipamento.hostname }}</strong> <br>
+                    <small class="text-muted text-truncate d-inline-block" style="max-width:400px;">
+                        <strong>{{ equipamento.modelo }}</strong> |
+                        Núcleos: {{ equipamento.nucleo }} |
+                        Memória RAM: {{ equipamento.memoria }}
+                    </small>
                 </div>
-                <div class="d-flex gap-2">
-                    <a class="btn btn-primary btn-sm" href="{{ url_for('equipamento', equipName=equipamento.hostname) }}">Editar</a>
-                </div>
-            </li>
-            {% endfor %}
-        {% else %}
-            <li class="list-group-item">Nenhum equipamento cadastrado neste cluster.</li>
-        {% endif %}
+            </div>
+
+            <div class="d-flex gap-2">
+                <a class="btn btn-primary btn-sm"
+                    href="{{ url_for('equipamento', equipName=equipamento.hostname) }}">Editar</a>
+            </div>
+        </li>
+        <div id="info-{{ equipamento.hostname }}" class="observacao-card" style="display:none;">
+            <div class="observacao-texto">
+                <p><strong>Tipo:</strong> {{ equipamento.tipo }}</p>
+                <p><strong>Patrimônio:</strong> {{ equipamento.patrimonio }}</p>
+                <p><strong>Service Tag:</strong> {{ equipamento.serviceTag }}</p>
+                <p><strong>Núcleos:</strong> {{ equipamento.nucleo }}</p>
+                <p><strong>Memória RAM:</strong> {{ equipamento.memoria }}</p>
+            </div>
+        </div>
+        {% endfor %}
     </ul>
-    <a class="btn btn-secondary mt-3" href="{{ url_for('homepage') }}">Voltar</a>
+    {% endif %}
+    {% endfor %}
+
+    <a class="btn btn-secondary mt-3" href="javascript:history.back()">Voltar</a>
 </div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+    }
+
+    .equipment-item {
+        margin-bottom: 0 !important;
+    }
+
+    .observacao-card {
+        background: #f9fafb;
+        border-left: 5px solid #ffb703;
+        padding: 12px 12px 12px 12px;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid #ddd;
+    }
+
+    .observacao-texto p {
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+
+    .toggle-icon {
+        transition: transform 0.2s;
+        color: #555;
+        font-size: 1.2rem;
+    }
+
+    .toggle-icon.open {
+        transform: rotate(90deg);
+    }
+</style>
+
+<script>
+    function toggleInfo(hostname) {
+        var infoPanel = document.getElementById('info-' + hostname);
+        var listItem = infoPanel.previousElementSibling;
+        var toggleIcon = listItem.querySelector('.toggle-icon');
+
+        if (infoPanel.style.display === "none") {
+            infoPanel.style.display = "block";
+            toggleIcon.classList.add('open');
+            
+        } else {
+            infoPanel.style.display = "none";
+            toggleIcon.classList.remove('open');
+        }
+    }
+</script>
 {% endblock %}

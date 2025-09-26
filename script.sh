@@ -4,6 +4,7 @@ echo "Inicializing the LAD app..."
 
 echo "Installing Flask..."
 pip install Flask
+pip install Flask-Caching
 
 echo "Installing Peewee..."
 pip install peewee

@@ -38,4 +38,50 @@
     </form><!--  POSSUI UMA FUNÇÃO DO JAVASRIPT NO LAYOUT.HTML  -->
   </div>
 </div>
+
+<!--  REGISTRO E EDIÇÃO DO HISTÓRICO DE REBOOTS NO BANCO DE DADOS  -->
+<div class="config">
+    <h2>Histórico de Reboots</h2>
+    <form method="POST" action="/adicionar_registro">
+        <div class="mb-3">
+            <label for="data_inicio" class="form-label">Data e Hora de Início:</label>
+            <input type="datetime-local" class="form-control" id="data_inicio" name="data_inicio" required>
+        </div>
+        <div class="mb-3">
+            <label for="data_fim" class="form-label">Data e Hora de Fim:</label>
+            <input type="datetime-local" class="form-control" id="data_fim" name="data_fim" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Registrar</button>
+    </form>
+
+    <hr>
+    <h3 style="color: white">
+        Registros</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Início</th>
+                <th>Fim</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for parada in paradas %}
+            <tr>
+                <td>{{ parada.data_inicio.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ parada.data_fim.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>
+                    <a href="{{ url_for('editar_parada', parada_id=parada.id) }}" class="btn btn-warning btn-sm">Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not show_all %}
+    <div class="text-center mt-3">
+        <a href="{{ url_for('historico_completo') }}" class="btn btn-secondary">Ver Mais</a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

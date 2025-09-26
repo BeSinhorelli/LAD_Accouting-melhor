@@ -2,8 +2,112 @@
 {% block body %}
 
 <section class="cadastro">
-    <h2>Clusters</h2>
-    
+    <h2>Lista de Clusters</h2>
+    <ul class="list-group mb-3 bg-white">
+        {% if lista_cluster %}
+        {% for cluster in lista_cluster %}
+        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card equipment-item"
+            onclick="toggleInfo('{{ cluster.name }}')" title="Clique para exibir informações">
+            <div class="d-flex align-items-center gap-3 flex-grow-1">
+                <i class="toggle-icon fas fa-caret-right"></i>
+                <div>
+                    <strong class="fs-6">{{ cluster.name }}</strong>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-primary btn-sm"
+                    href="{{ url_for('lista_equipamentos_cluster', clusterName=cluster.name) }}">Equipamentos</a>
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('cluster', clusterName=cluster.name) }}">Editar</a>
+            </div>
+        </li>
+        <div id="info-{{ cluster.name }}" class="observacao-card cluster-info" {% if request.args.get('cluster')==cluster.name
+            %}style="display:block;" {% else %}style="display:none;" {% endif %}>
+            <div class="observacao-texto" >
+                <p><strong>Descrição:</strong>
+                    {{ cluster.description | replace(',', ' ') or "Sem descrição." }}
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <li class="list-group-item">Nenhum cluster cadastrado.</li>
+        {% endif %}
+    </ul>
+    <a class="btn btn-secondary mt-3" href="javascript:history.back()">Voltar</a>
 </section>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+    }
+
+    .equipment-item {
+        margin-bottom: 0 !important;
+    }
+
+    .observacao-card {
+        background: #f9fafb;
+        border-left: 5px solid #ffb703;
+        padding: 12px 12px 12px 12px;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid #ddd;
+    }
+
+    .observacao-texto p {
+        margin-bottom: 4px;
+        line-height: 1.4;
+        white-space: pre-line;
+    }
+
+    .toggle-icon {
+        transition: transform 0.2s;
+        color: #555;
+        font-size: 1.2rem;
+    }
+
+    .toggle-icon.open {
+        transform: rotate(90deg);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% if request.args.get('cluster') %}
+<script>
+    document.getElementById("info-{{ request.args.get('cluster') }}")?.scrollIntoView({ behavior: "smooth", block: "center" });
+</script>
+{% endif %}
+<script>
+    function toggleInfo(nome) {
+        var infoPanel = document.getElementById('info-' + nome);
+        var listItem = infoPanel.previousElementSibling;
+        var toggleIcon = listItem.querySelector('.toggle-icon');
+        var el = document.getElementById('info-' + nome);
+        if (infoPanel.style.display === "none") {
+            infoPanel.style.display = "block";
+            toggleIcon.classList.add('open');
+            
+        } else {
+            infoPanel.style.display = "none";
+            toggleIcon.classList.remove('open');
+        }
+    }
+</script>
 
 {% endblock %}

@@ -1,7 +1,7 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 from config import *
-from datetime import datetime, timedelta, date
+from datetime import datetime, date
 import calendar
 from peewee import fn
 from models import Atividade, RebootHistory, database
@@ -88,6 +88,13 @@ def get_duracao_parada():
 # Coletar o histórico de reboot para o gráfico
 def get_reboot_history(year, month):
     conectar_banco()
+    
+    current_date = datetime.now()
+    selected_date = datetime(year, month, 1)
+
+    if selected_date > current_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0):
+        return []
+
     reboots = RebootHistory.select().where(
         ((fn.strftime('%Y', RebootHistory.data_inicio) == str(year)) | (fn.strftime('%Y', RebootHistory.data_fim) == str(year))) &
         ((fn.strftime('%m', RebootHistory.data_inicio) == f'{month:02d}') | (fn.strftime('%m', RebootHistory.data_fim) == f'{month:02d}')) &
@@ -120,8 +127,9 @@ def get_reboot_history(year, month):
         
         if dt < monitoramento_atividade:
             continue
-        if dt == today:
-            break
+        
+        if dt > today:
+            continue
             
         uptime_hours = 24.0
         
