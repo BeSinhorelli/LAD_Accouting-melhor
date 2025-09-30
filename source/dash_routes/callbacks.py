@@ -320,14 +320,32 @@ def register_callbacks(app):
         year = int(selected_year)
         month = int(selected_month)
         data = get_reboot_history(year, month)
+        
+        # Verifica se a lista de dados está vazia
+        if not data:
+            fig = go.Figure()
+            fig.update_layout(
+                xaxis={'visible': False}, 
+                yaxis={'visible': False},
+                annotations=[
+                    dict(
+                        xref='paper', yref='paper',
+                        x=0.5, y=0.5,
+                        text="Os dados de monitoramento para este período ainda não estão disponíveis.",
+                        showarrow=False,
+                        font=dict(size=14)
+                    )
+                ]
+            )
+            return fig
 
         def format_hm(decimal_hours):
             horas = int(decimal_hours)
             minutos = int(round((decimal_hours - horas) * 60))
             return f"{horas}h {minutos:02d}min"
         
-        monitoramento_inicio = monitoramento_atividade
         data_filtrada = []
+        monitoramento_inicio = datetime.combine(monitoramento_atividade, datetime.min.time()).date()
 
         for d in data:
             data_atual = date(year, month, d['day'])
@@ -369,15 +387,6 @@ def register_callbacks(app):
                 annotation_position="top left",
                 annotation_font_color="orange"
             )
-
-        if (year < 2025) or (year == 2025 and month < 5):
-            fig.add_annotation(
-                xref="paper", yref="paper",
-                x=0.5, y=0.5,
-                text="Monitoramento ainda não iniciado nesse mês",
-                showarrow=False,
-                font=dict(size=14, color="red"),
-        )
         fig.update_layout(
             xaxis_title='Dia do mês',
             yaxis_title='Tempo em atividade',
@@ -560,9 +569,6 @@ def register_callbacks(app):
                 html.P(f"{total_horas_fmt} h", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
                 html.Small("Soma de Cluster + 24x7 no ano", style={"color": "#ced4da"})
             ], style=card_style),
-            #html.Div([
-                #html.H3("Volume Disponível", style={"color": first_color}),
-            #]),
             html.Div([
                 html.H3("Produções Totais", style={"color": first_color}),
                 html.P(f"{get_producoes()}", style={"fontSize": "2.5rem", "fontWeight": "bold"}),
