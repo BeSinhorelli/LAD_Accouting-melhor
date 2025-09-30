@@ -44,7 +44,7 @@ pio.templates.default = "plotly_dark"
 app.title = "LAD Dashboard"
 
 register_callbacks(app)
-
+cache = Cache(server, config=CACHE_CONFIG)
 # ----------------------------------------  LAYOUT - DASH ---------------------------------------------- #
 
 app.layout = html.Div([
@@ -127,7 +127,7 @@ app.layout = html.Div([
     Input('year_dropdown', 'value'),
     Input('month_slider', 'value')
 )
-
+@cache.memoize(timeout=7200)
 # -----------------------------------  FUNÇÃO PRINCIPAL - DASH ----------------------------------------- #
 
 def update_figure(yearValue, value):

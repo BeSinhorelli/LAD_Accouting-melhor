@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="config">
+    <h2>Editar Registro</h2>
+    <form method="POST" action="{{ url_for('atualizar_parada', parada_id=parada.id) }}">
+        <div class="mb-3">
+            <label for="data_inicio" class="form-label">Data e Hora de Início:</label>
+            <input type="datetime-local" class="form-control" id="data_inicio" name="data_inicio" value="{{ parada.data_inicio.strftime('%Y-%m-%dT%H:%M') }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="data_fim" class="form-label">Data e Hora de Fim:</label>
+            <input type="datetime-local" class="form-control" id="data_fim" name="data_fim" value="{{ parada.data_fim.strftime('%Y-%m-%dT%H:%M') }}" required>
+        </div>
+        <button type="submit" class="btn btn-success">Salvar</button>
+        <a href="{{ url_for('excluir_parada', parada_id=parada.id) }}" class="btn btn-danger">Excluir</a>
+        <a href="{{ url_for('config') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+{% endblock %}

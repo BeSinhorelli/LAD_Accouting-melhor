@@ -7,9 +7,14 @@ from dotenv import load_dotenv
 import os
 import re
 from peewee import SqliteDatabase
+from flask_caching import Cache
 
 load_dotenv()
-
+# --- CACHE CONFIG --- #
+CACHE_CONFIG = {
+    'CACHE_TYPE': 'SimpleCache',  
+    'CACHE_DEFAULT_TIMEOUT': 7200  
+}
 # ---  CORES  --- #
 
 first_color = '#FDC366'

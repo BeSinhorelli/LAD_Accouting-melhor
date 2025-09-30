@@ -15,7 +15,7 @@ def create_tables():
 
 def drop_tables():
     with database:
-        database.drop_tables([Cluster, Equipamento, Grupo, Usuario])
+        database.drop_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, Atividade, RebootHistory, MonitoramentoRede])
 
 def get_object_or_404(model, *expressions):
     try:
@@ -125,8 +125,8 @@ def cluster_delete(clusterId):
 # --- LISTA DE TODOS OS CLUSTERS  --- #
 @server.route('/cluster', methods=['GET'])
 def lista_cluster():
-    return render_template('lista_cluster.html')
-
+    lista_cluster = Cluster.select().order_by(Cluster.name)
+    return render_template('lista_cluster.html', lista_cluster=lista_cluster)
 
 # --- CONFIGURAÇÕES DE EQUIPAMENTOS  --- #
 @server.route('/cluster/<clusterName>/equipamentos')
@@ -134,8 +134,21 @@ def lista_equipamentos_cluster(clusterName):
     cluster = Cluster.get_or_none(Cluster.name == clusterName)
     if not cluster:
         abort(404)
+        
     equipamentos = Equipamento.select().where(Equipamento.cluster == cluster)
-    return render_template('lista_equipamentos.html', cluster=cluster, equipamentos=equipamentos)
+    # Armazenar os equipamentos agrupados por tipo
+    equipamentos_agrupados = {
+        'cluster': [],
+        '24x7': [],
+        'collocation': [],
+        'inativo': []
+    }
+    for equipamento in equipamentos:
+        tipo = equipamento.tipo
+        if tipo in equipamentos_agrupados:
+            equipamentos_agrupados[tipo].append(equipamento)
+            
+    return render_template('lista_equipamentos.html', cluster=cluster, equipamentos_agrupados=equipamentos_agrupados)
 
 @server.route('/equipamento/<equipName>', methods=['GET', 'POST'])
 def equipamento(equipName=None):
@@ -586,7 +599,83 @@ def relatorio_mensal():
 # --- CONFIGURAÇÕES GERAIS  --- #
 @server.route('/config', methods=['GET'])
 def config():
-    return render_template('config.html')
+    paradas = RebootHistory.select().order_by(RebootHistory.data_inicio.desc()).limit(3)
+    return render_template('config.html', paradas=paradas, show_all=False)
+
+@server.route('/historico_completo', methods=['GET'])
+def historico_completo():
+    paradas = RebootHistory.select().order_by(RebootHistory.data_inicio.desc())
+    return render_template("config.html", paradas=paradas, show_all=True)
+
+@server.route('/adicionar_registro', methods=['POST'])
+def registrar_parada():
+    if request.method == 'POST':
+        data_inicio_str = request.form['data_inicio']
+        data_fim_str = request.form['data_fim']
+
+        try:
+            data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%dT%H:%M')
+            data_fim = datetime.strptime(data_fim_str, '%Y-%m-%dT%H:%M')
+
+            with database.atomic():
+                RebootHistory.insert(data_inicio=data_inicio, data_fim=data_fim).execute()
+
+            flash('Registro adicionado com sucesso!', 'success')
+            return redirect(url_for('config'))
+        except ValueError as e:
+            flash('Formato de data inválido', 'danger')
+            return redirect(url_for('config'))
+        except Exception as e:
+            flash(f'Erro ao registrar: {e}', 'danger')
+            return redirect(url_for('config'))
+    return redirect(url_for('config'))
+
+@server.route('/editar_registro/<int:parada_id>', methods=['GET'])
+def editar_parada(parada_id):
+    parada = RebootHistory.get_or_none(RebootHistory.id == parada_id)
+    if not parada:
+        flash('Registro não encontrado', 'danger')
+        return redirect(url_for('config'))
+    return render_template('editar_registro.html', parada=parada)
+
+@server.route('/atualizar_parada/<int:parada_id>', methods=['POST'])
+def atualizar_parada(parada_id):
+    parada = RebootHistory.get_or_none(RebootHistory.id == parada_id)
+    if not parada:
+        flash('Registro não encontrado', 'danger')
+        return redirect(url_for('config'))
+
+    if request.method == 'POST':
+        data_inicio_str = request.form['data_inicio']
+        data_fim_str = request.form['data_fim']
+
+        try:
+            data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%dT%H:%M')
+            data_fim = datetime.strptime(data_fim_str, '%Y-%m-%dT%H:%M')
+
+            parada.data_inicio = data_inicio
+            parada.data_fim = data_fim
+            parada.save()
+
+            flash('Registro atualizado com sucesso!', 'success')
+            return redirect(url_for('config'))
+        except ValueError as e:
+            flash('Formato de data inválido', 'danger')
+            return render_template('editar_registro.html', parada=parada)
+        except Exception as e:
+            flash(f'Erro ao atualizar: {e}', 'danger')
+            return render_template('editar_registro.html', parada=parada)
+    return render_template('editar_registro.html', parada=parada)
+
+@server.route('/excluir_parada/<int:parada_id>', methods=['GET'])
+def excluir_parada(parada_id):
+    parada = RebootHistory.get_or_none(RebootHistory.id == parada_id)
+    if parada:
+        parada.delete_instance()
+        flash('Registro excluído com sucesso!', 'success')
+    else:
+        flash('Registro não encontrado', 'danger')
+    return redirect(url_for('config'))
 
 @server.route('/exportar', methods=['GET'])
 def exportar():
