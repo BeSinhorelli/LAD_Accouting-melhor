@@ -105,18 +105,13 @@ app.layout = html.Div([
 @app.callback(
     # --- GRÁFICOS DO LAYOUT (EM ORDEM)  --- #
     Output('graph_annual_usage', 'figure'),
-    Output('graph_storage', 'figure'),
     Output('graph_monthly_usage', 'figure'),
     Output('graph_24x7_machine', 'figure'),
     Output('graph_cluster_machine', 'figure'),
-    Output('graph_storage_group', 'figure'),
     Output('graph_cluster_usage_group', 'figure'),
     Output('graph_24x7_usage_group', 'figure'),
-    Output('graph_production', 'figure'),
 
     # --- VALORES USADOS EM GRÁFICOS  --- #
-    Output('storage_usage', 'children'),
-    Output('storage_availability', 'children'),
     Output('machine_usage', 'children'),
     Output('machine_availability', 'children'),
     Output('machine_capacity', 'children'),
@@ -190,51 +185,6 @@ def update_figure(yearValue, value):
 
     # --- ADICIONA UMA COLUNA DE TOTAL (Cluster + 24x7) --- #                                                                              
     df_storage['Total'] = df_storage['Storage em cluster(GB)'] + df_storage['Storage em 24x7(GB)']
-    
-    # --- DEFINÇÕES DO STORAGE --- #      
-    storage_capacity = 134206
-    storage_usage = df_storage['Total'].sum()
-    storage_availability = storage_capacity - storage_usage
-
-    # --- ADICIONA UMA LINHA DE DISPONIBILIDADE --- #  
-    new_row = pd.DataFrame([['Disponível', '', '', storage_availability]], columns=df_storage.columns)
-    df_storage = pd.concat([new_row, df_storage], ignore_index=True)   
-
-    # --- CRIA O GRÁFICO MENSAL --- #
-    storage_usage_percent = round((storage_usage / storage_capacity) * 100, 2)
-    annotations = [
-        dict(x=0, y=['Total'], text="Utilizado", xanchor="left", showarrow=False),
-        dict(x=storage_usage, y=['Total'], text=f"{storage_usage_percent}%", xanchor="auto", showarrow=False)
-    ]
-
-    graph_storage = go.Figure(
-        data=[
-            go.Bar(name='Utilizado', x=[storage_usage], y=['Total'], orientation='h', marker_color='darkorange'),
-            go.Bar(name='Disponível', x=[storage_availability], y=['Total'], orientation='h', marker_color='#efefef')
-        ]
-    )
-    graph_storage.update_layout(
-        barmode='stack',
-        yaxis={'visible': False, 'showticklabels': False},
-        xaxis={'visible': False, 'showticklabels': False, 'showline': False},
-        height=100,
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(l=10, r=0, b=10, t=0),
-        legend=dict(yanchor="top", y=0.5, xanchor="right", x=1.2),
-        annotations=annotations
-    )
-
-    # --- CRIA O GRÁFICO DE GRUPOS --- # 
-    labels = df_storage['Projeto']
-    values = df_storage['Total']
-
-    graph_storage_group = go.Figure(
-        data=[
-            go.Pie(labels = labels, values = values, pull = [0.1])
-        ],
-        layout_showlegend=False
-    )
-    graph_storage_group.update_traces(textposition='inside', textinfo = 'label+percent')
 
     # ------------------ USO DE MÁQUINA MENSAL E POR GRUPO (24X7 E CLUSTER) ---------------------------- #
     
@@ -322,43 +272,6 @@ def update_figure(yearValue, value):
     ).update_layout(
     xaxis=dict(tickmode='linear', dtick=1)
 )
-    
-    # ---------------------------- GRÁF. PRODUÇÕES CIENTÍFICAS ----------------------------------------- #
-        # --- CRIA UM RELATÓRIO DE PRODUÇÕES - TEMPORÁRIO! --- #
-    # df_production = pd.read_excel('relatorios/producoes.xlsx')
-
-# --- LÊ OS DADOS DE PRODUÇÃO DO BANCO DE DADOS --- #
-    producoes = list(Producao.select().dicts())
-    if producoes:
-        df_production = pd.DataFrame(producoes)
-        df_production = df_production.rename(columns={
-            'unidade': 'Unidade/Escola',
-            'cientifica': 'Produção Científica',
-            'tcc': 'TCC, Dissertação ou Tese'
-        })
-        # Agrupa por unidade, somando os valores
-        df_production = df_production.groupby('Unidade/Escola', as_index=False)[['Produção Científica', 'TCC, Dissertação ou Tese']].sum()
-        # Adiciona linha de total
-        total_cientifica = df_production['Produção Científica'].sum()
-        total_tcc = df_production['TCC, Dissertação ou Tese'].sum()
-        total_row = pd.DataFrame([{
-            'Unidade/Escola': 'Total',
-            'Produção Científica': total_cientifica,
-            'TCC, Dissertação ou Tese': total_tcc
-        }])
-        df_production = pd.concat([df_production, total_row], ignore_index=True)
-    else:
-        df_production = pd.DataFrame(columns=['Unidade/Escola', 'Produção Científica', 'TCC, Dissertação ou Tese'])
-
-    # --- CRIA O GRÁFICO DE PRODUÇÕES CIENTÍFICAS --- #
-    graph_production = px.bar(
-        df_production,
-        x="Unidade/Escola",
-        y=["Produção Científica", "TCC, Dissertação ou Tese"],
-        barmode="group",
-        labels={'value':'Quantidade', 'variable':'Tipo de Publicação'},
-        text_auto=True
-    )
 
     # TEMPORÁRIO! - CALCULA AS HORAS DE SERVIÇO, CONFORME O ANO 
 
@@ -374,18 +287,13 @@ def update_figure(yearValue, value):
     return [
         # --- GRÁFICOS DO LAYOUT (EM ORDEM)  --- #
         graph_annual_usage,
-        graph_storage,
         graph_monthly_usage,
         graph_24x7_machine, 
         graph_cluster_machine, 
-        graph_storage_group,
         graph_cluster_usage_group,
         graph_24x7_usage_group,
-        graph_production,
 
         # --- VALORES USADOS EM GRÁFICOS  --- #
-        storage_usage, 
-        storage_availability,
         machine_usage, 
         machine_availability,
         machine_capacity,

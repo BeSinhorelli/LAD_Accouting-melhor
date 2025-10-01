@@ -106,7 +106,11 @@ layout_armazenamento = html.Div([
             dbc.CardHeader('Uso de Storage Total', style={'background-color': first_color, 'color': second_color}),
             dbc.CardBody([
                 dbc.Col(
-                    dcc.Graph(id='grafico-storage')
+                    dcc.Graph(
+                        id='grafico-storage', 
+                        config={'responsive': False, 'displayModeBar': False 
+                                }, style={'height': '90px'} 
+                    )
                 ),
                 dbc.Row([
                     dbc.Col([

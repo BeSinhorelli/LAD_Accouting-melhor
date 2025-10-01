@@ -1,5 +1,6 @@
 from dash import Input, Output, State
 import plotly.graph_objs as go
+import plotly.express as px
 import pandas as pd
 from dash import html, ctx
 from models import Producao, Usuario, MonitoramentoRede
@@ -292,6 +293,49 @@ def register_callbacks(app):
         except Exception:
             ultima_atualizacao = '----'
         return f"Produções científicas por Unidade (2015-{ultima_atualizacao})"
+    
+    # ---------------------------------------  CALLBACK PRODUÇÕES - ATUALIZAÇÃO DO GRÁFICO --------------------------------------- #
+    @app.callback(
+        Output('graph_production', 'figure'),
+        Input('year_dropdown', 'value')
+    )
+    def update_graph_production(_):
+        # --- LÊ OS DADOS DE PRODUÇÃO DO BANCO DE DADOS --- #
+        producoes = list(Producao.select().dicts())
+        if producoes:
+            df_production = pd.DataFrame(producoes)
+            df_production = df_production.rename(columns={
+                'unidade': 'Unidade/Escola',
+                'cientifica': 'Produção Científica',
+                'tcc': 'TCC, Dissertação ou Tese'
+            })
+            # Agrupa por unidade, somando os valores
+            df_production = df_production.groupby('Unidade/Escola', as_index=False)[['Produção Científica', 'TCC, Dissertação ou Tese']].sum()
+            # Adiciona linha de total
+            total_cientifica = df_production['Produção Científica'].sum()
+            total_tcc = df_production['TCC, Dissertação ou Tese'].sum()
+            total_row = pd.DataFrame([{
+                'Unidade/Escola': 'Total',
+                'Produção Científica': total_cientifica,
+                'TCC, Dissertação ou Tese': total_tcc
+            }])
+            df_production = pd.concat([df_production, total_row], ignore_index=True)
+        else:
+            df_production = pd.DataFrame(columns=['Unidade/Escola', 'Produção Científica', 'TCC, Dissertação ou Tese'])
+
+        # --- CRIA O GRÁFICO DE PRODUÇÕES CIENTÍFICAS --- #
+        graph_production = px.bar(
+            df_production,
+            x="Unidade/Escola",
+            y=["Produção Científica", "TCC, Dissertação ou Tese"],
+            barmode="group",
+            labels={'value':'Quantidade', 'variable':'Tipo de Publicação'},
+            text_auto=True
+        )
+        graph_production.update_layout(
+            template='plotly_dark' 
+        )
+        return graph_production
     
     # ---------------------------------------  CALLBACK CARD PARADAS REGISTRADAS LAYOUT_ATIVIDADE
     # --------------------------------------- #
@@ -734,6 +778,8 @@ def register_callbacks(app):
     @app.callback(
         Output('grafico-storage', 'figure'),
         Output('grafico-storage-group', 'figure'),
+        Output('storage_usage', 'children'),
+        Output('storage_availability', 'children'),
         Input('year_dropdown', 'value'),
         Input('month_slider_storage', 'value'),
     )
@@ -793,7 +839,7 @@ def register_callbacks(app):
             margin=dict(l=20, r=20, b=20, t=10),
         )
 
-        return graph_storage, graph_storage_group
+        return graph_storage, graph_storage_group, storage_usage, storage_availability
     
     # ---------------------------------------  CALLBACK GRAF. ARMAZENAMENTO (Uso de Volumes por Grupo)--------------------------------------- #
     @app.callback(
