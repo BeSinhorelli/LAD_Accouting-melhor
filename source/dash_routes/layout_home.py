@@ -1,9 +1,11 @@
 from dash import html, dcc
-from config import *
-from models import Producao
 from peewee import fn
 import os
 import pandas as pd
+
+from config import *
+
+from models import Producao
 
 annual_reports_cache = {}
 card_style = {

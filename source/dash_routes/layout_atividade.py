@@ -1,10 +1,12 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from config import *
 from datetime import datetime, date
 import calendar
 from peewee import fn
+
 from models import Atividade, RebootHistory, database
+
+from config import *
 
 # Definição da data de inicio do monitoramento
 monitoramento_atividade = date(2025, 5, 10)

@@ -3,7 +3,7 @@ from flask import g, render_template, request, redirect, url_for, flash, abort, 
 from models import *
 from datetime import datetime
 from peewee import IntegrityError
-import json, os, calendar
+import json, os
 import pandas as pd
 from flask import app
 from werkzeug.utils import secure_filename
@@ -438,7 +438,7 @@ def update_usuario(usuario, grupo, nome, email, observacoes, status):
 # --- EXCLUSÃO DE USUÁRIO DO DB  --- #
 @server.route('/usuario/delete/<int:userId>', methods=['POST'])
 def usuario_delete(userId):
-    usuario = Usuario.get_or_none(Usuario.nome == userId)
+    usuario = Usuario.get_or_none(Usuario.id == userId)
     if usuario:
         usuario.delete_instance()
         flash(f'Usuário "{usuario.nome}" excluído com sucesso.', 'success')
@@ -539,9 +539,20 @@ def editar_producao(unidade):
 # --- RELATÓRIO MENSAL  --- #
 @server.route('/relatorio_mensal', methods=['GET', 'POST'])
 def relatorio_mensal():
-    grupos = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome)
+    # Grupos ativos para exibição
+    grupos_exibicao = Grupo.select().where(Grupo.status == True).order_by(Grupo.nome)
     ano = int(request.form.get('ano', datetime.now().year))
     mes = int(request.form.get('mes', datetime.now().month))
+
+    novos_grupos = []
+    grupos_encerrados = []
+    
+    # GRUPOS FIXOS
+    '''REVISAR, POIS HSLBI NÃO É FIXO, ENTRA EM OUTRA CATEGORIA/TIPO'''
+    GRUPOS_FIXOS = {'LAD', 'HSLBI'} 
+    
+    # COLETA TODOS OS NOMES DE GRUPOS ATIVOS ANTES DA IMPORTAÇÃO
+    grupos_ativos_db = {g.nome for g in Grupo.select().where(Grupo.status == True)}
 
     if request.method == 'POST':
         if 'xlsx_file' in request.files:
@@ -552,12 +563,10 @@ def relatorio_mensal():
                 os.makedirs(upload_dir, exist_ok=True)
                 file_path = os.path.join(upload_dir, file.filename)
                 file.save(file_path)
-                # Ler o arquivo 
-                df = pd.read_excel(file)
+                df = pd.read_excel(file_path)
                 df = df.replace(r'^\s*$', 0, regex=True)
                 df = df.fillna(0)
 
-                # Renomear colunas para padronizar
                 df = df.rename(columns={
                     'Projeto': 'projeto',
                     'Serviço': 'servico',
@@ -566,35 +575,92 @@ def relatorio_mensal():
                     'Máquina em Cluster': 'maquina_cluster',
                     'Máquina em 24x7': 'maquina_24x7'
                 })
-                
-                # IMPORT PARA DB
-                #for _, row in df.iterrows():
-                    #projeto = row['projeto']
-                    #relatorio, created = Relatorio.#get_or_create(
-                        #ano=ano,
-                        #mes=mes,
-                        #projeto=projeto,
-                        #defaults={
-                            #'servico': row['servico'],
-                            #'storage_cluster': row['storage_cluster'],
-                            #'storage_24x7': row['storage_24x7'],
-                            #'maquina_cluster': row['maquina_cluster'],
-                            #'maquina_24x7': row['maquina_24x7']
-                        #}
-                    #)
-                    #if not created:
-                        #relatorio.servico = row['servico']
-                        #relatorio.storage_cluster = row['storage_cluster']
-                        #relatorio.storage_24x7 = row['storage_24x7']
-                        #relatorio.maquina_cluster = row['maquina_cluster']
-                        #relatorio.maquina_24x7 = row['maquina_24x7']
-                        #relatorio.save()
 
-                flash('Relatório importado e salvo com sucesso!')
+                # IMPORT PARA DB
+                for _, row in df.iterrows():
+                    projeto = row['projeto']
+                    relatorio, created = Relatorio.get_or_create(
+                        ano=ano,
+                        mes=mes,
+                        projeto=projeto,
+                        defaults={
+                            'servico': row['servico'],
+                            'storage_cluster': row['storage_cluster'],
+                            'storage_24x7': row['storage_24x7'],
+                            'maquina_cluster': row['maquina_cluster'],
+                            'maquina_24x7': row['maquina_24x7']
+                        }
+                    )
+                    if not created:
+                        relatorio.servico = row['servico']
+                        relatorio.storage_cluster = row['storage_cluster']
+                        relatorio.storage_24x7 = row['storage_24x7']
+                        relatorio.maquina_cluster = row['maquina_cluster']
+                        relatorio.maquina_24x7 = row['maquina_24x7']
+                        relatorio.save()
+                
+                # COLETA NOMES DE GRUPOS PRESENTES NO NOVO RELATÓRIO
+                grupos_presentes_relatorio = set()
+                status_grupo = True 
+                for _, row in df.iterrows():
+                    # Padronização do nome (com / por -)
+                    nome_grupo = row['projeto'].strip().replace('/', '-') 
+                    if not nome_grupo:
+                        continue 
+                    grupos_presentes_relatorio.add(nome_grupo)
+
+                    # CRIAÇÃO/ATUALIZAÇÃO DE STATUS
+                    grupo, created = Grupo.get_or_create(
+                        nome=nome_grupo,
+                        defaults={
+                            'demanda': '',
+                            'unidade': '',
+                            'coordenador': '',
+                            'observacoes': 'Novo grupo. Preencha com os dados necessários.',
+                            'tipo': '',
+                            'status': status_grupo, 
+                            'date_beg': datetime.now().strftime('%d-%m-%Y')
+                        }
+                    )
+
+                    if created:
+                        if nome_grupo not in novos_grupos:
+                             novos_grupos.append(nome_grupo)
+                    else:
+                        # Se o grupo já existe e está inativo no DB, reativa
+                        if grupo.status != status_grupo:
+                            grupo.status = status_grupo
+                            grupo.save()
+                            pass 
+
+                # ENCERRAR GRUPOS AUSENTES NO RELATÓRIO
+                
+                # Grupos que estavam ativos no DB, mas NÃO estão no Relatório
+                grupos_para_encerrar = grupos_ativos_db.difference(grupos_presentes_relatorio)
+                
+                # Exclui grupos fixos
+                grupos_para_encerrar = grupos_para_encerrar.difference(GRUPOS_FIXOS)
+                
+                if grupos_para_encerrar:
+                    # Atualiza o status de todos os grupos a serem encerrados
+                    Grupo.update(status=False).where(Grupo.nome.in_(grupos_para_encerrar)).execute()
+                    grupos_encerrados = list(grupos_para_encerrar)
+                
+                flash('Relatório carregado.', 'success')
+                
+                if novos_grupos:
+                    flash(f'Novos Grupos identificados: {", ".join(novos_grupos)}. É necessário preencher suas informações', 'info') 
+                    
+                if grupos_encerrados:
+                    flash(f'Grupos identificados como Inativos: {", ".join(grupos_encerrados)}.', 'info')
+                    
+                if not novos_grupos and not grupos_encerrados:
+                    flash('Nenhuma alteração de status detectada nos grupos.', 'success')
+                
                 return redirect(url_for('relatorio_mensal'))
 
     relatorios = {(r.projeto, r.ano, r.mes): r for r in Relatorio.select().where((Relatorio.ano == ano) & (Relatorio.mes == mes))}
-    return render_template('relatorio_mensal.html', grupos=grupos, relatorios=relatorios, ano=ano, mes=mes)
+    return render_template('relatorio_mensal.html', grupos=grupos_exibicao, relatorios=relatorios, ano=ano, mes=mes)
 
 # --- CONFIGURAÇÕES GERAIS  --- #
 @server.route('/config', methods=['GET'])

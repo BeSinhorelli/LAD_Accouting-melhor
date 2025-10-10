@@ -1,36 +1,22 @@
 # -------------------------------------  IMPORT DE BIBLIOTECAS  ---------------------------------------- #
 # --- FLASK --- #
 
-import os
 from peewee import *
 
 # --- DASH --- #
 
-from dash import dcc, html, dash
-from dash.dependencies import Input, Output
+from dash import dash
 import dash_bootstrap_components as dbc
-import plotly.express as px
-import plotly.graph_objects as go
 import plotly.io as pio
-import pandas as pd
+
 from config import *
-
-from dash_routes.layout_home import layout_home
-from dash_routes.layout_demandas import layout_demandas
-from dash_routes.layout_usos import layout_usos
-from dash_routes.layout_armazenamento import layout_armazenamento
-from dash_routes.layout_atividade import layout_atividade
-
-from dash_routes.layout_producoes import layout_producoes
-from dash_routes.callbacks import register_callbacks
 from models import *
 from routes import *
 
-# --- BIBLIOTECAS PARA DEMANDAS--- #
-from dash.dependencies import Input, Output
-import plotly.graph_objs as go
+from dash_routes.callbacks import register_callbacks
+from dash_routes.layout_app import create_layout 
 
-# -------------------------------------  CONFIGURAÇÕES INICIAS  ---------------------------------------- #
+# -------------------------------------  CONFIGURAÇÕES INICIAIS  ---------------------------------------- #
 # --- DASH --- #
 app = dash.Dash(
     __name__,
@@ -43,267 +29,11 @@ app = dash.Dash(
 pio.templates.default = "plotly_dark"
 app.title = "LAD Dashboard"
 
+# -------------------------------------  CALLBACKS DA APLICAÇÃO ----------------------------------------- #
 register_callbacks(app)
-cache = Cache(server, config=CACHE_CONFIG)
-# ----------------------------------------  LAYOUT - DASH ---------------------------------------------- #
 
-app.layout = html.Div([
-    # --- NAVEGAÇÃO  --- #
-
-    html.Div(
-        html.Div([
-            html.A("LAD Accounting", href="/", style={'color': fifth_color, 'text-decoration':'none', 'font-size':'1.5rem'}),
-            
-            html.Img(
-                id="logo",
-                src=app.get_asset_url("LabLAD.png"),
-                style={'max-width': '100px'}
-            ),
-            
-            html.A("LAD Dashboard", href="/dash/", style={'color': fifth_color, 'text-decoration':'none', 'font-size':'1.5rem'})
-        ], style={'text-align':'center', 'display':'flex', 'gap':'3rem', 'align-items':'center', 'justify-content':'center'}
-        ), style={'padding': '2rem', 'background-color': second_color}
-    ),
-    # Dropdown de ano
-    dbc.Col(
-        dcc.Dropdown(
-            options=[{'label': str(ano), 'value': str(ano)} for ano in select_anos],
-            value=year,
-            id='year_dropdown'
-        ),
-        width=2,
-        style={'text-align': 'center', 'margin': 'auto', 'margin-bottom': '1rem'}
-    ),
-
-    dcc.Tabs([
-    dcc.Tab(label='Home', children=[layout_home],
-            style=tab_style, selected_style=selected_tab_style),
-    dcc.Tab(label='Atividade', children=[layout_atividade],
-            style=tab_style, selected_style=selected_tab_style),  
-    dcc.Tab(label='Painel de Demandas', children=[layout_demandas],
-            style=tab_style, selected_style=selected_tab_style),
-    dcc.Tab(label='Uso de Máquinas', children=[layout_usos],
-            style=tab_style, selected_style=selected_tab_style),
-    dcc.Tab(label='Armazenamento', children=[layout_armazenamento],
-            style=tab_style, selected_style=selected_tab_style),
-    dcc.Tab(label='Produções Científicas', children=[layout_producoes],
-            style=tab_style, selected_style=selected_tab_style)
-], style={
-    'backgroundColor': '#343a40',
-    'borderRadius': '8px',
-    'padding': '0.5rem',
-    'margin': '0 auto',
-    'width': '95%',
-    'boxShadow': '0 2px 8px rgba(0,0,0,0.3)'
-}),
-
-], style={'background-color':second_color, 'padding':'1rem', 'min-width':'900px'}
-)
-
-# ---------------------------------------  CALLBACK - DASH --------------------------------------------- #
-
-@app.callback(
-    # --- GRÁFICOS DO LAYOUT (EM ORDEM)  --- #
-    Output('graph_annual_usage', 'figure'),
-    Output('graph_monthly_usage', 'figure'),
-    Output('graph_24x7_machine', 'figure'),
-    Output('graph_cluster_machine', 'figure'),
-    Output('graph_cluster_usage_group', 'figure'),
-    Output('graph_24x7_usage_group', 'figure'),
-
-    # --- VALORES USADOS EM GRÁFICOS  --- #
-    Output('machine_usage', 'children'),
-    Output('machine_availability', 'children'),
-    Output('machine_capacity', 'children'),
-
-    # --- SELEÇÃO DE MÊS E ANO  --- #
-    Output('month_slider', 'value'),
-    Output('month_slider', 'max'),
-    Input('year_dropdown', 'value'),
-    Input('month_slider', 'value')
-)
-@cache.memoize(timeout=7200)
-# -----------------------------------  FUNÇÃO PRINCIPAL - DASH ----------------------------------------- #
-
-def update_figure(yearValue, value):
-    
-    # ------------------------------------- CONFIGURAÇÕES ---------------------------------------------- #
-    month = 0
-    global x
-    df_annual = pd.DataFrame()
-    days = month_days(value, yearValue)
-
-    # --- CRIA UM RELATÓRIO ANUAL --- #
-    for dataframe in os.listdir('relatorios/' + yearValue):
-        df_annual = pd.concat([df_annual, pd.read_excel(os.path.join('relatorios/' + yearValue, dataframe))])
-        month += 1
-
-    # --- EVITA QUE TENTE ACESSAR UM MÊS QUE AINDA NÃO CHEGOU --- #
-    if (month < value):
-        value = month    
-
-    x = month
-
-    # --- CRIA UM RELATÓRIO MENSAL --- #
-    df_data = read_database_excel(yearValue, value)
-
-    # ---------------------- USO DAS MÁQUINAS EM CLUSTER E 24 X 7- ANUAL ------------------------------- #
-
-    # --- CÁLCULO SIMPLES (CORES - HORAS/DIA - DIA/MÊS) --- #
-    machine_capacity = (2108*24*days)
-
-    # --- CRIA UM RELATÓRIO DE USO DE MÁQUINA, AGRUPADO POR MÊS --- #
-    df_machine_usage = df_annual[['Máquina em Cluster', 'Máquina em 24x7', 'Mês']].sort_values(by=['Mês'], ascending=False)               
-    df_machine_usage = df_machine_usage.groupby(['Mês']).agg({
-        'Máquina em 24x7' : 'sum',
-        'Máquina em Cluster' : 'sum'
-    })
-
-    # --- CRIA UMA COLUNA DE DISPONIBILIDADE --- #
-    machine_availability_annual = []
-
-    for index, row in df_machine_usage.iterrows():
-        total_usage = row['Máquina em 24x7'] + row['Máquina em Cluster']
-        capacity = 2108 * 24 * month_days(index, yearValue)
-        machine_availability_annual.append(capacity - total_usage)
-
-    df_machine_usage["Disponível"] = machine_availability_annual
-
-    # --- CRIA O GRÁFICO --- #
-    graph_annual_usage = px.bar(
-        df_machine_usage,
-        y=["Máquina em 24x7", "Máquina em Cluster", "Disponível"],
-        labels={'value':'Uso (CPU-Hora)', 'variable':'Tipo de uso'},
-        color_discrete_map={"Disponível": "white", "Máquina em Cluster": "#ef553b", "Máquina em 24x7": "#636efa"} 
-        ) 
- 
-    # ------------------ USO DE STORAGE (CLUSTER E 24 X 7) MENSAL E EM GRUPO --------------------------- #
-
-    # --- CRIA UM RELATÓRIO COM AS COLUNAS DE STORAGE --- #
-    # --- TAMBÉM AS LINHAS COM MENOS DE DOIS VALORES E ADICIONA UM ZERO NAS CASAS VAZIAS --- #
-    df_storage = df_data[['Projeto', 'Storage em cluster(GB)', 'Storage em 24x7(GB)']].dropna(thresh=2).fillna(0)  
-
-    # --- ADICIONA UMA COLUNA DE TOTAL (Cluster + 24x7) --- #                                                                              
-    df_storage['Total'] = df_storage['Storage em cluster(GB)'] + df_storage['Storage em 24x7(GB)']
-
-    # ------------------ USO DE MÁQUINA MENSAL E POR GRUPO (24X7 E CLUSTER) ---------------------------- #
-    
-    # --- DEFINIÇÃO DA MÁQUINA EM 24 X 7 --- # 
-    df_machine_24x7 = df_data[['Projeto', 'Máquina em 24x7']].dropna().sort_values(by=['Máquina em 24x7'], ascending=False)   
-    machine_usage_24x7 = df_machine_24x7['Máquina em 24x7'].sum()
-
-    # --- DEFINIÇÃO DA MÁQUINA EM CLUSTER --- # 
-    df_machine_cluster = df_data[['Projeto', 'Máquina em Cluster']].dropna().sort_values(by=['Máquina em Cluster'], ascending=False)
-    machine_usage_cluster = df_machine_cluster['Máquina em Cluster'].sum()
-
-    # --- DEFINIÇÃO DA MÁQUINA MENSAL --- # 
-    machine_usage = machine_usage_24x7 + machine_usage_cluster
-    machine_availability = machine_capacity - machine_usage
-    machine_usage_percent = round((machine_usage / machine_capacity) * 100, 2)
-
-    # --- CRIA O GRÁFICO DE USO DE MÁQUINA MENSAL --- #
-    annotations = [
-        dict(x=0, y=['Total'], text="Utilizado", xanchor="left", showarrow=False),
-        dict(x=machine_usage_24x7+machine_usage_cluster, y=['Total'], text=str(machine_usage_percent)+'%', xanchor="auto", showarrow=False)
-    ]
-
-    graph_monthly_usage = go.Figure(
-        data=[
-            go.Bar(name='24x7', x=[machine_usage_24x7], y=['Total'], orientation='h', marker_color='rgb(20, 200, 255)'),
-            go.Bar(name='Cluster', x=[machine_usage_cluster], y=['Total'], orientation='h', marker_color='rgb(30, 110, 255)'),
-            go.Bar(name='Disponível', x=[machine_availability], y=['Total'], orientation='h', marker_color='#efefef')
-        ]
-    )
-
-    graph_monthly_usage.update_layout(
-        barmode='stack',
-        yaxis={'visible': False, 'showticklabels': False},
-        xaxis={'visible': False, 'showticklabels': False, 'showline': False},
-        height=100,
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(l=10, r=0, b=10, t=0),
-        legend=dict(yanchor="top", y=0.7, xanchor="right", x=1.2),
-        annotations=annotations
-    )
-
-    # --- CRIA O GRÁFICO DE MÁQUINA EM 24 X 7 POR GRUPO --- # 
-    graph_24x7_machine = px.bar(
-        df_machine_24x7.head(10),
-        x="Projeto",
-        y="Máquina em 24x7",
-        color="Projeto"
-    ).update(layout_showlegend=False)
-
-    # --- CRIA O GRÁFICO DE MÁQUINA EM CLUSTER POR GRUPO --- #
-    graph_cluster_machine = px.bar(
-        df_machine_cluster,
-        x="Projeto",
-        y="Máquina em Cluster",
-        color="Projeto"
-        ).update(layout_showlegend=False)
-
-    # -------------------- USO DE MÁQUINA ANUAL POR GRUPO (24X7 E CLUSTER) ----------------------------- #
-    
-    # --- CONVERSÃO PARA INTEIRO PARA EVITAR MESES QUEBRADOS --- #
-    df_annual['Mês'] = df_annual['Mês'].astype(int)
-
-    # --- DEFINIÇÃO DA MÁQUINA ANUAL EM CLUSTER POR GRUPO --- #
-    df_machine_usage_cluster = df_annual[['Projeto', 'Máquina em Cluster', 'Mês']].dropna().sort_values(by=['Mês']) 
-
-    # --- DEFINIÇÃO DA MÁQUINA ANUAL EM 24 X 7 POR GRUPO --- #
-    df_machine_usage_24x7 = df_annual[['Projeto', 'Máquina em 24x7', 'Mês']].dropna().sort_values(by=['Mês'])
-
-    # --- CRIA O GRÁFICO DE MÁQUINA EM CLUSTER POR GRUPO --- #        
-    graph_cluster_usage_group = px.line(
-        df_machine_usage_cluster, 
-        x = 'Mês', 
-        y = 'Máquina em Cluster',
-        color = 'Projeto'
-    ).update_layout(
-    xaxis=dict(tickmode='linear', dtick=1)
-)                                    
-
-    # --- CRIA O GRÁFICO DE MÁQUINA EM 24 X 7 POR GRUPO --- #  
-    graph_24x7_usage_group = px.line(
-        df_machine_usage_24x7, 
-        x = 'Mês', 
-        y = 'Máquina em 24x7',
-        color = 'Projeto'
-    ).update_layout(
-    xaxis=dict(tickmode='linear', dtick=1)
-)
-
-    # TEMPORÁRIO! - CALCULA AS HORAS DE SERVIÇO, CONFORME O ANO 
-
-    sum_service = df_annual[['Serviço']].dropna().sum()
-    print(sum_service.to_string())
-    sum_machine = df_annual[['Máquina em Cluster']].dropna().sum()
-    print(sum_machine.to_string())
-    sum_24x7 = df_annual[['Máquina em 24x7']].dropna().sum()
-    print(sum_24x7.to_string())
-
-    # --------------------------------- RETORNO DA FUNÇÃO ---------------------------------------------- #
-
-    return [
-        # --- GRÁFICOS DO LAYOUT (EM ORDEM)  --- #
-        graph_annual_usage,
-        graph_monthly_usage,
-        graph_24x7_machine, 
-        graph_cluster_machine, 
-        graph_cluster_usage_group,
-        graph_24x7_usage_group,
-
-        # --- VALORES USADOS EM GRÁFICOS  --- #
-        machine_usage, 
-        machine_availability,
-        machine_capacity,
-
-        # --- SELEÇÃO DE MÊS E ANO  --- #
-        value,
-        month
-    ]
-
-
+# -------------------------------------  LAYOUT DA APLICAÇÃO  ----------------------------------------- #
+app.layout = create_layout(app)
 
 # ------------------------------------  INICIA A APLICAÇÃO --------------------------------------------- #
 

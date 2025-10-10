@@ -1,8 +1,9 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from config import *
 import sqlite3
 import pandas as pd
+
+from config import *
 
 # ------------------ VOLUMES POR GRUPO --------------------------- #
 # Obter os grupos ativos do banco de dados
@@ -19,14 +20,14 @@ dados = {
         {'nome': 'BmDRarea', 'storage': 'hnstorage', 'usado': 0, 'dedicado': 1},
     ],
     'CPBMF': [
-        {'nome': 'cpbmfarea', 'storage': 'cpbmf-storage', 'usado': 1.8, 'dedicado': 1.9},
+        {'nome': 'cpbmfarea', 'storage': 'cpbmf-storage', 'usado': 1.8, 'dedicado': 3},
     ],
     'INVESTGENOMICA-METAGENOMIC': [
-        {'nome': 'investgenomicaarea', 'storage': 'hnstorage', 'usado': 5.6, 'dedicado': 6},
-        {'nome': 'metagenomicarea', 'storage': 'hnstorage', 'usado': 0.444, 'dedicado': 0.590},
+        {'nome': 'investgenomicaarea', 'storage': 'hnstorage', 'usado': 5.7, 'dedicado': 6},
+        {'nome': 'metagenomicarea', 'storage': 'hnstorage', 'usado': 0.488, 'dedicado': 0.590},
     ],
     'LABGENOMA': [
-        {'nome': 'labgenomaarea', 'storage': 'labgenoma-storage', 'usado': 4.8, 'dedicado':5.4},
+        {'nome': 'labgenomaarea', 'storage': 'labgenoma-storage', 'usado': 5.1, 'dedicado':10},
         {'nome': 'eduardoSarea', 'storage': 'hnstorage', 'usado': 2.9, 'dedicado': 4.5},
     ],
     'NIMED-NANOFIS': [
@@ -34,13 +35,13 @@ dados = {
     ],
     'PLUMES': [
         {'nome': 'plumesarea', 'storage': 'plumes-storage', 'usado': 9.5, 'dedicado':10},
-        {'nome': 'DAMAREA', 'storage': 'dam-storage', 'usado': 11, 'dedicado': 11},
+        {'nome': 'DAMAREA', 'storage': 'dam-storage', 'usado': 11, 'dedicado': 40},
     ],
     'HOME': [
-        {'nome': 'HOME', 'storage': 'home-storage', 'usado': 2.8, 'dedicado':6},
+        {'nome': 'HOME', 'storage': 'home-storage', 'usado': 3.7, 'dedicado':6},
     ],
     'USRLOCALPANTANAL': [
-        {'nome': 'USRLOCALPANTANAL', 'storage': 'usrlocal-storage', 'usado': 0.407, 'dedicado':0.500},
+        {'nome': 'USRLOCALPANTANAL', 'storage': 'usrlocal-storage', 'usado': 0.415, 'dedicado':0.500},
     ],
 }
 

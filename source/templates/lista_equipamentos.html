@@ -20,9 +20,7 @@
                 <div>
                     <strong class="fs-6">{{ equipamento.hostname }}</strong> <br>
                     <small class="text-muted text-truncate d-inline-block" style="max-width:400px;">
-                        <strong>{{ equipamento.modelo }}</strong> |
-                        Núcleos: {{ equipamento.nucleo }} |
-                        Memória RAM: {{ equipamento.memoria }}
+                        <strong>{{ equipamento.modelo }}</strong>
                     </small>
                 </div>
             </div>
@@ -34,6 +32,8 @@
         </li>
         <div id="info-{{ equipamento.hostname }}" class="observacao-card" style="display:none;">
             <div class="observacao-texto">
+                <h6 class="mb-3 text-primary d-flex align-items-center gap-2"> <i class="fas fa-info-circle"></i> Detalhes do Equipamento</h6>
+                <p><strong>Marca/Modelo:</strong> {{equipamento.modelo}} </p>
                 <p><strong>Tipo:</strong> {{ equipamento.tipo }}</p>
                 <p><strong>Patrimônio:</strong> {{ equipamento.patrimonio }}</p>
                 <p><strong>Service Tag:</strong> {{ equipamento.serviceTag }}</p>
@@ -62,26 +62,41 @@
 
     .equipment-item {
         margin-bottom: 0 !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
     }
 
     .observacao-card {
-        background: #f9fafb;
-        border-left: 5px solid #ffb703;
-        padding: 12px 12px 12px 12px;
+        background: #ffffff;
+        border-left: 4px solid #007bff; 
+        padding: 0 15px; 
         font-size: 0.95rem;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        border-bottom: 1px solid #ddd;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        border-radius: 0 0 8px 8px;
+        margin-bottom: 10px;
+        
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 0.4s ease-in-out, max-height 0.4s ease-in-out, padding 0.4s;
+    }
+
+    .observacao-card.show {
+        opacity: 1;
+        max-height: 500px; 
+        padding: 15px; 
     }
 
     .observacao-texto p {
-        margin-bottom: 4px;
-        line-height: 1.4;
+        margin-bottom: 6px; 
+        line-height: 1.5;
     }
 
     .toggle-icon {
         transition: transform 0.2s;
         color: #555;
-        font-size: 1.2rem;
+        font-size: 1rem; 
+        width: 20px; 
+        text-align: center;
     }
 
     .toggle-icon.open {
@@ -95,13 +110,20 @@
         var listItem = infoPanel.previousElementSibling;
         var toggleIcon = listItem.querySelector('.toggle-icon');
 
-        if (infoPanel.style.display === "none") {
-            infoPanel.style.display = "block";
-            toggleIcon.classList.add('open');
-            
-        } else {
-            infoPanel.style.display = "none";
+        if (infoPanel.classList.contains('show')) {
+            infoPanel.classList.remove('show');
+            setTimeout(() => {
+                infoPanel.style.display = "none";
+            }, 400); 
             toggleIcon.classList.remove('open');
+            listItem.style.borderBottom = '1px solid rgba(0, 0, 0, 0.05)';
+        } else {
+            infoPanel.style.display = "block";
+            setTimeout(() => {
+                infoPanel.classList.add('show');
+            }, 10);
+            toggleIcon.classList.add('open');
+            listItem.style.borderBottom = 'none';
         }
     }
 </script>

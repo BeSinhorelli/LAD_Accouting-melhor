@@ -1,6 +1,6 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
-from datetime import datetime
+
 from config import *
 
 layout_usos = html.Div([
