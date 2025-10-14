@@ -60,6 +60,34 @@ selected_tab_style = {
     'boxShadow': '0 2px 4px rgba(0,0,0,0.2)'
 }
 
+# Accounting.db
+COL_CLUSTER_DB = 'maquina_cluster'
+COL_24X7_DB = 'maquina_24x7'
+COL_STORAGE_CLUSTER_DB = 'storage_cluster' 
+COL_STORAGE_24X7_DB = 'storage_24x7' 
+COL_SERVICO_DB = 'servico'
+COL_PROJETO_DB = 'projeto'
+COL_MES_DB = 'mes'
+
+# Rename
+COL_CLUSTER = 'Máquina em Cluster'
+COL_24X7 = 'Máquina em 24x7'
+COL_STORAGE_CLUSTER = 'Storage em cluster(GB)'
+COL_STORAGE_24X7 = 'Storage em 24x7(GB)'
+COL_SERVICO = 'Serviço'
+COL_PROJETO = 'Projeto'
+COL_MES = 'Mês'
+
+rename_col = {
+    COL_CLUSTER_DB: COL_CLUSTER,
+    COL_24X7_DB: COL_24X7,
+    COL_SERVICO_DB: COL_SERVICO,
+    COL_PROJETO_DB: COL_PROJETO,
+    COL_MES_DB: COL_MES,
+    COL_STORAGE_CLUSTER_DB: COL_STORAGE_CLUSTER,
+    COL_STORAGE_24X7_DB: COL_STORAGE_24X7
+}
+
 # ---  CONFIGURAÇÕES  --- #
 def verify_leap_year (yearValue):
     return int(yearValue) % 400 == 0 or int(yearValue) % 4 == 0 and int(yearValue) % 100 != 0
