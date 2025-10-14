@@ -25,7 +25,7 @@ body, .page, html {
   background-color: var(--second_color);
   display: flex;
   flex-direction: column;
-  padding: 3rem 0 1.5rem 0 !important;
+  padding: 2rem 0 1.5rem 0 !important;
 }
 .navbar-brand {
   margin: 0 !important;

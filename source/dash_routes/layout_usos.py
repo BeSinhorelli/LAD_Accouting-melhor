@@ -1,6 +1,6 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
-from datetime import datetime
+
 from config import *
 
 layout_usos = html.Div([
@@ -46,49 +46,6 @@ layout_usos = html.Div([
     dbc.Col(
         dbc.Row([
 
-            # --- GRÁFICO DE USO DO STORAGE --- #
-
-            dbc.Col(
-                dbc.Card([
-                    dbc.CardHeader('Storage', style={'background-color': first_color, 'color' : second_color}),
-                    dbc.CardBody([
-                        dbc.Col(
-                            dcc.Graph(
-                                id='graph_storage'
-                            )
-                        ),
-                        dbc.Row([
-                            dbc.Col([
-                                html.Span('Utilizado'),
-                                html.Div([
-                                    html.H5(id='', style={'display': 'inline', 'color': 'white'}),
-                                    html.Span('GB', style={'color': 'white', 'margin-left': '5px'})
-                                ])
-                            ]),
-                            dbc.Col([
-                                html.Span('Disponível'),
-                                html.Div([
-                                    html.H5(id='', style={'display': 'inline', 'color': 'white'}),
-                                    html.Span('GB', style={'color': 'white', 'margin-left': '5px'}),
-                                ])
-                                
-                            ]),
-                            dbc.Col([
-                                html.Span('Capacidade'),
-                                html.Div([
-                                    html.H5('134206', style={'display': 'inline', 'color': 'white'}),
-                                    html.Span('GB', style={'color': 'white', 'margin-left': '5px'}),
-                                ])
-                            ])
-                        ])
-                    ], style={'padding-top':'0'}
-                    )
-                    ],
-                    className='shadow text-center', 
-                    style={'background-color': third_color, 'color': 'white'}
-                ), width=6
-            ),
-
             # --- GRÁFICO DE USO MENSAL DOS CLUSTERS  --- #
 
             dbc.Col(
@@ -120,7 +77,7 @@ layout_usos = html.Div([
                     ],
                     className='shadow text-center', 
                     style={'border': 'none', 'background-color': third_color, 'color': 'white'}
-                ), width=6
+                ), width=12
             )
             
         ])
@@ -165,21 +122,6 @@ layout_usos = html.Div([
     ),
 
     html.Br(),
-
-    # ----------------------------- SEÇÃO 4 - GRAF. STORAGE POR GRUPO ---------------------------------- #
-    dbc.Col(
-        dbc.Card([
-            dbc.CardHeader('Uso de Storage (Cluster + 24x7) por grupo', style={'background-color': first_color, 'color': second_color}),
-            dcc.Graph(
-                id='graph_storage_group',
-            )],
-            className='shadow text-center',
-            style={'border': 'none'}
-        ),
-        width=10, 
-        className='mx-auto',
-        style={'margin': '1rem 0'}
-    ),
 
     # ----------------------- SEÇÃO 5 - GRAF. ANUAL (CLUSTER + 24X7) POR GRUPO  ------------------------ #
 

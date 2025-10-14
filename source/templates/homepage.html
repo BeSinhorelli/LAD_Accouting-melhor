@@ -99,7 +99,7 @@
         {% if app.tipo == 'Aplicação' %}
         <div class="card flex-shrink-0 hover-card d-flex flex-column"
             style="width: 20rem; cursor: pointer; min-height: 12rem;"
-             onclick="window.location.href=`{{ url_for('lista_aplicacao') }}?nome={{ app.nome|replace(' ', '-') }}`;"
+             onclick="window.location.href=`{{ url_for('lista_aplicacao') }}?nome={{ app.nome|replace(' ', '-') }}`;" 
             title="Clique para ver detalhes">
 
             <!-- Cabeçalho -->
