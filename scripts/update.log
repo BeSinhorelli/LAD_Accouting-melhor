@@ -4120,3 +4120,423 @@ Already on 'producao'
 Tue Sep 30 08:00:04 -03 2025: Atualização concluída
 ===============================
  
+===============================
+Tue Sep 30 10:00:01 -03 2025: Início da atualização
+error: you need to resolve your current index first
+Erro: Falha ao mudar para branch producao
+===============================
+Tue Sep 30 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Sep 30 12:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Sep 30 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Sep 30 14:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Sep 30 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Sep 30 16:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Sep 30 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Sep 30 18:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Sep 30 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Sep 30 20:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  1 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  1 08:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  1 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  1 10:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  1 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+From https://github.com/LAD-PUCRS/LAD_Accounting
+   8c8fc5b7..b8014cac  rotas      -> origin/rotas
+Wed Oct  1 12:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  1 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  1 14:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  1 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  1 16:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  1 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  1 18:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  1 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  1 20:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  2 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  2 08:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  2 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  2 10:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  2 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  2 12:00:05 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  2 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  2 14:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  2 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+fatal: unable to access 'https://github.com/LAD-PUCRS/LAD_Accounting.git/': Could not resolve host: github.com
+Erro: Falha no git fetch
+===============================
+Thu Oct  2 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  2 18:00:04 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  2 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  2 20:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct  3 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct  3 08:00:08 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct  3 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct  3 10:00:08 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct  3 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct  3 12:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct  3 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct  3 14:00:07 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct  3 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct  3 16:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct  3 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct  3 18:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct  3 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct  3 20:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct  6 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct  6 08:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct  6 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct  6 10:00:13 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct  6 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct  6 12:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct  6 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+fatal: unable to access 'https://github.com/LAD-PUCRS/LAD_Accounting.git/': Could not resolve host: github.com
+Erro: Falha no git fetch
+===============================
+Mon Oct  6 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct  6 16:00:13 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct  6 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct  6 18:00:12 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct  6 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct  6 20:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Oct  7 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Oct  7 08:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Oct  7 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Oct  7 10:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Oct  7 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Oct  7 12:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Oct  7 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Oct  7 14:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Oct  7 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Oct  7 16:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Oct  7 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Oct  7 18:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Oct  7 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Oct  7 20:00:04 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  8 08:00:02 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  8 08:00:05 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  8 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  8 10:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  8 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  8 12:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  8 14:00:02 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  8 14:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  8 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  8 16:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  8 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  8 18:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Wed Oct  8 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Wed Oct  8 20:00:04 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  9 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  9 08:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  9 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  9 10:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  9 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  9 12:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  9 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  9 14:00:04 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  9 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  9 16:00:10 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  9 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  9 18:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Thu Oct  9 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Thu Oct  9 20:00:04 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct 10 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct 10 08:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct 10 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct 10 10:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct 10 12:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct 10 12:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct 10 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct 10 14:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct 10 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+From https://github.com/LAD-PUCRS/LAD_Accounting
+   b8014cac..ddae9d86  rotas      -> origin/rotas
+Fri Oct 10 16:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct 10 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct 10 18:00:04 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Fri Oct 10 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Fri Oct 10 20:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct 13 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct 13 08:00:09 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct 13 10:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct 13 10:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct 13 12:00:02 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct 13 12:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct 13 14:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct 13 14:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct 13 16:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct 13 16:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct 13 18:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct 13 18:00:03 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Mon Oct 13 20:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Mon Oct 13 20:00:02 -03 2025: Atualização concluída
+===============================
+ 
+===============================
+Tue Oct 14 08:00:01 -03 2025: Início da atualização
+Already on 'producao'
+Tue Oct 14 08:00:02 -03 2025: Atualização concluída
+===============================
+ 
