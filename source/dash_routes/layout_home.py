@@ -5,7 +5,7 @@ import pandas as pd
 
 from config import *
 
-from models import Producao
+from models import Producao, Relatorio
 
 annual_reports_cache = {}
 card_style = {
@@ -38,14 +38,10 @@ def read_annual_report_with_cache(yearValue):
         return annual_reports_cache[yearValue]
     #Se não estiver no cache, lê do disco
     print(f"[CACHE] Carregando dados do disco para o ano {yearValue}")
-    relatorio_dir = f'relatorios/{yearValue}'
-    if not os.path.exists(relatorio_dir):
-        return pd.DataFrame()
-    df_annual = pd.DataFrame()
-    for file in os.listdir(relatorio_dir):
-        if file.endswith('.xlsx'):
-            df = pd.read_excel(os.path.join(relatorio_dir, file))
-            df_annual = pd.concat([df_annual, df], ignore_index=True)
+    
+    query = Relatorio.select().where(Relatorio.ano == yearValue).dicts()
+    df_annual = pd.DataFrame(list(query))
+    
     annual_reports_cache[yearValue] = df_annual
     return df_annual
 
