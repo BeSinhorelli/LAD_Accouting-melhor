@@ -88,17 +88,13 @@ def register_callbacks(app):
         # Total de horas usadas 
         df_annual = read_annual_report_with_cache(selected_year)
         total_horas = 0
+        horas_cols = ['maquina_cluster', 'maquina_24x7']
         if not df_annual.empty:
-            # Tenta somar as duas colunas, se existirem
-            col_cluster = [c for c in df_annual.columns if "Cluster" in c]
-            col_24x7 = [c for c in df_annual.columns if "24x7" in c]
-            if col_cluster and col_24x7:
-                total_horas = df_annual[col_cluster[0]].fillna(0).sum() + df_annual[col_24x7[0]].fillna(0).sum()
-            elif col_cluster:
-                total_horas = df_annual[col_cluster[0]].fillna(0).sum()
-            elif col_24x7:
-                total_horas = df_annual[col_24x7[0]].fillna(0).sum()
-        total_horas_fmt = f"{total_horas:,.0f}".replace(",", ".") if total_horas else "0"
+            cols_to_sum = [c for c in horas_cols if c in df_annual.columns]
+            if cols_to_sum:
+                total_horas = df_annual[cols_to_sum].fillna(0).sum().sum()
+
+        total_horas_fmt = f"{total_horas:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".") if total_horas else "0"
 
         # usuários ativos
         usuarios_ativos = Usuario.select().where(Usuario.status == True).count()
@@ -1000,18 +996,29 @@ def register_callbacks(app):
     def update_storage_graphs(yearValue, month):
         
         if not yearValue or not month:
-            return go.Figure(), go.Figure() 
+            return go.Figure(), go.Figure(), "N/A", "N/A"
 
-        df_data = read_database_excel(yearValue, month)
-        df_storage = df_data[['Projeto', 'Storage em cluster(GB)', 'Storage em 24x7(GB)']].dropna(thresh=2).fillna(0)
+        query = Relatorio.select(
+            Relatorio.projeto,
+            Relatorio.storage_cluster,
+            Relatorio.storage_24x7
+        ).where(
+            (Relatorio.ano == yearValue) & (Relatorio.mes == month)
+        ).dicts()
 
-        df_storage['Total'] = df_storage['Storage em cluster(GB)'] + df_storage['Storage em 24x7(GB)']
+        df_data = pd.DataFrame(list(query))
+
+        if df_data.empty:
+            return go.Figure(), go.Figure(), "N/A", "N/A"
+
+        df_storage = df_data[['projeto', 'storage_cluster', 'storage_24x7']].dropna(thresh=2).fillna(0)
+        df_storage['Total'] = df_storage['storage_cluster'] + df_storage['storage_24x7']
 
         storage_capacity = 134206
         storage_usage = df_storage['Total'].sum()
         storage_availability = storage_capacity - storage_usage
 
-        new_row = pd.DataFrame([['Disponível', 0, 0, storage_availability]], columns=df_storage.columns)
+        new_row = pd.DataFrame([['Disponível', 0, 0, storage_availability]], columns=['projeto', 'storage_cluster', 'storage_24x7', 'Total'])
         df_storage = pd.concat([new_row, df_storage], ignore_index=True)
 
         storage_usage_percent = round((storage_usage / storage_capacity) * 100, 2)
@@ -1037,7 +1044,7 @@ def register_callbacks(app):
             annotations=annotations
         )
 
-        labels = df_storage['Projeto']
+        labels = df_storage['projeto']
         values = df_storage['Total']
 
         graph_storage_group = go.Figure(
