@@ -1,187 +1,226 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class="cadastro">
-    <h2>Usuários do {{ grupo.nome }}</h2>
+
+<section class="cadastro py-4">
+    <div class="d-flex align-items-center mb-4 gap-2">
+        <h2 class="h4 m-0 fw-bold">Gerenciamento de Usuários</h2>
+        <span class="badge bg-light text-dark ms-3 border fs-6">
+           Grupo: {{ grupo.nome }}
+        </span>
+    </div>
 
     {% set ativos = usuarios | selectattr('status', 'equalto', True) | list %}
     {% set inativos = usuarios | selectattr('status', 'equalto', False) | list %}
 
-    {% if ativos %}
-    <h4>Ativos ({{ ativos | length }})</h4>
-    <ul class="list-group bg-white mb-4">
-        {% for usuario in ativos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card equipment-item"
-            onclick="toggleInfo('{{ usuario.nome }}')" title="Clique para exibir informações">
+    <div class="d-flex align-items-center mb-3">
+        <h5 class="m-0 text-success fw-bold">Ativos</h5>
+        <span class="badge bg-success-subtle text-success-emphasis ms-2 rounded-pill">{{ ativos | length }}</span>
+    </div>
 
-            <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <i class="toggle-icon fas fa-caret-right"></i>
-                <div>
-                    <strong class="fs-6">{{ usuario.nome }}</strong> <br>
-                    {% if usuario.email %}
-                    <small class="text-muted text-truncate d-inline-block" style="max-width:400px;">
-                        {{ usuario.email }}
-                    </small>
-                    {% endif %}
+    <div class="list-wrapper shadow-sm rounded bg-white mb-5 overflow-hidden">
+        {% if ativos %}
+            <div class="list-group list-group-flush">
+            {% for usuario in ativos %}
+                <div class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center cursor-pointer main-row"
+                     onclick="toggleInfo('{{ usuario.nome }}')">
+                    
+                    <div class="d-flex align-items-center gap-3 flex-grow-1">
+                        <div class="icon-box bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 40px; height: 40px;">
+                            <span class="fw-bold">{{ usuario.nome[:1] | upper }}</span>
+                        </div>
+                        
+                        <div style="min-width: 0;"> <h6 class="mb-0 fw-bold text-dark text-truncate">{{ usuario.nome }}</h6>
+                            {% if usuario.email %}
+                                <small class="text-muted text-truncate d-block">{{ usuario.email }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="btn-group" onclick="event.stopPropagation()">
+                            <a class="btn btn-light btn-sm text-secondary border" 
+                               href="{{ url_for('usuario', userName=usuario.nome) }}"
+                               title="Editar">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            
+                            <form action="{{ url_for('usuario_delete', userId=usuario.id) }}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-light btn-sm text-danger border border-start-0"
+                                    onclick="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?')"
+                                    title="Excluir">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <i id="icon-{{ usuario.nome }}" class="fas fa-chevron-down text-muted transition-icon"></i>
+                    </div>
                 </div>
-            </div>
 
-            <div class="d-flex gap-2">
-                <a class="btn btn-primary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
-
-                <form action="{{ url_for('usuario_delete', userId=usuario.id) }}" method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?')">
-                        Excluir
-                    </button>
-                </form>
+                <div id="info-{{ usuario.nome }}" class="details-panel bg-light border-bottom">
+                    <div class="p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="text-muted d-block small mb-1"><i class="fas fa-envelope me-1"></i>E-mail</label>
+                                <span class="fw-medium text-dark">{{ usuario.email or "Não cadastrado" }}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted d-block small mb-1"><i class="fas fa-users me-1"></i>Grupo</label>
+                                <span class="fw-medium text-dark">{{ grupo.nome }}</span>
+                            </div>
+                            
+                            <div class="col-12">
+                                <hr class="text-muted opacity-25 my-2">
+                                <label class="text-muted d-block small mb-2"><i class="fas fa-sticky-note me-1"></i>Observações</label>
+                                <div class="bg-white p-3 rounded border">
+                                    {% if usuario.observacoes %}
+                                        <ul class="list-unstyled mb-0 small text-dark">
+                                            {% for item in usuario.observacoes.splitlines() %}
+                                                <li class="mb-1 text-break">
+                                                    {{ item | trim }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="mb-0 text-muted small fst-italic">Nenhuma observação registrada.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
             </div>
-        </li>
-        <div id="info-{{ usuario.nome }}" class="observacao-card" style="display:none;">
-            <div class="observacao-texto">
-                <h6 class="mb-3 text-primary d-flex align-items-center gap-2">
-                    <i class="fas fa-user-circle"></i> Detalhes do Usuário
-                </h6>
-                <p> <strong>Nome:</strong> {{ usuario.nome}}</p>
-                <p> <strong>E-mail:</strong> {{ usuario.email }}</p>
-                <p> <strong>Grupo:</strong> {{grupo.nome}} </p>
-                <p><strong>Observações:</strong> 
-                    {{ usuario.observacoes or "Sem informações." }}</p>
+        {% else %}
+            <div class="text-center py-4 text-muted">
+                <small>Nenhum usuário ativo neste grupo.</small>
             </div>
-        </div>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <ul class="list-group bg-white">
-        <li class="list-group-item">Nenhum usuário ativo neste grupo.</li>
-    </ul>
-    {% endif %}
+        {% endif %}
+    </div>
 
     {% if inativos %}
-    <h4>Inativos ({{ inativos | length }})</h4>
-    <ul class="list-group bg-white mb-4">
-        {% for usuario in inativos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card equipment-item"
-            onclick="toggleInfo('{{ usuario.nome }}')" title="Clique para exibir informações">
+    <div class="d-flex align-items-center mb-3 mt-4">
+        <h5 class="m-0 text-secondary fw-bold">Inativos</h5>
+        <span class="badge bg-secondary-subtle text-secondary-emphasis ms-2 rounded-pill">{{ inativos | length }}</span>
+    </div>
 
-            <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <i class="toggle-icon fas fa-caret-right"></i>
-                <div>
-                    <strong class="fs-6">{{ usuario.nome }}</strong> <br>
-                    {% if usuario.email %}
-                    <small class="text-muted text-truncate d-inline-block" style="max-width:400px;">
-                        {{ usuario.email }}
-                    </small>
-                    {% endif %}
+    <div class="list-wrapper shadow-sm rounded bg-white overflow-hidden opacity-75">
+        <div class="list-group list-group-flush">
+        {% for usuario in inativos %}
+            <div class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center cursor-pointer main-row"
+                 onclick="toggleInfo('{{ usuario.nome }}')">
+                
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <div class="icon-box bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 40px; height: 40px;">
+                        <i class="fas fa-user-times"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-muted">{{ usuario.nome }}</h6>
+                        <small class="text-muted">Inativo</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="btn-group" onclick="event.stopPropagation()">
+                        <a class="btn btn-light btn-sm text-secondary border" 
+                           href="{{ url_for('usuario', userName=usuario.nome) }}">
+                            <i class="fas fa-pen"></i>
+                        </a>
+                        <form action="{{ url_for('usuario_delete', userId=usuario.id) }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-light btn-sm text-danger border border-start-0"
+                                onclick="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                    <i id="icon-{{ usuario.nome }}" class="fas fa-chevron-down text-muted transition-icon"></i>
                 </div>
             </div>
 
-            <div class="d-flex gap-2">
-                <a class="btn btn-primary btn-sm" href="{{ url_for('usuario', userName=usuario.nome) }}">Editar</a>
+            <div id="info-{{ usuario.nome }}" class="details-panel bg-light border-bottom">
+                <div class="p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted d-block small mb-1">E-mail</label>
+                            <span class="text-muted">{{ usuario.email or "-" }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted d-block small mb-1">Grupo</label>
+                            <span class="text-muted">{{ grupo.nome }}</span>
+                        </div>
 
-                <form action="{{ url_for('usuario_delete', userId=usuario.id) }}" method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?')">
-                        Excluir
-                    </button>
-                </form>
+                        <div class="col-12">
+                            <hr class="text-muted opacity-25 my-2">
+                            <label class="text-muted d-block small mb-2"><i class="fas fa-sticky-note me-1"></i>Observações</label>
+                            <div class="bg-white p-3 rounded border">
+                                {% if usuario.observacoes %}
+                                    <ul class="list-unstyled mb-0 small text-dark">
+                                        {% for item in usuario.observacoes.splitlines() %}
+                                            <li class="mb-1 text-break text-muted fst-italic">
+                                                {{ item | trim }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="mb-0 text-muted small fst-italic">Nenhuma observação registrada.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </li>
-        <div id="info-{{ usuario.nome }}" class="observacao-card" style="display:none;">
-            <div class="observacao-texto">
-                <h6 class="mb-3 text-primary d-flex align-items-center gap-2">
-                    <i class="fas fa-user-circle"></i> Detalhes do Usuário
-                </h6>
-                <p> <strong>Nome:</strong> {{ usuario.nome}}</p>
-                <p> <strong>E-mail:</strong> {{ usuario.email }}</p>
-                <p> <strong>Grupo:</strong> {{grupo.nome}} </p>
-                <p><strong>Observações:</strong> 
-                    {{ usuario.observacoes or "Sem informações." }}</p>
-            </div>
-        </div>
         {% endfor %}
-    </ul>
+        </div>
+    </div>
     {% endif %}
 
-    <a class="btn btn-secondary mt-3" href="javascript:history.back()">Voltar</a>
-</div>
+    <div class="mt-4">
+        <a class="btn btn-outline-secondary" href="javascript:history.back()">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+</section>
 
 <style>
-    .hover-card {
-        transition: transform 0.2s ease-in-out;
-    }
+    .cursor-pointer { cursor: pointer; }
+    .list-wrapper { border: 1px solid rgba(0,0,0,0.08); }
+    
+    .main-row { transition: background-color 0.2s ease; }
+    .main-row:hover { background-color: #f8f9fa; }
 
-    .hover-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-        cursor: pointer;
-    }
-
-    .equipment-item {
-        margin-bottom: 0 !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    }
-
-    .observacao-card {
-        background: #ffffff;
-        border-left: 4px solid #007bff; 
-        padding: 0 15px; 
-        font-size: 0.95rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        border-radius: 0 0 8px 8px;
-        margin-bottom: 10px;
-        
-        opacity: 0;
-        max-height: 0;
+    .details-panel {
+        display: none;
         overflow: hidden;
-        transition: opacity 0.4s ease-in-out, max-height 0.4s ease-in-out, padding 0.4s;
+        animation: slideDown 0.3s ease-out forwards;
     }
 
-    .observacao-card.show {
-        opacity: 1;
-        max-height: 500px; 
-        padding: 15px; 
-    }
+    .transition-icon { transition: transform 0.3s ease; }
+    .rotate-180 { transform: rotate(180deg); }
 
-    .observacao-texto p {
-        margin-bottom: 6px; 
-        line-height: 1.5;
-        white-space: pre-line;
-    }
+    .bg-success-subtle { background-color: #d1e7dd !important; color: #0f5132 !important; }
+    .bg-secondary-subtle { background-color: #e2e3e5 !important; color: #41464b !important; }
+    .opacity-75 { opacity: 0.85; }
 
-    .toggle-icon {
-        transition: transform 0.2s;
-        color: #555;
-        font-size: 1rem; 
-        width: 20px; 
-        text-align: center;
-    }
-
-    .toggle-icon.open {
-        transform: rotate(90deg);
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 
 <script>
-    function toggleInfo(nome) {
-        var infoPanel = document.getElementById('info-' + nome);
-        var listItem = infoPanel.previousElementSibling;
-        var toggleIcon = listItem.querySelector('.toggle-icon');
-
-        if (infoPanel.classList.contains('show')) {
-            infoPanel.classList.remove('show');
-            setTimeout(() => {
-                infoPanel.style.display = "none";
-            }, 400); 
-            toggleIcon.classList.remove('open');
-            listItem.style.borderBottom = '1px solid rgba(0, 0, 0, 0.05)';
+    function toggleInfo(id) {
+        const panel = document.getElementById('info-' + id);
+        const icon = document.getElementById('icon-' + id);
+        
+        if (panel.style.display === "block") {
+            panel.style.display = "none";
+            icon.classList.remove('rotate-180');
         } else {
-            infoPanel.style.display = "block";
-            setTimeout(() => {
-                infoPanel.classList.add('show');
-            }, 10);
-            toggleIcon.classList.add('open');
-            listItem.style.borderBottom = 'none';
+            panel.style.display = "block";
+            icon.classList.add('rotate-180');
         }
     }
 </script>
+
 {% endblock %}

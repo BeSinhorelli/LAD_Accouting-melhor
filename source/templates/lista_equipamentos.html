@@ -1,130 +1,137 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class="cadastro">
-    <h2>Equipamentos do Cluster: {{ cluster.name }}</h2>
 
+<section class="cadastro py-4">
+    
     {% for tipo, lista_equipamentos in equipamentos_agrupados.items() %}
     {% if lista_equipamentos %}
 
-    {% if tipo == 'inativo' %}
-    <h4 class="mt-4">{{ tipo.capitalize() }}s</h4>
-    {% endif %}
+    {% set is_inativo = (tipo == 'inativo') %}
+    {% set icon_color = 'text-primary' if is_inativo else 'text-info' %}
+    {% set badge_color = 'bg-secondary-subtle text-secondary-emphasis' if is_inativo else 'bg-info-subtle text-info-emphasis' %}
 
-    <ul class="list-group mb-4 bg-white">
-        {% for equipamento in lista_equipamentos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card equipment-item"
-            onclick="toggleInfo('{{ equipamento.hostname }}')" title="Clique para exibir informações">
+    <div class="d-flex align-items-center mb-4">
+        <h2 class="h4 m-0 fw-bold">
+            Equipamentos do Cluster: {{ cluster.name }}
+            <span class="badge bg-light text-dark ms-2 border">{{ lista_equipamentos | length }}</span>
+        </h2>
+    </div>
 
-            <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <i class="toggle-icon fas fa-caret-right"></i>
-                <div>
-                    <strong class="fs-6">{{ equipamento.hostname }}</strong> <br>
-                    <small class="text-muted text-truncate d-inline-block" style="max-width:400px;">
-                        <strong>{{ equipamento.modelo }}</strong>
-                    </small>
+    <div class="list-wrapper shadow-sm rounded bg-white mb-5 overflow-hidden {{ 'opacity-75' if is_inativo }}">
+        <div class="list-group list-group-flush">
+            {% for equipamento in lista_equipamentos %}
+            
+            <div class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center cursor-pointer main-row"
+                 onclick="toggleInfo('{{ equipamento.hostname }}')">
+
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <div class="icon-box bg-light border rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 40px; height: 40px;">
+                        <i class="fas fa-server text-primary"></i>
+                    </div>
+
+                    <div class="{{ 'text-decoration-line-through text-muted' if is_inativo }}">
+                        <h6 class="mb-0 fw-bold text-dark text-truncate">{{ equipamento.hostname }}</h6>
+                        <small class="text-muted d-block">{{ equipamento.modelo }}</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div onclick="event.stopPropagation()">
+                        <a class="btn btn-outline-secondary btn-sm"
+                            href="{{ url_for('equipamento', equipName=equipamento.hostname) }}"
+                            title="Editar Equipamento">
+                            <i class="fas fa-pen"></i> Editar
+                        </a>
+                    </div>
+                    <i id="icon-{{ equipamento.hostname }}" class="fas fa-chevron-down text-muted transition-icon"></i>
                 </div>
             </div>
 
-            <div class="d-flex gap-2">
-                <a class="btn btn-primary btn-sm"
-                    href="{{ url_for('equipamento', equipName=equipamento.hostname) }}">Editar</a>
+            <div id="info-{{ equipamento.hostname }}" class="details-panel bg-light border-bottom">
+                <div class="p-4">
+                    <div class="row g-3">
+                        
+                        <div class="col-md-6">
+                            <label class="text-muted d-block small mb-1"><i class="fas fa-id-card me-1"></i> Patrimônio / Service Tag</label>
+                            <span class="fw-medium text-dark d-block mb-2">{{ equipamento.patrimonio or "-" }} / {{ equipamento.serviceTag or "-" }}</span>
+                            
+                            <label class="text-muted d-block small mb-1"><i class="fas fa-cog me-1"></i> Modelo</label>
+                            <span class="fw-medium text-dark d-block">{{ equipamento.modelo }}</span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="text-muted d-block small mb-1"><i class="fas fa-microchip me-1"></i> Especificações</label>
+                            <span class="fw-medium text-dark d-block">
+                                Núcleos: {{ equipamento.nucleo or "-" }}
+                            </span>
+                            <span class="fw-medium text-dark d-block mb-2">
+                                RAM: {{ equipamento.memoria or "-" }}
+                            </span>
+                            
+                            <label class="text-muted d-block small mb-1"><i class="fas fa-server me-1"></i> Cluster</label>
+                            <span class="fw-medium text-dark d-block">{{ cluster.name }}</span>
+                        </div>
+
+                    </div>
+                </div>
             </div>
-        </li>
-        <div id="info-{{ equipamento.hostname }}" class="observacao-card" style="display:none;">
-            <div class="observacao-texto">
-                <h6 class="mb-3 text-primary d-flex align-items-center gap-2"> <i class="fas fa-info-circle"></i> Detalhes do Equipamento</h6>
-                <p><strong>Marca/Modelo:</strong> {{equipamento.modelo}} </p>
-                <p><strong>Tipo:</strong> {{ equipamento.tipo }}</p>
-                <p><strong>Patrimônio:</strong> {{ equipamento.patrimonio }}</p>
-                <p><strong>Service Tag:</strong> {{ equipamento.serviceTag }}</p>
-                <p><strong>Núcleos:</strong> {{ equipamento.nucleo }}</p>
-                <p><strong>Memória RAM:</strong> {{ equipamento.memoria }}</p>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </ul>
+    </div>
     {% endif %}
     {% endfor %}
 
-    <a class="btn btn-secondary mt-3" href="javascript:history.back()">Voltar</a>
-</div>
+    <div class="mt-4">
+        <a class="btn btn-outline-secondary" href="javascript:history.back()">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+</section>
 
 <style>
-    .hover-card {
-        transition: transform 0.2s ease-in-out;
-    }
+    /* Estilos copiados do modelo anterior para consistência */
+    .cursor-pointer { cursor: pointer; }
+    .list-wrapper { border: 1px solid rgba(0,0,0,0.08); }
+    
+    .main-row { transition: background-color 0.2s ease; }
+    .main-row:hover { background-color: #f8f9fa; }
 
-    .hover-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-        cursor: pointer;
-    }
-
-    .equipment-item {
-        margin-bottom: 0 !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    }
-
-    .observacao-card {
-        background: #ffffff;
-        border-left: 4px solid #007bff; 
-        padding: 0 15px; 
-        font-size: 0.95rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        border-radius: 0 0 8px 8px;
-        margin-bottom: 10px;
-        
-        opacity: 0;
-        max-height: 0;
+    .details-panel {
+        display: none;
         overflow: hidden;
-        transition: opacity 0.4s ease-in-out, max-height 0.4s ease-in-out, padding 0.4s;
+        animation: slideDown 0.3s ease-out forwards;
     }
 
-    .observacao-card.show {
-        opacity: 1;
-        max-height: 500px; 
-        padding: 15px; 
-    }
+    .transition-icon { transition: transform 0.3s ease; }
+    .rotate-180 { transform: rotate(180deg); }
 
-    .observacao-texto p {
-        margin-bottom: 6px; 
-        line-height: 1.5;
-    }
+    /* Estilos específicos para este layout */
+    .opacity-75 { opacity: 0.85; }
+    .bg-info-subtle { background-color: #cff4fc !important; color: #055160 !important; } /* Cor para 'ativo/padrão' */
+    .bg-secondary-subtle { background-color: #e2e3e5 !important; color: #41464b !important; } /* Cor para 'inativo' */
 
-    .toggle-icon {
-        transition: transform 0.2s;
-        color: #555;
-        font-size: 1rem; 
-        width: 20px; 
-        text-align: center;
-    }
-
-    .toggle-icon.open {
-        transform: rotate(90deg);
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 
 <script>
     function toggleInfo(hostname) {
-        var infoPanel = document.getElementById('info-' + hostname);
-        var listItem = infoPanel.previousElementSibling;
-        var toggleIcon = listItem.querySelector('.toggle-icon');
+        const panel = document.getElementById('info-' + hostname);
+        const icon = document.getElementById('icon-' + hostname);
+        
+        if (!panel) return;
 
-        if (infoPanel.classList.contains('show')) {
-            infoPanel.classList.remove('show');
-            setTimeout(() => {
-                infoPanel.style.display = "none";
-            }, 400); 
-            toggleIcon.classList.remove('open');
-            listItem.style.borderBottom = '1px solid rgba(0, 0, 0, 0.05)';
+        if (panel.style.display === "block") {
+            panel.style.display = "none";
+            if(icon) icon.classList.remove('rotate-180');
         } else {
-            infoPanel.style.display = "block";
-            setTimeout(() => {
-                infoPanel.classList.add('show');
-            }, 10);
-            toggleIcon.classList.add('open');
-            listItem.style.borderBottom = 'none';
+            panel.style.display = "block";
+            if(icon) icon.classList.add('rotate-180');
         }
     }
 </script>
+
 {% endblock %}
