@@ -60,13 +60,23 @@
                 <div id="info-{{ usuario.nome }}" class="details-panel bg-light border-bottom">
                     <div class="p-4">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-5">
                                 <label class="text-muted d-block small mb-1"><i class="fas fa-envelope me-1"></i>E-mail</label>
                                 <span class="fw-medium text-dark">{{ usuario.email or "Não cadastrado" }}</span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label class="text-muted d-block small mb-1"><i class="fas fa-users me-1"></i>Grupo</label>
                                 <span class="fw-medium text-dark">{{ grupo.nome }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted d-block small mb-1"><i class="fas fa-user me-1"></i>Conta</label>
+                                <span class="fw-medium text-dark">
+                                    {% if usuario.conta %}
+                                        {{ usuario.conta.nome_conta }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </span>
                             </div>
                             
                             <div class="col-12">
