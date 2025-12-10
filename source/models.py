@@ -47,6 +47,32 @@ class Usuario(BaseModel):
     observacoes = TextField()
     status = BooleanField()
 
+class Conta(BaseModel):
+    id_usuario = ForeignKeyField(Usuario, backref='conta', unique=True, on_delete='cascade')
+    nome_conta = CharField(unique=True)
+
+"""class Job(BaseModel):
+    id_job = CharField(unique=True) 
+    id_conta = ForeignKeyField(Conta, backref='jobs')
+    user = CharField() 
+    account = CharField() 
+    cpu_hours = FloatField()  
+    elapsed_hours = FloatField()  
+    start_time = DateTimeField() 
+    end_time = DateTimeField() 
+    job_state = CharField() 
+    cluster = CharField()  
+    mes_referencia = CharField()
+    #job_name = CharField() #JobName
+    #node_list = CharField() #NodeList
+    #exit_code = CharField() #ExitCode
+    #submit_time = DateTimeField() #Submit/SubmitLine
+    #node_count = IntegerField() #NodeList?
+    #partition = CharField() #Partition
+    #time_limit = CharField() #Timelimit
+    #work_dir = CharField() #WorkDir
+    """
+
 class Producao(BaseModel):
     ano = IntegerField()
     unidade = CharField()

@@ -57,6 +57,9 @@
             <input type="text" class="mb-3 form-control" name=email
                 value="{% if usuario %}{{ usuario.email }}{% endif %}">
 
+            <label class="form-label">Conta</label>
+            <input type="text" class="mb-3 form-control" name=nome_conta value="{% if usuario and usuario.conta %}{{ usuario.conta.nome_conta }}{% endif %}" required>
+
             <!--  OBSERVAÇÕES  -->
             <label class="form-label">Observações</label>
             <textarea class="form-control" id="exampleFormControlTextarea1" name=observacoes

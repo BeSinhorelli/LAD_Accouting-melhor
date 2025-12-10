@@ -26,67 +26,75 @@
 
             <!-- CLUSTER -->
             <label class="form-label">Cluster</label>
-            <select class="mb-3 form-select" aria-label="Default select example" name="equip_cluster_name" required>
-                
+            <select class="mb-3 form-select" aria-label="Default select example" name="equip_cluster_name">
                 <!-- PARTE DE ATUALIZAÇÃO -->
                 {% if equipamento %}
-                 {% for cluster in lista_cluster %}
-                  {% if cluster.name == equipamento.cluster.name %}
+                <option value="" selected></option>
+                {% for cluster in lista_cluster %}
+                {% if cluster.name == equipamento.cluster.name %}
                 <option selected value="{{ cluster.name }}">{{ cluster.name }}</option>
-                  {% else %}
+                {% else %}
                 <option value="{{ cluster.name }}">{{ cluster.name }}</option>
-                  {% endif %}
-                 {% endfor %}
+                {% endif %}
+                {% endfor %}
 
                 <!-- PARTE DE CADASTRO -->
                 {% else %}
-                <option selected></option>
-                 {% for cluster in lista_cluster %}
+                <option value="" selected></option>
+                {% for cluster in lista_cluster %}
                 <option value="{{ cluster.name }}">{{ cluster.name }}</option>
-                 {% endfor %}
+                {% endfor %}
                 {% endif %}
             </select>
 
             <!--  HOSTNAME  -->
             <label class="form-label">Equipamento</label>
-            <input type="text" class="mb-3 form-control" name=hostname value="{% if equipamento %}{{ equipamento.hostname }}{% endif %}" required>
-            
+            <input type="text" class="mb-3 form-control" name=hostname
+                value="{% if equipamento %}{{ equipamento.hostname }}{% endif %}" required>
+
             <!-- MARCA / MODELO  -->
             <label class="form-label">Marca/Modelo</label>
-            <input class="mb-3 form-control" list="modelos" name="modelo" value="{% if equipamento %}{{ equipamento.modelo }}{% endif %}">
+            <input class="mb-3 form-control" list="modelos" name="modelo"
+                value="{% if equipamento %}{{ equipamento.modelo }}{% endif %}">
             <datalist id="modelos">
                 {% for cluster in lista_cluster %}
-                 {% for equipamento in cluster.equipamentos %}
+                {% for equipamento in cluster.equipamentos %}
                 <option value="{{ equipamento.modelo }}">
-                 {% endfor %}
-                {% endfor %}
+                    {% endfor %}
+                    {% endfor %}
             </datalist>
 
             <!--  TIPO  -->
             <label class="form-label">Tipo</label>
             <select class="mb-3 form-select" aria-label="Default select example" name="tipo">
                 <option value="" {% if not equipamento %}selected{% endif %}></option>
-                <option value="cluster" {% if equipamento and equipamento.tipo=="cluster" %}selected{% endif %}>Cluster</option>
+                <option value="cluster" {% if equipamento and equipamento.tipo=="cluster" %}selected{% endif %}>Cluster
+                </option>
                 <option value="24x7" {% if equipamento and equipamento.tipo=="24x7" %}selected{% endif %}>24x7</option>
-                <option value="collocation" {% if equipamento and equipamento.tipo=="collocation" %}selected{% endif %}>Collocation</option>
+                <option value="collocation" {% if equipamento and equipamento.tipo=="collocation" %}selected{% endif %}>
+                    Collocation</option>
                 <option value="inativo" {% if equipamento and equipamento.tipo=="inativo" %}selected{% endif %}>Inativo
                 </option>
             </select>
 
             <!--  PATRIMÔNIO  -->
             <label class="form-label">Patrimônio</label>
-            <input type="text" class="mb-3 form-control" name=patrimonio value="{% if equipamento %}{{ equipamento.patrimonio }}{% endif %}">
+            <input type="text" class="mb-3 form-control" name=patrimonio
+                value="{% if equipamento %}{{ equipamento.patrimonio }}{% endif %}">
 
             <!--  SERVICE TAG  -->
             <label class="form-label">Service Tag</label>
-            <input type="text" class="mb-3 form-control" name=serviceTag value="{% if equipamento %}{{ equipamento.serviceTag }}{% endif %}">
+            <input type="text" class="mb-3 form-control" name=serviceTag
+                value="{% if equipamento %}{{ equipamento.serviceTag }}{% endif %}">
             <!-- nucleos -->
             <label class="form-label">Núcleos</label>
-            <input type="text" class="mb-3 form-control" name=nucleo value="{% if equipamento %}{{ equipamento.nucleo }}{% endif %}">
-            
+            <input type="text" class="mb-3 form-control" name=nucleo
+                value="{% if equipamento %}{{ equipamento.nucleo }}{% endif %}">
+
             <!--  MEMÓRIA  -->
             <label class="form-label">Memória RAM</label>
-            <input type="text" class="mb-3 form-control" name=memoria value="{% if equipamento %}{{ equipamento.memoria }}{% endif %}">
+            <input type="text" class="mb-3 form-control" name=memoria
+                value="{% if equipamento %}{{ equipamento.memoria }}{% endif %}">
         </div>
 
         <!--  SUBMIT  -->
@@ -99,7 +107,7 @@
     {% if equipamento %}
     <form action="{{ url_for('equipamento_delete', equipamentoId=equipamento.id) }}" method="post" style="margin-top: 10px;">
         <button type="submit" class="btn btn-danger"
-                onclick="return confirm('Tem certeza que deseja excluir o equipamento {{ equipamento.hostname }}?')">
+            onclick="return confirm('Tem certeza que deseja excluir o equipamento {{ equipamento.hostname }}?')">
             Excluir
         </button>
     </form>

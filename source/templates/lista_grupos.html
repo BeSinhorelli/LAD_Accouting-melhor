@@ -1,202 +1,287 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class="cadastro">
-    <h2>Grupos</h2> <br>
+
+<section class="cadastro py-4">
+    <div class="d-flex align-items-center mb-4">
+        <h2 class="h4 m-0 fw-bold">
+            Grupos de Pesquisa
+        </h2>
+        <span class="badge bg-light text-dark ms-2 border">
+            {{ lista_grupo | length }}
+        </span>
+    </div>
+
     {% set ativos = lista_grupo | selectattr('status', 'equalto', True) | list %}
-    <h4>Ativos ({{ ativos | length }})</h4>
-    <ul class="list-group mb-4 bg-white">
-
-        {% if ativos %}
-        {% for grupo in ativos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card equipment-item"
-            href="javascript:void(0);" id="grupo-item-{{ grupo.nome }}" onclick="toggleInfo('{{ grupo.nome }}')"
-            title="Clique para exibir informações">
-
-            <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <i class="toggle-icon fas fa-caret-right"></i>
-                {% set logo_path = url_for('static', filename='images/' ~ grupo.nome ~ '.png') %}
-                {% set fallback_logo = url_for('static', filename='images/default.png') %}
-                <img src="{{ logo_path }}" alt="Logo {{ grupo.nome }}" class="rounded border bg-white shadow-sm p-2"
-                    style="max-height:70px; max-width:70px; object-fit:contain;"
-                    onerror="this.onerror=null; this.src='{{ fallback_logo }}';">
-                <div>
-                    <strong class="fs-6">{{ grupo.nome }}</strong> <br>
-                    <small class="text-muted text-truncate d-inline-block" style="max-width:400px;">
-                        {{ grupo.coordenador }}
-                    </small>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2">
-                <a class="btn btn-primary btn-sm"
-                    href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">Usuários</a>
-                <a class="btn btn-secondary btn-sm" href="{{ url_for('grupo', groupName=grupo.nome) }}">Editar</a>
-            </div>
-        </li>
-        <div id="info-{{ grupo.nome }}" class="observacao-card" style="display:none;">
-            <div class="observacao-texto">
-                <h6 class="mb-3 text-primary d-flex align-items-center gap-2">
-                    <i class="fas fa-info-circle"></i> Detalhes do Grupo
-                </h6>
-                <p><strong>Demanda:</strong> {{ grupo.demanda }}</p>
-                <p><strong>Unidade:</strong> {{ grupo.unidade }}</p>
-                <p><strong>Informações de contato:
-                    </strong> {{ grupo.observacoes or "Sem informações." }}</p>
-            </div>
-        </div>
-        {% endfor %}
-        {% else %}
-        <li class="list-group-item">Nenhum grupo ativo cadastrado.</li>
-        {% endif %}
-    </ul> <br>
-
     {% set inativos = lista_grupo | selectattr('status', 'equalto', False) | list %}
-    <h4>Encerrados ({{ inativos | length }})</h4>
-    <ul class="list-group mb-4 bg-white">
-        {% if inativos %}
-        {% for grupo in inativos %}
-        <li class="list-group-item d-flex justify-content-between align-items-center p-2 hover-card equipment-item"
-            href="javascript:void(0);" id="grupo-item-{{ grupo.nome }}" onclick="toggleInfo('{{ grupo.nome }}')"
-            title="Clique para exibir informações">
 
-            <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <i class="toggle-icon fas fa-caret-right"></i>
-                {% set logo_path = url_for('static', filename='images/' ~ grupo.nome ~ '.png') %}
-                {% set fallback_logo = url_for('static', filename='images/default.png') %}
-                <img src="{{ logo_path }}" alt="Logo {{ grupo.nome }}" class="rounded border bg-white shadow-sm p-2"
-                    style="max-height:60px; max-width:60px; object-fit:contain;"
-                    onerror="this.onerror=null; this.src='{{ fallback_logo }}';">
-                <div>
-                    <strong class="fs-6">{{ grupo.nome }}</strong> <br>
-                    <small class="text-muted text-truncate d-inline-block" style="max-width:400px;">
-                        {{ grupo.coordenador }}
-                    </small>
+    <div class="d-flex align-items-center mb-3">
+        <h5 class="m-0 text-success fw-bold">Ativos</h5>
+        <span class="badge bg-success-subtle text-success-emphasis ms-2 rounded-pill">{{ ativos | length }}</span>
+    </div>
+
+    <div class="list-wrapper shadow-sm rounded bg-white mb-5 overflow-hidden">
+        {% if ativos %}
+        <div class="list-group list-group-flush">
+            {% for grupo in ativos %}
+            <div class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center cursor-pointer main-row"
+                id="grupo-item-{{ grupo.nome }}" onclick="toggleInfo('{{ grupo.nome }}')">
+
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    {% set logo_path = url_for('static', filename='images/' ~ grupo.nome ~ '.png') %}
+                    {% set fallback_logo = url_for('static', filename='images/default.png') %}
+                    <div class="bg-white border rounded p-1 d-flex align-items-center justify-content-center shadow-sm"
+                        style="width: 50px; height: 50px;">
+                        <img src="{{ logo_path }}" alt="Logo"
+                            style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                            onerror="this.onerror=null; this.src='{{ fallback_logo }}';">
+                    </div>
+
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark">{{ grupo.nome }}</h6>
+                        <small class="text-muted"><i class="fas fa-user-tie me-1"></i>{{ grupo.coordenador }}</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="btn-group" onclick="event.stopPropagation()">
+                        <a class="btn btn-outline-primary btn-sm"
+                            href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}" title="Ver Usuários">
+                            <i class="fas fa-users me-1"></i> <span class="d-none d-md-inline">Usuários</span>
+                        </a>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('grupo', groupName=grupo.nome) }}"
+                            title="Editar Grupo">
+                            <i class="fas fa-pen"></i>
+                        </a>
+                    </div>
+                    <i id="icon-{{ grupo.nome }}" class="fas fa-chevron-down text-muted transition-icon"></i>
                 </div>
             </div>
 
-            <div class="d-flex gap-2">
-                <a class="btn btn-primary btn-sm"
-                    href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">Usuários</a>
-                <a class="btn btn-secondary btn-sm" href="{{ url_for('grupo', groupName=grupo.nome) }}">Editar</a>
+            <div id="info-{{ grupo.nome }}" class="details-panel bg-light border-bottom">
+                <div class="p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted d-block small mb-1"><i
+                                    class="fas fa-tasks me-1"></i>Demanda</label>
+                            <span class="fw-medium text-dark fs-6">{{ grupo.demanda or "-" }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted d-block small mb-1"><i
+                                    class="fas fa-building me-1"></i>Unidade</label>
+                            <span class="fw-medium text-dark fs-6">{{ grupo.unidade or "-" }}</span>
+                        </div>
+
+                        <div class="col-12">
+                            <hr class="text-muted opacity-25 my-2">
+                            <label class="text-muted d-block small mb-2"><i
+                                    class="fas fa-info-circle me-1"></i>Informações de Contato</label>
+                            <div class="bg-white p-3 rounded border">
+                                {% if grupo.observacoes %}
+                                <ul class="list-unstyled mb-0 small text-dark">
+                                    {% for item in grupo.observacoes.splitlines() %}
+                                    <li class="mb-1 text-break">
+                                        {{ item | trim }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p class="mb-0 text-muted small fst-italic">Sem informações adicionais.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </li>
-        <div id="info-{{ grupo.nome }}" class="observacao-card" style="display:none;">
-            <div class="observacao-texto">
-                <h6 class="mb-3 text-primary d-flex align-items-center gap-2">
-                    <i class="fas fa-info-circle"></i> Detalhes do Grupo
-                </h6>
-                <p><strong>Demanda:</strong> {{ grupo.demanda }}</p>
-                <p><strong>Unidade:</strong> {{ grupo.unidade }}</p>
-                <p><strong>Informações de contato:
-                    </strong> {{ grupo.observacoes or "Sem informações." }}</p>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
         {% else %}
-        <li class="list-group-item">Nenhum grupo inativo.</li>
+        <div class="text-center py-4 text-muted">
+            <i class="fas fa-folder-open mb-2 fs-3"></i>
+            <p class="mb-0">Nenhum grupo ativo cadastrado.</p>
+        </div>
         {% endif %}
-    </ul>
-    <a class="btn btn-secondary mt-3" href="{{ url_for('homepage') }}">Voltar</a>
-</div>
+    </div>
+
+    {% if inativos %}
+    <div class="d-flex align-items-center mb-3 mt-4">
+        <h5 class="m-0 text-secondary fw-bold">Encerrados</h5>
+        <span class="badge bg-secondary-subtle text-secondary-emphasis ms-2 rounded-pill">{{ inativos | length }}</span>
+    </div>
+
+    <div class="list-wrapper shadow-sm rounded bg-white overflow-hidden opacity-75">
+        <div class="list-group list-group-flush">
+            {% for grupo in inativos %}
+            <div class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center cursor-pointer main-row"
+                id="grupo-item-{{ grupo.nome }}" onclick="toggleInfo('{{ grupo.nome }}')">
+
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <div class="bg-light border rounded p-1 d-flex align-items-center justify-content-center"
+                        style="width: 50px; height: 50px;">
+                        {% set logo_path = url_for('static', filename='images/' ~ grupo.nome ~ '.png') %}
+                        {% set fallback_logo = url_for('static', filename='images/default.png') %}
+                        <img src="{{ logo_path }}" alt="Logo" class="grayscale-img"
+                            style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                            onerror="this.onerror=null; this.src='{{ fallback_logo }}';">
+                    </div>
+
+                    <div>
+                        <h6 class="mb-0 fw-bold text-muted ">{{ grupo.nome }}</h6>
+                        <small class="text-muted">Encerrado</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="btn-group" onclick="event.stopPropagation()">
+                        <a class="btn btn-light btn-sm text-secondary border"
+                            href="{{ url_for('lista_usuarios', groupName=grupo.nome) }}">
+                            <i class="fas fa-users"></i>
+                        </a>
+                        <a class="btn btn-light btn-sm text-secondary border"
+                            href="{{ url_for('grupo', groupName=grupo.nome) }}">
+                            <i class="fas fa-pen"></i>
+                        </a>
+                    </div>
+                    <i id="icon-{{ grupo.nome }}" class="fas fa-chevron-down text-muted transition-icon"></i>
+                </div>
+            </div>
+
+            <div id="info-{{ grupo.nome }}" class="details-panel bg-light border-bottom">
+                <div class="p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted d-block small mb-1">Coordenador anterior</label>
+                            <span class="text-muted fw-medium">{{ grupo.coordenador }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted d-block small mb-1">Unidade</label>
+                            <span class="text-muted fw-medium">{{ grupo.unidade or "-" }}</span>
+                        </div>
+                        
+                        <div class="col-12">
+                            <hr class="text-muted opacity-25 my-2">
+                            <label class="text-muted d-block small mb-2"><i class="fas fa-info-circle me-1"></i>Informações / Histórico</label>
+                            <div class="bg-white p-3 rounded border">
+                                {% if grupo.observacoes %}
+                                <ul class="list-unstyled mb-0 small text-dark">
+                                    {% for item in grupo.observacoes.splitlines() %}
+                                    <li class="mb-1 text-break text-muted fst-italic">
+                                        {{ item | trim }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p class="mb-0 text-muted small fst-italic">Sem informações adicionais.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a class="btn btn-outline-secondary" href="{{ url_for('homepage') }}">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+</section>
 
 <style>
-    .hover-card {
-        transition: transform 0.2s ease-in-out;
-    }
-
-    .hover-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    /* ... (Estilos CSS permanecem os mesmos) ... */
+    .cursor-pointer {
         cursor: pointer;
     }
 
-    .equipment-item {
-        margin-bottom: 0 !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    .list-wrapper {
+        border: 1px solid rgba(0, 0, 0, 0.08);
     }
 
-    .observacao-card {
-        background: #ffffff;
-        border-left: 4px solid #007bff;
-        padding: 15px;
-        font-size: 0.95rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        border-radius: 0 0 8px 8px;
-        margin-bottom: 10px;
-        opacity: 0;
-        max-height: 0;
+    .main-row {
+        transition: background-color 0.2s ease;
+    }
+
+    .main-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .details-panel {
+        display: none;
         overflow: hidden;
-        transition: opacity 0.4s ease-in-out, max-height 0.4s ease-in-out, padding 0.4s;
+        animation: slideDown 0.3s ease-out forwards;
     }
 
-    .observacao-card.show {
-        opacity: 1;
-        max-height: 500px;
-        padding: 15px;
+    .transition-icon {
+        transition: transform 0.3s ease;
     }
 
-    .observacao-texto p {
-        margin-bottom: 6px;
-        line-height: 1.5;
-        white-space: pre-line;
+    .rotate-180 {
+        transform: rotate(180deg);
     }
 
-    .toggle-icon {
-        transition: transform 0.2s;
-        color: #555;
-        font-size: 1.2rem;
+    .grayscale-img {
+        filter: grayscale(100%);
+        opacity: 0.6;
     }
 
-    .toggle-icon.open {
-        transform: rotate(90deg);
+    .opacity-75 {
+        opacity: 0.85;
+    }
+
+    .bg-success-subtle {
+        background-color: #d1e7dd !important;
+        color: #0f5132 !important;
+    }
+
+    .bg-secondary-subtle {
+        background-color: #e2e3e5 !important;
+        color: #41464b !important;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 
 <script>
-    function toggleInfo(nome) {
-        var infoPanel = document.getElementById('info-' + nome);
-        var listItem = infoPanel.previousElementSibling;
-        var toggleIcon = listItem.querySelector('.toggle-icon');
+    /* ... (Funções JS permanecem as mesmas) ... */
+    function toggleInfo(id) {
+        const panel = document.getElementById('info-' + id);
+        const icon = document.getElementById('icon-' + id);
 
-        if (infoPanel.classList.contains('show')) {
-            infoPanel.classList.remove('show');
-            setTimeout(() => {
-                infoPanel.style.display = "none";
-            }, 400);
-            toggleIcon.classList.remove('open');
-            listItem.style.borderBottom = '1px solid rgba(0, 0, 0, 0.05)';
+        if (!panel) return;
+
+        if (panel.style.display === "block") {
+            panel.style.display = "none";
+            if (icon) icon.classList.remove('rotate-180');
         } else {
-            infoPanel.style.display = "block";
-            setTimeout(() => {
-                infoPanel.classList.add('show');
-            }, 10);
-
-            toggleIcon.classList.add('open');
-            listItem.style.borderBottom = 'none';
+            panel.style.display = "block";
+            if (icon) icon.classList.add('rotate-180');
         }
     }
-</script>
 
-{% if request.args.get('grupo') %}
-<script>
     document.addEventListener("DOMContentLoaded", function () {
-        var groupName = "{{ request.args.get('grupo') }}";
-        var listItem = document.getElementById('grupo-item-' + groupName);
-
-        if (listItem) {
-            listItem.scrollIntoView({ behavior: "smooth", block: "center" });
-
-            setTimeout(function () {
-                var infoPanel = document.getElementById('info-' + groupName);
-                if (infoPanel && infoPanel.style.display === "none") {
-                    toggleInfo(groupName);
+        const initialGroup = "{{ request.args.get('grupo', '') }}";
+        if (initialGroup) {
+            setTimeout(() => {
+                toggleInfo(initialGroup);
+                const element = document.getElementById('grupo-item-' + initialGroup);
+                if (element) {
+                    element.scrollIntoView({ behavior: "smooth", block: "center" });
                 }
             }, 300);
-
-            history.replaceState(null, null, window.location.pathname);
         }
     });
 </script>
-{% endif %}
 
 {% endblock %}
