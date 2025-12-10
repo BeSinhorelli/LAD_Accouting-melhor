@@ -30,9 +30,12 @@
                             <span class="fw-bold">{{ usuario.nome[:1] | upper }}</span>
                         </div>
                         
-                        <div style="min-width: 0;"> <h6 class="mb-0 fw-bold text-dark text-truncate">{{ usuario.nome }}</h6>
+                        <div style="min-width: 0;">
+                            <h6 class="mb-0 fw-bold text-dark text-truncate">{{ usuario.nome }}</h6>
                             {% if usuario.email %}
-                                <small class="text-muted text-truncate d-block">{{ usuario.email }}</small>
+                                <small class="text-muted text-truncate d-block" style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    {{ usuario.email }}
+                                </small>
                             {% endif %}
                         </div>
                     </div>
@@ -151,13 +154,23 @@
             <div id="info-{{ usuario.nome }}" class="details-panel bg-light border-bottom">
                 <div class="p-4">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <label class="text-muted d-block small mb-1">E-mail</label>
                             <span class="text-muted">{{ usuario.email or "-" }}</span>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label class="text-muted d-block small mb-1">Grupo</label>
                             <span class="text-muted">{{ grupo.nome }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted d-block small mb-1"><i class="fas fa-user me-1"></i>Conta</label>
+                            <span class="fw-medium text-muted">
+                                {% if usuario.conta %}
+                                    {{ usuario.conta.nome_conta }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
                         </div>
 
                         <div class="col-12">
