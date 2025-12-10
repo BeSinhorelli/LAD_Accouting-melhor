@@ -56,8 +56,8 @@ def salvar_atividade(data_hoje, boot_time):
                 return
         except Atividade.DoesNotExist:
             pass
-            with database.atomic():
-                Atividade.insert(data=data_hoje, uptime=boot_time.strftime("%Y-%m-%d %H:%M:%S")).on_conflict_replace().execute()
+        with database.atomic():
+            Atividade.insert(data=data_hoje, uptime=boot_time_str).on_conflict_replace().execute()
             print(f"[INFO] Atividade atual salva. Uptime: {boot_time}")
     except Exception as e:
         print(f"[ERRO] Falha ao salvar atividade atual: {e}")
