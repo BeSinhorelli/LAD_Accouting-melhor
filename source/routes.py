@@ -1,5 +1,5 @@
 from config import server, database, get_aplicacoes
-from flask import g, render_template, request, redirect, url_for, flash, abort, send_file
+from flask import g, render_template, request, redirect, url_for, flash, abort, send_file, Response
 from models import *
 from datetime import datetime
 from peewee import IntegrityError
@@ -11,11 +11,11 @@ from werkzeug.utils import secure_filename
 # --------------------------------  DEFINIÇÃO DE FUNÇÕES - FLASK --------------------------------------- #
 def create_tables():
     with database:
-        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, Atividade, RebootHistory, MonitoramentoRede])
+        database.create_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, Atividade, RebootHistory, MonitoramentoRede, Conta, ]) # + Job
 
 def drop_tables():
     with database:
-        database.drop_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, Atividade, RebootHistory, MonitoramentoRede])
+        database.drop_tables([Cluster, Equipamento, Grupo, Usuario, Producao, Relatorio, Atividade, RebootHistory, MonitoramentoRede, Conta, ]) # + Job
 
 def get_object_or_404(model, *expressions):
     try:
@@ -356,7 +356,11 @@ def lista_usuarios(groupName):
     grupo = Grupo.get_or_none(Grupo.nome == groupName)
     if not grupo:
         abort(404)
-    usuarios = Usuario.select().where(Usuario.grupo == grupo).order_by(Usuario.nome.asc())
+    usuarios = (Usuario
+        .select(Usuario, Conta)
+        .join(Conta, JOIN.LEFT_OUTER)
+        .where(Usuario.grupo == grupo)
+        .order_by(Usuario.nome.asc()))
     return render_template('lista_usuarios.html', grupo=grupo, usuarios=usuarios)
 
 # --- LISTA DAS APLICAÇÕES  --- #  
@@ -378,10 +382,11 @@ def usuario(userName=None):
             
             grupo = Grupo.get(Grupo.nome == request.form['group_name'])
             nome = form['nome']
+            nome_conta = form['nome_conta'] 
 
             if nome:
                 print("ESTOU AQUI")
-                if (create_usuario(grupo, nome, form['email'], form['observacoes'])):
+                if (create_usuario(grupo, nome, form['email'], form['observacoes'], nome_conta)):
                     return redirect(url_for('homepage'))
                 else: mensagem = 'Usuario já existe'
 
@@ -395,18 +400,19 @@ def usuario(userName=None):
 
                 grupo = Grupo.get(Grupo.nome == form['group_name'])
                 nome = form['nome']
+                nome_conta = form['nome_conta']
 
                 if nome:
-                    if (update_usuario(usuario, grupo, nome, form['email'], form['observacoes'], form['status'])):
+                    if (update_usuario(usuario, grupo, nome, form['email'], form['observacoes'], form['status'], nome_conta)):
                         return redirect(url_for('homepage'))
                     else: mensagem = 'Usuario já existe'
 
         return render_template('usuario.html', usuario=usuario, msg=mensagem, lista_grupo=lista_grupo)
 
-def create_usuario(grupo, nome, email, observacoes):
+def create_usuario(grupo, nome, email, observacoes, nome_conta):
     try:
         with database.atomic():
-            Usuario.create(
+            novo_usuario = Usuario.create(
                 grupo=grupo,
                 nome=nome,
                 email=email,
@@ -415,22 +421,41 @@ def create_usuario(grupo, nome, email, observacoes):
                 date_end='',
                 status=True
             )
+            Conta.create(
+                id_usuario=novo_usuario, 
+                id_grupo=grupo,
+                nome_conta=nome_conta 
+            )
         return True
     except IntegrityError:
         return False
 
-def update_usuario(usuario, grupo, nome, email, observacoes, status):
+def update_usuario(usuario, grupo, nome, email, observacoes, status, nome_conta):
     try:
-        usuario.grupo = grupo
-        usuario.nome = nome
-        usuario.email = email
-        usuario.observacoes = observacoes
-        if status == 'desativar':
-            usuario.status = False
-            usuario.date_end=datetime.now().strftime('%d-%m-%Y')
-        else: 
-            usuario.status = True
-        usuario.save()
+        with database.atomic():
+            usuario.grupo = grupo
+            usuario.nome = nome
+            usuario.email = email
+            usuario.observacoes = observacoes
+            
+            if status == 'desativar':
+                usuario.status = False
+                usuario.date_end = datetime.now().strftime('%d-%m-%Y')
+            else: 
+                usuario.status = True
+            
+            usuario.save()
+            # Tenta obter a conta existente; se não existir, cria uma nova.
+            conta, criada = Conta.get_or_create(
+                id_usuario=usuario,
+                defaults={
+                    'nome_conta': nome_conta
+                }
+            )
+            if not criada and conta.nome_conta != nome_conta:
+                conta.nome_conta = nome_conta
+                conta.save()
+            
         return True
     except IntegrityError:
         return False
