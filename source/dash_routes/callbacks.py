@@ -97,7 +97,14 @@ def register_callbacks(app):
         total_horas_fmt = f"{total_horas:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".") if total_horas else "0"
 
         # usuários ativos
-        usuarios_ativos = Usuario.select().where(Usuario.status == True).count()
+        usuarios_ativos = (
+            Usuario.select()
+            .where(
+                (Usuario.status == True),
+                (Usuario.observacoes != "Conta disciplina")
+            )
+            .count()
+        )
 
         return html.Div([
             html.Div([

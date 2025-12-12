@@ -251,9 +251,13 @@ def grupo(groupName=None):
     if groupName == 'cadastro':
         if request.method == 'POST':
             nome = form['nome']
+            tipos_submetidos = form.getlist('tipo')
+            tipo = next((t for t in tipos_submetidos if t), '') 
+            
+            intervalo_final_conta = form.get('intervalo_final_conta', None)
 
             if nome:
-                if create_grupo(nome, form['demanda'], form['unidade'], form['coordenador'], form['observacoes'], form['tipo']):
+                if create_grupo(nome, form['demanda'], form['unidade'], form['coordenador'], form['observacoes'], tipo, intervalo_final_conta):
                     
                     if "logotipo" in request.files:
                         file = request.files["logotipo"]
@@ -261,9 +265,10 @@ def grupo(groupName=None):
                             filename = secure_filename(f"{nome}.png")
                             file.save(os.path.join(UPLOAD_FOLDER, filename))
 
+                    flash("Grupo cadastrado com sucesso!", "success")
                     return redirect(url_for('homepage'))
                 else:
-                    mensagem = 'Grupo já existe'
+                    mensagem = 'Grupo já existe ou falha na criação das contas (Verifique o console para detalhes).'
 
         return render_template('grupo.html', groupName='cadastro', msg=mensagem, lista_grupo=lista_grupo)
 
@@ -274,9 +279,13 @@ def grupo(groupName=None):
 
             if request.method == 'POST':
                 nome = form['nome']
+                tipos_submetidos = form.getlist('tipo')
+                tipo = next((t for t in tipos_submetidos if t), '')
+
+                intervalo_final_conta = form.get('intervalo_final_conta', None)
 
                 if nome:
-                    if update_grupo(grupo, nome, form['demanda'], form['unidade'], form['coordenador'], form['observacoes'], form['tipo'], form['status']):
+                    if update_grupo(grupo, nome, form['demanda'], form['unidade'], form['coordenador'], form['observacoes'], tipo, form['status'], intervalo_final_conta):
 
                         if "logotipo" in request.files:
                             file = request.files["logotipo"]
@@ -284,65 +293,163 @@ def grupo(groupName=None):
                                 filename = secure_filename(f"{nome}.png")
                                 file.save(os.path.join(UPLOAD_FOLDER, filename))
 
+                        flash("Grupo atualizado com sucesso!", "success")
                         return redirect(url_for('lista_grupos'))
                     else:
-                        mensagem = 'Grupo já existe'
+                        mensagem = 'Grupo já existe ou falha na atualização/criação de contas.'
 
         return render_template('grupo.html', grupo=grupo, msg=mensagem, lista_grupo=lista_grupo)
 
-def create_grupo(nome, demanda, unidade, coordenador, observacoes, tipo):
+def create_grupo(nome, demanda, unidade, coordenador, observacoes, tipo, intervalo_final_conta=None):
+    data_hoje = datetime.now().strftime('%Y-%m-%d')
+    
     try:
         with database.atomic():
-            Grupo.create(
+            observacoes_final = observacoes
+            final_num = -1
+            
+            if tipo.lower() == 'disciplina' and intervalo_final_conta is not None:
+                try:
+                    final_num = int(intervalo_final_conta)
+                    if final_num >= 0:
+                        observacoes_final += "-"
+                except ValueError:
+                    pass
+
+            grupo = Grupo.create(
                 nome = nome,
                 demanda = demanda,
                 unidade = unidade,
                 coordenador = coordenador,
-                observacoes = observacoes,
+                observacoes = observacoes_final, 
                 tipo = tipo,
-                date_beg=datetime.now().strftime('%d-%m-%Y'),
-                date_end='',
+                date_beg = data_hoje,
+                date_end = '-' if tipo.lower() == 'disciplina' else '', 
                 status=True
             )
-        return True
-    except IntegrityError:
+
+            if final_num >= 0:
+                nome_grupo_lower = nome.lower()
+                for i in range(final_num + 1):
+                    nome_conta = f"{nome_grupo_lower}{i:02d}"
+
+                    usuario = Usuario.create(
+                        grupo=grupo,
+                        nome=nome_conta,
+                        email=" ",
+                        observacoes=" ",
+                        date_beg=data_hoje,
+                        date_end='-', 
+                        status=True
+                    )
+                    Conta.create(
+                        id_usuario=usuario,
+                        nome_conta=nome_conta
+                    )
+
+        return True 
+    
+    except IntegrityError as e:
+        print(f"Erro de Integridade (Grupo/Conta duplicada): {e}")
+        return False
+    except Exception as e:
+        print(f"Erro FATAL na criação do grupo/contas de disciplina: {e}")
         return False
     
-def update_grupo(grupo, nome, demanda, unidade, coordenador, observacoes, tipo, status):
+def update_grupo(grupo, nome, demanda, unidade, coordenador, observacoes, tipo, status, intervalo_final_conta=None):
+    data_hoje = datetime.now().strftime('%Y-%m-%d')
+    
     try:
-        grupo.nome = nome
-        grupo.demanda = demanda
-        grupo.unidade = unidade
-        grupo.coordenador = coordenador
-        grupo.observacoes = observacoes
-        grupo.tipo = tipo
+        with database.atomic():
+            observacoes_final = observacoes
+            final_num = -1
+            
+            if tipo.lower() == 'disciplina' and intervalo_final_conta is not None:
+                try:
+                    final_num = int(intervalo_final_conta)
+                    if final_num >= 0:
+                        observacoes_final += "-"
+                except ValueError:
+                    pass
 
-        if status == 'desativar':
-            grupo.status = False
-            grupo.date_end=datetime.now().strftime('%d-%m-%Y')
-        else: grupo.status = True
+            grupo.nome = nome
+            grupo.demanda = demanda
+            grupo.unidade = unidade
+            grupo.coordenador = coordenador
+            grupo.observacoes = observacoes_final 
+            grupo.tipo = tipo
 
-        grupo.save()
+            if status == 'desativar':
+                grupo.status = False
+                grupo.date_end = data_hoje
+
+                Usuario.update(status=False, date_end=data_hoje).where(Usuario.grupo == grupo).execute()
+            else: 
+                grupo.status = True
+                grupo.date_end = '' 
+
+            grupo.save() 
+
+            if final_num >= 0 and tipo.lower() == 'disciplina':
+                
+                nome_grupo_lower = grupo.nome.lower()
+                
+                for i in range(final_num + 1):
+                    nome_conta = f"{nome_grupo_lower}{i:02d}"
+                    
+                    usuario, created_usuario = Usuario.get_or_create(
+                        nome=nome_conta,
+                        defaults={
+                            'grupo': grupo, 
+                            'email': " ",
+                            'observacoes': " ",
+                            'date_beg': data_hoje,
+                            'date_end': '-', 
+                            'status': True
+                        }
+                    )
+
+                    Conta.get_or_create(
+                        nome_conta=nome_conta,
+                        defaults={
+                            'id_usuario': usuario,
+                        }
+                    )
+                        
         return True
     except IntegrityError:
         return False
+    except Exception as e:
+        print(f"Erro inesperado durante a atualização do grupo: {e}")
+        return False
     
-# --- EXCLUSÃO DE GRUPO DO DB  E IMAGEM --- #
+# --- EXCLUSÃO DE GRUPO DO DB E IMAGEM --- #
 @server.route('/grupo/delete/<groupName>', methods=['POST'])
 def grupo_delete(groupName):
     grupo = Grupo.get_or_none(Grupo.nome == groupName)
-    if grupo:
-        filename = secure_filename(f"{grupo.nome}.png")
-        image_path = os.path.join(BASE_DIR, "assets", "images", filename)
-        if os.path.exists(image_path):
-            try:
-                os.remove(image_path)
-            except Exception as e:
-                print(f"Erro ao remover imagem: {e}")
-        grupo.delete_instance()
-        flash(f'Grupo "{groupName}" excluído com sucesso!', 'success')
-    return redirect(url_for('homepage'))
     
+    if grupo:
+        try:
+            with database.atomic():
+                Usuario.delete().where(Usuario.grupo == grupo).execute()
+                grupo.delete_instance()
+                filename = secure_filename(f"{groupName}.png")
+                image_path = os.path.join(BASE_DIR, "assets", "images", filename)
+                
+                if os.path.exists(image_path):
+                    try:
+                        os.remove(image_path)
+                    except Exception as e:
+                        print(f"Erro ao remover imagem: {e}")
+                
+                flash(f'Grupo "{groupName}" excluído com sucesso!', 'success')
+                
+        except Exception as e:
+            print(f"Erro ao deletar grupo {groupName}: {e}")
+            flash(f'Falha ao excluir o grupo "{groupName}". Erro: {e}', 'error')
+
+    return redirect(url_for('homepage'))
+
 # --- LISTA DE TODOS OS GRUPOS  --- #
 @server.route('/grupo', methods=['GET'])
 def lista_grupos():
@@ -686,6 +793,10 @@ def relatorio_mensal():
 
     relatorios = {(r.projeto, r.ano, r.mes): r for r in Relatorio.select().where((Relatorio.ano == ano) & (Relatorio.mes == mes))}
     return render_template('relatorio_mensal.html', grupos=grupos_exibicao, relatorios=relatorios, ano=ano, mes=mes)
+
+
+
+
 
 # --- CONFIGURAÇÕES GERAIS  --- #
 @server.route('/config', methods=['GET'])

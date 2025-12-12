@@ -55,7 +55,18 @@
 
             <!--  TIPO  -->
             <label class="form-label">Tipo</label>
-            <input type="text" class="mb-3 form-control" name=tipo value="{% if grupo %}{{ grupo.tipo }}{% endif %}">
+            <input type="text" class="mb-3 form-control" name=tipo id="tipo_text_input" value="{% if grupo %}{{ grupo.tipo }}{% endif %}"> 
+            <div class="mb-3">
+                <div class="form-check form-check-inline" style="color: white;">
+                    <input class="form-check-input" type="radio" name="tipo" id="tipoDisciplina" value="Disciplina" {%
+                        if grupo and grupo.tipo.lower()=='disciplina' %}{% endif %}>
+                    <label class="form-check-label" for="tipoDisciplina">Disciplina</label>
+                </div>
+            </div>
+
+            <div id="campos-disciplina" class="{% if grupo and grupo.tipo.lower() == 'disciplina' %}d-block{% else %}d-none{% endif %}"><label class="form-label">Número de Contas:</label>
+                <input type="number" class="mb-3 form-control" name="intervalo_final_conta" value="" min="0" placeholder="Número de contas para a disciplina">
+            </div>
 
             <!--  LOGOTIPO  -->
             <label class="form-label">Enviar logotipo (.png)</label>
@@ -80,4 +91,26 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tipoDisciplina = document.getElementById('tipoDisciplina'); 
+        const camposDisciplina = document.getElementById('campos-disciplina');
+        const inputNumContas = document.querySelector('input[name="intervalo_final_conta"]');
+
+        function toggleCamposDisciplina() {
+            if (tipoDisciplina.checked) {
+                camposDisciplina.classList.remove('d-none');
+                camposDisciplina.classList.add('d-block');
+                inputNumContas.required = true;
+            } else {
+                camposDisciplina.classList.remove('d-block');
+                camposDisciplina.classList.add('d-none');
+                inputNumContas.required = false;
+            }
+        }
+        tipoDisciplina.addEventListener('change', toggleCamposDisciplina);
+        toggleCamposDisciplina();
+    });
+</script>
 {% endblock %}
