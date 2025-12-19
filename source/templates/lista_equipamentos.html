@@ -2,7 +2,7 @@
 {% block body %}
 
 <section class="cadastro py-4">
-    
+    <h2 class="mb-4">Equipamentos {{ cluster.name }}</h2>
     {% for tipo, lista_equipamentos in equipamentos_agrupados.items() %}
     {% if lista_equipamentos %}
 
@@ -10,11 +10,17 @@
     {% set icon_color = 'text-primary' if is_inativo else 'text-info' %}
     {% set badge_color = 'bg-secondary-subtle text-secondary-emphasis' if is_inativo else 'bg-info-subtle text-info-emphasis' %}
 
-    <div class="d-flex align-items-center mb-4">
-        <h2 class="h4 m-0 fw-bold">
-            Equipamentos do Cluster: {{ cluster.name }}
-            <span class="badge bg-light text-dark ms-2 border">{{ lista_equipamentos | length }}</span>
-        </h2>
+    <div class="d-flex align-items-center mb-3">
+        <h5 class="m-0 fw-bold text-white">
+            {% if is_inativo %}
+                Inativos
+            {% else %}
+                {{ tipo | capitalize }}
+            {% endif %}
+        </h5>
+        <span class="badge bg-white text-dark border ms-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
+            {{ lista_equipamentos | length }}
+        </span>
     </div>
 
     <div class="list-wrapper shadow-sm rounded bg-white mb-5 overflow-hidden {{ 'opacity-75' if is_inativo }}">
@@ -58,6 +64,9 @@
                             
                             <label class="text-muted d-block small mb-1"><i class="fas fa-cog me-1"></i> Modelo</label>
                             <span class="fw-medium text-dark d-block">{{ equipamento.modelo }}</span>
+
+                            <label class="text-muted d-block small mb-1"><i class="fas fa-cog me-1"></i> Tipo</label>
+                            <span class="fw-medium text-dark d-block">{{ equipamento.tipo }}</span>
                         </div>
                         
                         <div class="col-md-6">
@@ -90,7 +99,6 @@
 </section>
 
 <style>
-    /* Estilos copiados do modelo anterior para consistência */
     .cursor-pointer { cursor: pointer; }
     .list-wrapper { border: 1px solid rgba(0,0,0,0.08); }
     
@@ -106,10 +114,9 @@
     .transition-icon { transition: transform 0.3s ease; }
     .rotate-180 { transform: rotate(180deg); }
 
-    /* Estilos específicos para este layout */
     .opacity-75 { opacity: 0.85; }
-    .bg-info-subtle { background-color: #cff4fc !important; color: #055160 !important; } /* Cor para 'ativo/padrão' */
-    .bg-secondary-subtle { background-color: #e2e3e5 !important; color: #41464b !important; } /* Cor para 'inativo' */
+    .bg-info-subtle { background-color: #cff4fc !important; color: #055160 !important; } 
+    .bg-secondary-subtle { background-color: #e2e3e5 !important; color: #41464b !important; } 
 
     @keyframes slideDown {
         from { opacity: 0; transform: translateY(-10px); }
