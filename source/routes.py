@@ -337,7 +337,7 @@ def create_grupo(nome, demanda, unidade, coordenador, observacoes, tipo, interva
                         grupo=grupo,
                         nome=nome_conta,
                         email=" ",
-                        observacoes=" ",
+                        observacoes="Conta disciplina",
                         date_beg=data_hoje,
                         date_end='-', 
                         status=True
@@ -402,7 +402,7 @@ def update_grupo(grupo, nome, demanda, unidade, coordenador, observacoes, tipo, 
                         defaults={
                             'grupo': grupo, 
                             'email': " ",
-                            'observacoes': " ",
+                            'observacoes': "Conta disciplina",
                             'date_beg': data_hoje,
                             'date_end': '-', 
                             'status': True
