@@ -3,47 +3,161 @@ import dash_bootstrap_components as dbc
 from datetime import datetime, date
 import calendar
 from peewee import fn
+import pandas as pd
+import os
+import glob
 
 from models import Atividade, RebootHistory, database
-
 from config import *
 
-# Definição da data de inicio do monitoramento
-monitoramento_atividade = date(2025, 5, 10)
+# ============================================================================
+# FUNÇÕES PARA LER DADOS DOS EXCEL (ATIVIDADE)
+# ============================================================================
+
+def get_all_excel_files():
+    """Retorna todos os arquivos Excel de relatórios"""
+    excel_files = []
+    base_path = os.path.join(os.path.dirname(__file__), '..', 'relatorios')
+    
+    if not os.path.exists(base_path):
+        print(f"⚠️ Diretório não encontrado: {base_path}")
+        return []
+    
+    for year_dir in sorted(os.listdir(base_path)):
+        year_path = os.path.join(base_path, year_dir)
+        if os.path.isdir(year_path) and year_dir.isdigit():
+            for excel_file in sorted(glob.glob(os.path.join(year_path, '*.xlsx'))):
+                nome_arquivo = os.path.basename(excel_file)
+                try:
+                    mes = int(nome_arquivo.split('-')[0])
+                except:
+                    mes = 1
+                excel_files.append({
+                    'path': excel_file,
+                    'year': int(year_dir),
+                    'file': nome_arquivo,
+                    'month': mes
+                })
+    
+    return sorted(excel_files, key=lambda x: (x['year'], x['month']))
+
+def read_excel_file(file_path):
+    """Lê um arquivo Excel e retorna os dados"""
+    try:
+        df = pd.read_excel(file_path)
+        return df
+    except Exception as e:
+        print(f"Erro ao ler {file_path}: {e}")
+        return None
+
+def calculate_activity_from_excel(year, month):
+    """
+    Calcula a atividade percentual do laboratório baseado no uso das máquinas.
+    Retorna um valor percentual (0-100) de atividade para o mês.
+    """
+    month_names = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    month_name = month_names[month - 1]
+    base_path = os.path.join(os.path.dirname(__file__), '..', 'relatorios')
+    file_path = os.path.join(base_path, str(year), f'{month}-{month_name}.xlsx')
+    
+    if not os.path.exists(file_path):
+        print(f"⚠️ Arquivo não encontrado: {file_path}")
+        return 0
+    
+    try:
+        df = pd.read_excel(file_path)
+        
+        # Procura colunas de uso de máquina
+        machine_cols = []
+        for col in df.columns:
+            col_lower = col.lower()
+            if 'horas núcleo' in col_lower or 'máquina em cluster' in col_lower or 'maquina_cluster' in col_lower:
+                machine_cols.append(col)
+            elif 'horas núcleo 24x7' in col_lower or 'máquina em 24x7' in col_lower or 'maquina_24x7' in col_lower:
+                machine_cols.append(col)
+        
+        if not machine_cols:
+            return 0
+        
+        # Calcula uso total de máquinas no mês
+        uso_total = 0
+        for col in machine_cols:
+            try:
+                valores = pd.to_numeric(df[col], errors='coerce').fillna(0)
+                uso_total += valores.sum()
+            except Exception as e:
+                print(f"Erro na coluna {col}: {e}")
+        
+        # Capacidade máxima mensal (2108 núcleos * 24h * dias do mês)
+        days_in_month = calendar.monthrange(year, month)[1]
+        capacidade_maxima = 2108 * 24 * days_in_month
+        
+        if capacidade_maxima > 0:
+            atividade_percent = (uso_total / capacidade_maxima) * 100
+        else:
+            atividade_percent = 0
+        
+        atividade_percent = min(100, atividade_percent)
+        
+        return atividade_percent
+        
+    except Exception as e:
+        print(f"❌ Erro ao calcular atividade para {year}/{month}: {e}")
+        return 0
+
+def get_activity_data_for_year(year):
+    """Retorna dados de atividade para todos os meses de um ano"""
+    activity_data = []
+    for month in range(1, 13):
+        atividade = calculate_activity_from_excel(year, month)
+        activity_data.append({
+            'month': month,
+            'month_name': ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][month-1],
+            'activity_percent': atividade,
+            'activity_hours': (atividade / 100) * 24
+        })
+    return activity_data
+
+def get_available_years():
+    """Retorna lista de anos disponíveis nos Excel"""
+    excel_files = get_all_excel_files()
+    years = sorted(set(f['year'] for f in excel_files))
+    return years if years else [ano_atual]
+
+def get_reboot_history(year, month):
+    """
+    Retorna dados de uptime diário para o mês/ano especificado.
+    Compatível com os callbacks existentes.
+    """
+    atividade_percent = calculate_activity_from_excel(year, month)
+    horas_por_dia = (atividade_percent / 100) * 24
+    
+    last_day = calendar.monthrange(year, month)[1]
+    result = []
+    for day in range(1, last_day + 1):
+        result.append({
+            "day": day,
+            "uptime_hours": round(horas_por_dia, 1)
+        })
+    return result
+
+# ============================================================================
+# FUNÇÕES DO BANCO DE DADOS (PARA PARADAS E OUTROS)
+# ============================================================================
+
 def conectar_banco():
     if database.is_closed():
         database.connect()
 
-# Pega o último uptime
 def get_dias_ativos():
-    conectar_banco()
-    try:
-        # Busca o último registro de atividade
-        ultima_atividade = Atividade.select().order_by(Atividade.data.desc()).get()
-        boot_time_str = ultima_atividade.uptime
-        boot_time = datetime.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
-        
-        dias_ativos = (datetime.now() - max(boot_time, datetime.combine(monitoramento_atividade, datetime.min.time()))).days
-        return f"{dias_ativos}"
-    except Atividade.DoesNotExist:
-        return "Nenhum dado de atividade"
-    except Exception as e:
-        print(f"Erro ao obter dias ativos do banco: {e}")
-        return "Erro"
-
-# Pega a data de retorno da última parada
-def get_data_retorno_ultima_parada():
-    conectar_banco()
-    try:
-        ultima_atividade = Atividade.select().order_by(Atividade.id.desc()).get()
-        boot_time_str = ultima_atividade.uptime
-        boot_time = datetime.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
-        return boot_time.strftime("%d/%m/%Y - %H:%M")
-    except Atividade.DoesNotExist:
-        return "Erro ao obter"
-    except Exception as e:
-        print(f"Erro ao obter data de retorno do banco: {e}")
-        return "Erro"
+    """Calcula dias desde o primeiro relatório Excel"""
+    excel_files = get_all_excel_files()
+    if not excel_files:
+        return "0"
+    primeiro = min(excel_files, key=lambda x: (x['year'], x['month']))
+    primeira_data = date(primeiro['year'], primeiro['month'], 1)
+    dias = (datetime.now().date() - primeira_data).days
+    return f"{max(0, dias)}"
 
 def get_data_ultima_parada():
     conectar_banco()
@@ -53,10 +167,22 @@ def get_data_ultima_parada():
     except RebootHistory.DoesNotExist:
         return "Sem paradas registradas"
     except Exception as e:
-        print(f"Erro ao obter data da última parada do banco: {e}")
+        print(f"Erro ao obter data da última parada: {e}")
         return "Erro"
 
-# Calcula a duração da última parada
+def get_data_retorno_ultima_parada():
+    conectar_banco()
+    try:
+        ultima_atividade = Atividade.select().order_by(Atividade.id.desc()).get()
+        boot_time_str = ultima_atividade.uptime
+        boot_time = datetime.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
+        return boot_time.strftime("%d/%m/%Y - %H:%M")
+    except Atividade.DoesNotExist:
+        return "Sem dados de retorno"
+    except Exception as e:
+        print(f"Erro ao obter data de retorno: {e}")
+        return "Erro"
+
 def get_duracao_parada():
     conectar_banco()
     try:
@@ -87,460 +213,357 @@ def get_duracao_parada():
         print(f"Erro ao calcular duração da parada: {e}")
         return "Erro"
 
-# Coletar o histórico de reboot para o gráfico
-def get_reboot_history(year, month):
-    conectar_banco()
-    
-    current_date = datetime.now()
-    selected_date = datetime(year, month, 1)
-
-    if selected_date > current_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0):
-        return []
-
-    reboots = RebootHistory.select().where(
-        ((fn.strftime('%Y', RebootHistory.data_inicio) == str(year)) | (fn.strftime('%Y', RebootHistory.data_fim) == str(year))) &
-        ((fn.strftime('%m', RebootHistory.data_inicio) == f'{month:02d}') | (fn.strftime('%m', RebootHistory.data_fim) == f'{month:02d}')) &
-        (RebootHistory.data_inicio >= datetime.combine(monitoramento_atividade, datetime.min.time()))
-    ).order_by(RebootHistory.data_inicio)
-
-    # Períodos de parada
-    shutdown_periods = []
-    try:
-        ultima_atividade = Atividade.select().order_by(Atividade.id.desc()).get()
-        current_boot_time = datetime.strptime(ultima_atividade.uptime, "%Y-%m-%d %H:%M:%S")
-        reboots_list = list(reboots)
-        if reboots_list:
-            last_reboot_end = reboots_list[-1].data_fim
-            shutdown_periods.append((last_reboot_end, current_boot_time))
-    except (Atividade.DoesNotExist, RebootHistory.DoesNotExist):
-        reboots_list = list(reboots)
-    
-    # Processa os demais reboots (fora o atual)
-    for i in range(len(reboots_list) - 1):
-        parada_inicio = reboots_list[i].data_fim
-        parada_fim = reboots_list[i+1].data_inicio
-        shutdown_periods.append((parada_inicio, parada_fim))
-    
-    today = datetime.now().date()
-    last_day = calendar.monthrange(year, month)[1]
-    result = []
-    for d in range(1, last_day + 1):
-        dt = date(year, month, d)
-        
-        if dt < monitoramento_atividade:
-            continue
-        
-        if dt > today:
-            continue
-            
-        uptime_hours = 24.0
-        
-        for parada_inicio, parada_fim in shutdown_periods:
-            if dt >= parada_inicio.date() and dt <= parada_fim.date():
-                day_start = datetime.combine(dt, datetime.min.time())
-                day_end = datetime.combine(dt, datetime.max.time())
-                
-                parada_interval_start = max(day_start, parada_inicio)
-                parada_interval_end = min(day_end, parada_fim)
-                
-                parada_duration_seconds = (parada_interval_end - parada_interval_start).total_seconds()
-                uptime_hours -= parada_duration_seconds / 3600
-        
-        result.append({
-            "day": d,
-            "uptime_hours": max(0.0, min(round(uptime_hours, 1), 24.0))
-        })
-
-    return result
-
-# Card total de paradas anuais
 def get_total_paradas(selected_year):
-    conectar_banco()
-    year = int(selected_year)
-    reboots = RebootHistory.select().where(
-        (fn.strftime('%Y', RebootHistory.data_inicio) == str(year)) &
-        (RebootHistory.data_inicio >= datetime.combine(monitoramento_atividade, datetime.min.time()))
-    ).order_by(RebootHistory.data_inicio)
-    
-    if not reboots:
+    if selected_year is None:
         return 0
     
-    parada_times = [reboot.data_fim for reboot in reboots]
+    conectar_banco()
+    try:
+        year = int(selected_year)
+    except (ValueError, TypeError):
+        return 0
     
     try:
-        current_boot_time = datetime.strptime(
-            Atividade.select().order_by(Atividade.id.desc()).get().uptime,
-            "%Y-%m-%d %H:%M:%S"
-        )
-        parada_times.append(current_boot_time)
-    except Atividade.DoesNotExist:
-        pass
-    
-    if len(parada_times) < 2:
-        return 0
+        reboots = RebootHistory.select().where(
+            fn.strftime('%Y', RebootHistory.data_inicio) == str(year)
+        ).order_by(RebootHistory.data_inicio)
         
-    total_paradas = 0
-    for i in range(len(parada_times) - 1):
-        duracao = parada_times[i+1] - parada_times[i]
-        if duracao.total_seconds() > 60:
-            total_paradas += 1
-            
-    return total_paradas
-
-# Gráfico de paradas anuais
-def get_paradas_ano(selected_year):
-    conectar_banco()
-    year = int(selected_year)
-    reboots_list = list(RebootHistory.select().where(
-        (fn.strftime('%Y', RebootHistory.data_inicio) == str(year)) &
-        (RebootHistory.data_inicio >= datetime.combine(monitoramento_atividade, datetime.min.time()))
-    ).order_by(RebootHistory.data_inicio))
-    
-    paradas = []
-    # Processa as paradas entre os reboots
-    for i in range(len(reboots_list) - 1):
-        parada_inicio = reboots_list[i].data_fim
-        parada_fim = reboots_list[i+1].data_inicio
+        if not reboots:
+            return 0
         
-        duracao_seconds = (parada_fim - parada_inicio).total_seconds()
-        if duracao_seconds > 60:
-            paradas.append({
-                'inicio': parada_inicio,
-                'fim': parada_fim,
-                'duracao': duracao_seconds / 3600
-            })
-    # Adiciona a parada atual
-    if reboots_list:
+        parada_times = [reboot.data_fim for reboot in reboots]
+        
         try:
-            last_reboot_end = reboots_list[-1].data_fim
             current_boot_time = datetime.strptime(
                 Atividade.select().order_by(Atividade.id.desc()).get().uptime,
                 "%Y-%m-%d %H:%M:%S"
             )
-            duracao_seconds = (current_boot_time - last_reboot_end).total_seconds()
+            parada_times.append(current_boot_time)
+        except Atividade.DoesNotExist:
+            pass
+        
+        if len(parada_times) < 2:
+            return 0
+            
+        total_paradas = 0
+        for i in range(len(parada_times) - 1):
+            duracao = parada_times[i+1] - parada_times[i]
+            if duracao.total_seconds() > 60:
+                total_paradas += 1
+                
+        return total_paradas
+    except Exception as e:
+        print(f"Erro ao calcular total de paradas: {e}")
+        return 0
+
+def get_paradas_ano(selected_year):
+    if selected_year is None:
+        return []
+    
+    conectar_banco()
+    try:
+        year = int(selected_year)
+    except (ValueError, TypeError):
+        return []
+    
+    try:
+        reboots_list = list(RebootHistory.select().where(
+            fn.strftime('%Y', RebootHistory.data_inicio) == str(year)
+        ).order_by(RebootHistory.data_inicio))
+        
+        paradas = []
+        for i in range(len(reboots_list) - 1):
+            parada_inicio = reboots_list[i].data_fim
+            parada_fim = reboots_list[i+1].data_inicio
+            
+            duracao_seconds = (parada_fim - parada_inicio).total_seconds()
             if duracao_seconds > 60:
                 paradas.append({
-                    'inicio': last_reboot_end,
-                    'fim': current_boot_time,
+                    'inicio': parada_inicio,
+                    'fim': parada_fim,
                     'duracao': duracao_seconds / 3600
                 })
-        except (Atividade.DoesNotExist, RebootHistory.DoesNotExist):
-            pass
-    return paradas
+        
+        if reboots_list:
+            try:
+                last_reboot_end = reboots_list[-1].data_fim
+                current_boot_time = datetime.strptime(
+                    Atividade.select().order_by(Atividade.id.desc()).get().uptime,
+                    "%Y-%m-%d %H:%M:%S"
+                )
+                duracao_seconds = (current_boot_time - last_reboot_end).total_seconds()
+                if duracao_seconds > 60:
+                    paradas.append({
+                        'inicio': last_reboot_end,
+                        'fim': current_boot_time,
+                        'duracao': duracao_seconds / 3600
+                    })
+            except (Atividade.DoesNotExist, RebootHistory.DoesNotExist):
+                pass
+                
+        return paradas
+    except Exception as e:
+        print(f"Erro ao obter paradas do ano: {e}")
+        return []
 
-# Layout
+# ============================================================================
+# LAYOUT
+# ============================================================================
+
 layout_atividade = html.Div([
     # Título
-    html.H2("Painel de Atividade", style={
-        'color': fifth_color,
+    html.H2("📊 Painel de Atividade", style={
+        'color': first_color,
         'text-align': 'center',
-    }),
-    # Dias em atividade contínua e última ocorrência
-    html.Div([
-        html.Div([
-            html.H3("Dias em Atividade Contínua", style={
-                'text-align': 'center',
-                'margin-bottom': '1rem',
-                'font-size': '1.5rem'
-            }),
-            html.P(get_dias_ativos(), style={
-                'color': first_color,
-                'text-align': 'center',
-                'font-size': '3rem',
-                'font-weight': 'bold',
-                'margin': '0',
-                'text-shadow': '2px 2px 10px rgba(0,0,0,0.6)',
-                'transition': 'all 0.3s ease-in-out'
-            }),
-        ], style={
-            'background': '#343a40',
-            'border-left': f'6px solid {first_color}',
-            'border-radius': '1rem',
-            'padding': '1.5rem',
-            'margin': '1rem',
-            'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
-            'flex': '0 1 20%',
-            'min-width': '280px'
-        }),
-
-        html.Div([
-            html.H3("Última Ocorrência", style={
-                'text-align': 'center',
-                'margin-bottom': '1rem',
-                'font-size': '1.5rem'
-            }),
-            html.Div([
-                html.Div([
-                    html.P("Parada", style={'text-align': 'center', 'color': 'lightgray', 'margin-bottom': '0.2rem'}),
-                    html.P(get_data_ultima_parada(), style={
-                        'color': first_color,
-                        'text-align': 'center',
-                        'font-size': '1.4rem',
-                        'font-weight': 'bold'
-                    }),
-                ], style={'flex': '1', 'padding': '0 1rem', 'border-right': '1px solid #555'}),
-
-                html.Div([
-                    html.P("Retorno", style={'text-align': 'center', 'color': 'lightgray', 'margin-bottom': '0.2rem'}),
-                    html.P(get_data_retorno_ultima_parada(), style={
-                        'color': first_color,
-                        'text-align': 'center',
-                        'font-size': '1.4rem',
-                        'font-weight': 'bold'
-                    }),
-                ], style={'flex': '1', 'padding': '0 1rem', 'border-right': '1px solid #555'}),
-
-                html.Div([
-                    html.P("Duração", style={'text-align': 'center', 'color': 'lightgray', 'margin-bottom': '0.2rem'}),
-                    html.P(get_duracao_parada(), style={  
-                        'color': first_color,
-                        'text-align': 'center',
-                        'font-size': '1.4rem',
-                        'font-weight': 'bold'
-                    }),
-                ], style={'flex': '1'}),
-            ], style={
-                'display': 'flex',
-                'justify-content': 'space-around',
-                'align-items': 'center',
-                'gap': '0.5rem'
-            }),
-        ], style={
-            'background': '#343a40',
-            'border-left': f'6px solid {first_color}',
-            'border-radius': '1rem',
-            'padding': '1.5rem',
-            'margin': '1rem',
-            'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
-            'flex': '1',
-            'min-width': '400px'
-        }),
-        # Card total de paradas no ano
-        html.Div([
-            html.H3(id='paradas-title', style={
-                'text-align': 'center',
-                'margin-bottom': '1rem',
-                'font-size': '1.5rem'
-            }),
-            html.P(id='paradas-total', style={
-                'color': first_color,
-                'text-align': 'center',
-                'font-size': '3rem',
-                'font-weight': 'bold',
-                'margin': '0',
-                'text-shadow': '2px 2px 10px rgba(0,0,0,0.6)',
-                'transition': 'all 0.3s ease-in-out'
-            }),
-        ], style={
-            'background': '#343a40',
-            'border-left': f'6px solid {first_color}',
-            'border-radius': '1rem',
-            'padding': '1.5rem',
-            'margin': '1rem',
-            'box-shadow': '0 0 10px rgba(0,0,0,0.3)',
-            'flex': '0 1 20%',
-            'min-width': '280px'
-        }),
-    ], style={
-        'display': 'flex',
-        'flex-direction': 'row',
-        'gap': '2rem',
-        'justify-content': 'center',
-        'width': '80vw',
-        'color':'white',
-        'flex-wrap': 'wrap',
+        'margin-bottom': '2rem',
+        'font-weight': 'bold'
     }),
     
-    # Seleção do mês
-    dbc.Col(
-        dcc.Dropdown(
-            id='month_dropdown_atividade',
-            options=[
-                {"label": month, "value": i+1} for i, month in enumerate(
-                    ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-                )
-            ],
-            value=datetime.now().month,
-            clearable=False,
-            style={'width': '60%', 'margin': '0 auto'}
-        ),
-        width=2,
-        style={'text-align': 'center', 'margin': '2rem 0 0 0'}
-    ),
-
-    # Gráfico de atividade - tempo em atividade X dias do mês
-    dbc.Col([
+    # Cards de métricas
+    html.Div([
+        html.Div([
+            html.H3("📅 Dias em Atividade", style={'text-align': 'center', 'color': '#ccc', 'font-size': '1.2rem'}),
+            html.P(id='dias-ativos-display', children=get_dias_ativos(), style={
+                'color': first_color, 'text-align': 'center', 'font-size': '3rem', 'font-weight': 'bold'
+            }),
+            html.Small("Desde o primeiro relatório", style={'color': '#888'})
+        ], style={'background': '#343a40', 'border-radius': '1rem', 'padding': '1rem', 'margin': '0.5rem', 'flex': '1'}),
+        
+        html.Div([
+            html.H3("🕐 Última Ocorrência", style={'text-align': 'center', 'color': '#ccc', 'font-size': '1.2rem'}),
+            html.Div([
+                html.Div([html.P("⏹️ Parada", style={'color': '#ff6b6b'}), html.P(id='ultima-parada', style={'color': first_color})], style={'flex': '1'}),
+                html.Div([html.P("▶️ Retorno", style={'color': '#51cf66'}), html.P(id='ultimo-retorno', style={'color': first_color})], style={'flex': '1'}),
+                html.Div([html.P("⏱️ Duração", style={'color': '#ffd43b'}), html.P(id='duracao-parada', style={'color': first_color})], style={'flex': '1'}),
+            ], style={'display': 'flex', 'margin-top': '1rem'}),
+        ], style={'background': '#343a40', 'border-radius': '1rem', 'padding': '1rem', 'margin': '0.5rem', 'flex': '2'}),
+        
+        html.Div([
+            html.H3(id='paradas-title', children="Paradas no Ano", style={'text-align': 'center', 'color': '#ccc', 'font-size': '1.2rem'}),
+            html.P(id='paradas-total', children="0", style={'color': first_color, 'text-align': 'center', 'font-size': '3rem', 'font-weight': 'bold'}),
+        ], style={'background': '#343a40', 'border-radius': '1rem', 'padding': '1rem', 'margin': '0.5rem', 'flex': '1'}),
+    ], style={'display': 'flex', 'flex-wrap': 'wrap', 'width': '90%', 'margin-bottom': '2rem'}),
+    
+    # Gráfico de Atividade Mensal (Barras)
+    html.Div([
         html.H3(
-            "Atividade do Laboratório",
-            className="h3-subtitle", 
+            "📈 Atividade Mensal do Laboratório",
             style={
                 'color': third_color, 
                 'text-align': 'center', 
                 'background-color': first_color, 
-                'font-size': '1rem', 
-                'padding': '0.5rem', 
+                'font-size': '1.2rem', 
+                'padding': '0.75rem', 
                 'border-radius': '0.5rem 0.5rem 0 0',
                 'margin-bottom': '0',
+                'font-weight': 'bold'
+            }
+        ),
+        dbc.Card(
+            dcc.Graph(
+                id='yearly-activity-chart',
+                config={'displayModeBar': True, 'responsive': True},
+                style={'height': '450px'}
+            ),
+            className='shadow',
+            style={'background-color': third_color, 'border': 'none', 'margin-top': '0', 'width': '100%'}
+        )
+    ], style={'margin': '1rem 0', 'width': '90%'}),
+    
+    # Gráfico de Linha da Atividade
+    html.Div([
+        html.H3(
+            "📊 Evolução Mensal da Atividade",
+            style={
+                'color': third_color, 
+                'text-align': 'center', 
+                'background-color': first_color, 
+                'font-size': '1.2rem', 
+                'padding': '0.75rem', 
+                'border-radius': '0.5rem 0.5rem 0 0',
+                'margin-bottom': '0',
+                'font-weight': 'bold'
+            }
+        ),
+        dbc.Card(
+            dcc.Graph(
+                id='activity-line-chart',
+                config={'displayModeBar': True, 'responsive': True},
+                style={'height': '400px'}
+            ),
+            className='shadow',
+            style={'background-color': third_color, 'border': 'none', 'margin-top': '0', 'width': '100%'}
+        )
+    ], style={'margin': '2rem 0', 'width': '90%'}),
+    
+    # Gráfico Diário de Atividade (Uptime)
+    html.Div([
+        html.H3(
+            "📊 Atividade Diária do Laboratório",
+            style={
+                'color': third_color, 
+                'text-align': 'center', 
+                'background-color': first_color, 
+                'font-size': '1.2rem', 
+                'padding': '0.75rem', 
+                'border-radius': '0.5rem 0.5rem 0 0',
+                'margin-bottom': '0',
+                'font-weight': 'bold'
             }
         ),
         dbc.Card(
             dcc.Graph(
                 id='uptime-line-chart',
-                style={'height': '300px'}),
-            className='shadow text-center',
-            style={'background-color': third_color, 
-                   'border': 'none', 
-                   'margin-top': '0',
-                   'width': '80vw',
-                }
+                config={'displayModeBar': True, 'responsive': True},
+                style={'height': '400px'}
+            ),
+            className='shadow',
+            style={'background-color': third_color, 'border': 'none', 'margin-top': '0', 'width': '100%'}
         )
-    ], style={'margin': '1rem 3rem 0 3rem', }),
-
-# Gráfico geral paradas anuais
-    dbc.Col([
+    ], style={'margin': '2rem 0', 'width': '90%'}),
+    
+    # Gráfico de Paradas Anuais
+    html.Div([
         html.H3(
-            "Paradas Registradas no Ano",
-            className="h3-subtitle", 
+            "📉 Paradas Registradas no Ano",
             style={
                 'color': third_color, 
                 'text-align': 'center', 
                 'background-color': first_color, 
-                'font-size': '1rem', 
-                'padding': '0.5rem', 
+                'font-size': '1.2rem', 
+                'padding': '0.75rem', 
                 'border-radius': '0.5rem 0.5rem 0 0',
                 'margin-bottom': '0',
+                'font-weight': 'bold'
             }
         ),
         dbc.Card(
             dcc.Graph(
                 id='paradas-gerais-fig',
-                style={'height': '300px'}
+                config={'displayModeBar': True, 'responsive': True},
+                style={'height': '400px'}
             ),
-            className='shadow text-center',
-            style={
-                'background-color': third_color,
-                'border': 'none',
-                'margin-top': '0',
-                'width': '80vw',
-            }
+            className='shadow',
+            style={'background-color': third_color, 'border': 'none', 'margin-top': '0', 'width': '100%'}
         )
-    ], style={'margin': '1rem 3rem 2rem 3rem'}),
-
-    # Monitoramento de rede
+    ], style={'margin': '2rem 0', 'width': '90%'}),
+    
+    # Seleção do mês para o gráfico diário
     html.Div([
-        html.Div([
-            html.Div(id="monitoramento-status-card", style={
-                "marginTop": "4rem",
-                "color": "white",
-                "fontSize": "1.1rem", 
-                "fontWeight": "bold",
-                "textAlign": "center",
-                "minWidth": "220px",
-            }),
-        ], style={
-            "display": "flex", 
-            "justifyContent": "center",
-            "alignItems": "center",
-            "gap": "1rem", 
-            "flexWrap": "wrap",
-        }),
-
-        # Gráfico
+        html.Label("📅 Selecione o Mês para Visualização Diária:", style={'color': 'white', 'margin-right': '1rem', 'font-weight': 'bold'}),
+        dcc.Dropdown(
+            id='month_dropdown_atividade',
+            options=[
+                {"label": "Janeiro", "value": 1},
+                {"label": "Fevereiro", "value": 2},
+                {"label": "Março", "value": 3},
+                {"label": "Abril", "value": 4},
+                {"label": "Maio", "value": 5},
+                {"label": "Junho", "value": 6},
+                {"label": "Julho", "value": 7},
+                {"label": "Agosto", "value": 8},
+                {"label": "Setembro", "value": 9},
+                {"label": "Outubro", "value": 10},
+                {"label": "Novembro", "value": 11},
+                {"label": "Dezembro", "value": 12}
+            ],
+            value=datetime.now().month,
+            clearable=False,
+            style={'width': '250px', 'backgroundColor': '#343a40', 'color': 'white'}
+        ),
+    ], style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'margin': '2rem 0', 'flex-wrap': 'wrap', 'gap': '1rem'}),
+    
+    # Monitoramento de Rede
+    html.Div([
         html.H3(
-            "Monitoramento de Rede",
-            className="h3-subtitle", 
+            "🌐 Monitoramento de Rede",
             style={
                 'color': third_color, 
                 'text-align': 'center', 
                 'background-color': first_color, 
-                'font-size': '1rem', 
-                'padding': '0.5rem', 
+                'font-size': '1.2rem', 
+                'padding': '0.75rem', 
                 'border-radius': '0.5rem 0.5rem 0 0',
                 'margin-bottom': '0',
+                'font-weight': 'bold'
             }
         ),
-        # Seleção da data
+        
+        html.Div(id="monitoramento-status-card", style={
+            "marginTop": "1rem",
+            "color": "white",
+            "fontSize": "1.1rem", 
+            "fontWeight": "bold",
+            "textAlign": "center",
+        }),
+        
         html.Div([
-            html.Div([
-                html.Button("←", id="dia-anterior", n_clicks=0, style={
-                    "width": "2.5rem",
-                    "height": "2.5rem",
-                    "fontSize": "1.5rem",
-                    "border": "none",
-                    "color": "black",
-                    "background": first_color,
-                    "borderRadius": "0.5rem",
-                    "cursor": "pointer",
-                    "display": "flex",
-                    "alignItems": "center",
-                    "justifyContent": "center"
-                }),
-                dcc.DatePickerSingle(
-                    id='filtro-data-monitoramento',
-                    date=datetime.now().date(),
-                    display_format='DD/MM/YYYY',
-                    style={
-                        "width": "10rem",
-                        "height": "2.5rem",
-                        "borderRadius": "0.5rem",
-                        "textAlign": "center"
-                    }
-                ),
-                html.Button("→", id="dia-posterior", n_clicks=0, style={
-                    "width": "2.5rem",
-                    "height": "2.5rem",
-                    "fontSize": "1.5rem",
-                    "border": "none",
-                    "color": "black",
-                    "background": first_color,
-                    "borderRadius": "0.5rem",
-                    "cursor": "pointer",
-                    "display": "flex",
-                    "alignItems": "center",
-                    "justifyContent": "center"
-                }),
-                
-            ], style={
-                "display": "flex",
-                "justifyContent": "center",
-                "alignItems": "center",
-                "width": "100%",
-                "backgroundColor": third_color,
-                "boxShadow": "0 4px 24px rgba(0,0,0,0.4)",
-                "paddingTop": "0.5rem",
+            html.Button("◀", id="dia-anterior", n_clicks=0, style={
+                "width": "2.5rem",
+                "height": "2.5rem",
+                "fontSize": "1.2rem",
+                "border": "none",
+                "color": "black",
+                "background": first_color,
+                "borderRadius": "0.5rem",
+                "cursor": "pointer",
+                "fontWeight": "bold"
             }),
-
+            dcc.DatePickerSingle(
+                id='filtro-data-monitoramento',
+                date=datetime.now().date(),
+                display_format='DD/MM/YYYY',
+                style={
+                    "width": "12rem",
+                    "height": "2.5rem",
+                    "borderRadius": "0.5rem",
+                    "textAlign": "center",
+                    "margin": "0 1rem"
+                }
+            ),
+            html.Button("▶", id="dia-posterior", n_clicks=0, style={
+                "width": "2.5rem",
+                "height": "2.5rem",
+                "fontSize": "1.2rem",
+                "border": "none",
+                "color": "black",
+                "background": first_color,
+                "borderRadius": "0.5rem",
+                "cursor": "pointer",
+                "fontWeight": "bold"
+            }),
         ], style={
             "display": "flex",
             "justifyContent": "center",
             "alignItems": "center",
-            "width": "100%",
-            "color": "white",
+            "margin": "1rem 0",
+            "flexWrap": "wrap"
         }),
+        
         html.Div([
-            html.Label("Modo de Visualização:", style={"color": "white", "marginRight": "10px"}),
+            html.Label("📊 Modo de Visualização:", style={"color": "white", "marginRight": "1rem"}),
             dcc.RadioItems(
                 id="modo-visualizacao",
                 options=[
-                    {"label": "Média (intervalo de 5 min)", "value": "agrupado"},
-                    {"label": "Dados Brutos", "value": "bruto"},
+                    {"label": " Média (5 min)", "value": "agrupado"},
+                    {"label": " Dados Brutos", "value": "bruto"},
                 ],
                 value="agrupado",
-                labelStyle={"display": "inline-block", "marginRight": "20px", "color": "white"},
-                inputStyle={"marginRight": "5px"}
+                labelStyle={"display": "inline-block", "marginRight": "1.5rem", "color": "white"},
+                inputStyle={"marginRight": "0.5rem"}
             )
         ], style={
-            "backgroundColor": third_color,
-            "width": "100%",
             "display": "flex",
             "justifyContent": "center",
             "alignItems": "center",
-            "padding": "1rem 0 0 0"
+            "margin": "1rem 0",
+            "flexWrap": "wrap"
         }),
-        dcc.Graph(id="monitoramento-graph", style={"height": "400px"}),
+        
+        dcc.Graph(id="monitoramento-graph", style={"height": "450px"}),
         dcc.Interval(id="interval-monitoramento", interval=60*1000, n_intervals=0)
-    ], style={"width": "80vw"})
-
+        
+    ], style={"width": "90%", "margin": "1rem 0"})
 
 ], style={
     'box-sizing': 'border-box',
